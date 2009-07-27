@@ -1,0 +1,5 @@
+#! /usr/bin/env perl
+
+use Artemis::Cmd::API;
+Artemis::Cmd::API->run;
+
