@@ -1,5 +1,0 @@
-#! /usr/bin/env perl
-
-use Artemis::Cmd::DbDeploy;
-Artemis::Cmd::DbDeploy->run;
-
