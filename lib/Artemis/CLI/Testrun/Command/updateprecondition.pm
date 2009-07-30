@@ -43,7 +43,7 @@ sub validate_args {
 
 #         print "opt  = ", Dumper($opt);
 #         print "args = ", Dumper($args);
-        
+
         my $msg = "Unknown option";
         $msg   .= ($args and $#{$args} >=1) ? 's' : '';
         $msg   .= ": ";
@@ -92,58 +92,22 @@ sub update_precondition
         #print "opt  = ", Dumper($opt);
 
         my $id                              = $opt->{id};
-        my $shortname                       = $opt->{shortname}    || '';
         my $condition                       = $opt->{condition};
         my $condition_file                  = $opt->{condition_file};
-        my $timeout                         = $opt->{timeout};
 
         $condition ||= read_condition_file($condition_file);
 
-        exit -1 if ! Artemis::CLI::Testrun::_yaml_ok($condition);
+        my $cmd = Artemis::Cmd::Precondition->new();
+        $id = $cmd->update($id, $condition);
 
-        my $precondition = model('TestrunDB')->resultset('Precondition')->find($id);
-
-        if (not $precondition) {
-                say "Precondition with id $id not found.";
-                exit -1;
-
-        }
-
-        $precondition->shortname( $shortname );
-        $precondition->precondition( $condition );
-        $precondition->timeout( $timeout );
-        $precondition->update;
-
-        $self->assign_preconditions($opt, $args, $precondition);
-        say $opt->{verbose} ? $precondition->to_string : $precondition->id;
-}
-
-sub assign_preconditions {
-        my ($self, $opt, $args, $precondition) = @_;
-
-        my @ids = @{ $opt->{precondition} || [] };
-
-        return unless @ids;
-
-        # delete existing assignments
-        model('TestrunDB')
-            ->resultset('PrePrecondition')
-                ->search ({ parent_precondition_id => $precondition->id })
-                    ->delete;
-
-        # re-assign
-        my $succession = 1;
-        foreach (@ids) {
-                my $pre_precondition = model('TestrunDB')->resultset('PrePrecondition')->new
-                    ({
-                      parent_precondition_id => $precondition->id,
-                      child_precondition_id  => $_,
-                      succession             => $succession,
-                     });
-                $pre_precondition->insert;
-                $succession++
+        if ($opt->{verbose}) {
+                my $precondition = model('TestrunDB')->resultset('Precondition')->search({id => $id})->first;
+                say $precondition->to_string;
+        }  else {
+                say $id;
         }
 }
+
 
 
 # perl -Ilib bin/artemis-testrun updateprecondition --shortname=perl-5.10 --condition_file=- --timeout=100
