@@ -8,6 +8,7 @@ use parent 'App::Cmd::Command';
 use Data::Dumper;
 use Artemis::Model 'model';
 use Artemis::Schema::TestrunDB;
+use Artemis::Cmd::Testrun;
 
 sub abstract {
         'Delete a testrun'
@@ -37,12 +38,12 @@ sub _extract_bare_option_names {
 sub validate_args {
         my ($self, $opt, $args) = @_;
 
-        
+
         my $msg = "Unknown option";
         $msg   .= ($args and $#{$args} >=1) ? 's' : '';
         $msg   .= ": ";
         say STDERR $msg, join(', ',@$args) if ($args and @$args);
-        
+
         my $allowed_opts_re = join '|', _extract_bare_option_names();
 
         return 1 if grep /$allowed_opts_re/, keys %$opt;
@@ -52,23 +53,10 @@ sub validate_args {
 sub run {
         my ($self, $opt, $args) = @_;
 
-        $self->$_ ($opt, $args) foreach grep /^id$/, keys %$opt;
-}
-
-sub id
-{
-        my ($self, $opt, $args) = @_;
-
-        my @ids = @{ $opt->{id} };
-        die "Really? Then add --really to the options.\n" unless $opt->{really};
-        _get_entry_by_id($_)->delete foreach @ids;
-}
-
-# --------------------------------------------------
-
-sub _get_entry_by_id {
-        my ($id) = @_;
-        model('TestrunDB')->resultset('Testrun')->find($id);
+        my $cmd = Artemis::Cmd::Testrun->new();
+        foreach my $id (@{$opt->{id}}){
+                $cmd->del($id);
+        }
 }
 
 1;
