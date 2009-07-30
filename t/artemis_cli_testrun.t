@@ -49,7 +49,7 @@ chomp $precond_id;
 $precond = model('TestrunDB')->resultset('Precondition')->find($precond_id);
 is($precond->id, $old_precond_id, 'update precond / id');
 is($precond->shortname, 'foobar-perl-5.11', 'update precond / shortname');
-is($precond->precondition, 'not_affe_again: ~', 'update precond / yaml');
+like($precond->precondition, qr'not_affe_again: ~', 'update precond / yaml');
 
 # --------------------------------------------------
 
