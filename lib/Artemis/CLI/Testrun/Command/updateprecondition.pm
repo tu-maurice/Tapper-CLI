@@ -11,7 +11,8 @@ use File::Slurp;
 use Artemis::Model 'model';
 use Artemis::Schema::TestrunDB;
 use Artemis::CLI::Testrun;
-use Data::Dumper;
+use YAML::Syck;
+
 
 sub abstract {
         'Create a new precondition'
@@ -91,11 +92,19 @@ sub update_precondition
 
         #print "opt  = ", Dumper($opt);
 
-        my $id                              = $opt->{id};
-        my $condition                       = $opt->{condition};
-        my $condition_file                  = $opt->{condition_file};
+        my $id             = $opt->{id};
+        my $condition      = $opt->{condition};
+        my $condition_file = $opt->{condition_file};
+        my $shortname      = $opt->{shortname};
+
 
         $condition ||= read_condition_file($condition_file);
+        if ($shortname) {
+                my $data = Load($condition);
+                $data->{shortname} = $shortname;
+                $condition = Dump($data);
+        }
+
 
         my $cmd = Artemis::Cmd::Precondition->new();
         $id = $cmd->update($id, $condition);
