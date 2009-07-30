@@ -14,6 +14,7 @@ use Artemis::Cmd::Testrun;
 use Artemis::Cmd::Precondition;
 use Data::Dumper;
 use YAML::Syck;
+use TryCatch;
 
 sub abstract {
         'Create a new precondition'
@@ -105,7 +106,14 @@ sub new_precondition
         $condition .= "\n" unless $condition =~ /\n$/;
 
         my $cmd = Artemis::Cmd::Precondition->new();
-        my @ids = $cmd->add($condition);
+
+        my @ids;
+        try {
+                @ids = $cmd->add($condition);
+        }
+          catch (Artemis::Exception::Param $except) {
+                  die $except->msg();
+          }
 
         foreach my $id (@ids) {
                 my $precondition = model('TestrunDB')->resultset('Precondition')->search({id => $id})->first;
