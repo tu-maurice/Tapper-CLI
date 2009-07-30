@@ -185,7 +185,7 @@ sub create_macro_preconditions
 
         $tt->process(\$macro, $D, \$ttapplied) || die $tt->error();
         my $precondition = Artemis::Cmd::Precondition->new();
-        my @ids = $precondition->add($macro);
+        my @ids = $precondition->add($ttapplied);
         return @ids;
 }
 
