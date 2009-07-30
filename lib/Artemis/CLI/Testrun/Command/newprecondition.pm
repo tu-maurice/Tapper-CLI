@@ -10,7 +10,8 @@ use File::Slurp;
 
 use Artemis::Model 'model';
 use Artemis::Schema::TestrunDB;
-use Artemis::CLI::Testrun;
+use Artemis::Cmd::Testrun;
+use Artemis::Cmd::Precondition;
 use Data::Dumper;
 use YAML::Syck;
 
@@ -43,12 +44,12 @@ sub validate_args
 {
         my ($self, $opt, $args) = @_;
 
-        
+
         my $msg = "Unknown option";
         $msg   .= ($args and $#{$args} >=1) ? 's' : '';
         $msg   .= ": ";
         say STDERR $msg, join(', ',@$args) if ($args and @$args);
-        
+
 
         my $precond_ok = 1;
         if (not $opt->{condition} || $opt->{condition_file}) {
@@ -103,41 +104,15 @@ sub new_precondition
         $condition ||= read_condition_file($condition_file);
         $condition .= "\n" unless $condition =~ /\n$/;
 
-        exit -1 if ! Artemis::CLI::Testrun::_yaml_ok($condition);
+        my $cmd = Artemis::Cmd::Precondition->new();
+        my @ids = $cmd->add($condition);
 
-        my $precond_data = Load($condition);
+        foreach my $id (@ids) {
+                my $precondition = model('TestrunDB')->resultset('Precondition')->search({id => $id})->first;
+                print $opt->{verbose} ? $precondition->to_string : $id, "\n";
 
-        my $shortname    = $opt->{shortname} || $precond_data->{shortname} || '';
-
-        my $precondition = model('TestrunDB')->resultset('Precondition')->new
-            ({
-              shortname    => $shortname,
-              precondition => $condition,
-              timeout      => $timeout,
-             });
-        $precondition->insert;
-        $self->assign_preconditions($opt, $args, $precondition);
-        print $opt->{verbose} ? $precondition->to_string : $precondition->id, "\n";
-}
-
-sub assign_preconditions {
-        my ($self, $opt, $args, $precondition) = @_;
-
-        my @ids = @{ $opt->{precondition} || [] };
-
-        my $succession = 1;
-        foreach (@ids) {
-                my $pre_precondition = model('TestrunDB')->resultset('PrePrecondition')->new
-                    ({
-                      parent_precondition_id => $precondition->id,
-                      child_precondition_id  => $_,
-                      succession             => $succession,
-                     });
-                $pre_precondition->insert;
-                $succession++
         }
 }
-
 
 # perl -Ilib bin/artemis-testrun newprecondition --condition_file=- --timeout=100
 
