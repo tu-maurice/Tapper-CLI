@@ -70,12 +70,12 @@ sub validate_args {
         #         print "opt  = ", Dumper($opt);
         #         print "args = ", Dumper($args);
 
-        
+
         my $msg = "Unknown option";
         $msg   .= ($args and $#{$args} >=1) ? 's' : '';
         $msg   .= ": ";
         say STDERR $msg, join(', ',@$args) if ($args and @$args);
-        
+
 
         say "Missing argument --id"                   unless $opt->{id};
 
@@ -103,57 +103,19 @@ sub update_runtest
 {
         my ($self, $opt, $args) = @_;
 
-        #print "opt  = ", Dumper($opt);
+        my $cmd = Artemis::Cmd::Testrun->new();
+        # args are already validated at this point, we can be sure that opt->{id} exists
+        my $testrun_id = $cmd->update($opt->{id}, $opt);
+        die "Can't update testrun" if not $testrun_id;
 
-        my $id           = $opt->{id};
-        my $notes        = $opt->{notes}        || '';
-        my $shortname    = $opt->{shortname}    || '';
-        my $topic_name   = $opt->{topic}        || 'Misc';
-        my $date         = $opt->{earliest}     || DateTime->now;
-        my $hostname     = $opt->{hostname};
-        my $owner        = $opt->{owner}        || $ENV{USER};
+        # (XXX) descide, how to delete preconditions from a testrun
+        $cmd->assign_preconditions($testrun_id, @{$opt->{precondition}}) if $opt->{precondition} and @{$opt->{precondition}};
 
-        my $hardwaredb_systems_id = Artemis::CLI::Testrun::_get_systems_id_for_hostname( $hostname );
-        my $owner_user_id         = Artemis::CLI::Testrun::_get_user_id_for_login( $owner );
-
-        my $testrun = model('TestrunDB')->resultset('Testrun')->find($id);
-
-        $testrun->notes                 ( $notes                 ) if $notes;
-        $testrun->shortname             ( $shortname             ) if $shortname;
-        $testrun->topic_name            ( $topic_name            ) if $topic_name;
-        $testrun->starttime_earliest    ( $date                  ) if $date;
-        $testrun->owner_user_id         ( $owner_user_id         ) if $owner_user_id;
-        $testrun->hardwaredb_systems_id ( $hardwaredb_systems_id ) if $hardwaredb_systems_id;
-
-        $testrun->update;
-        $self->assign_preconditions($opt, $args, $testrun);
-        print $opt->{verbose} ? $testrun->to_string : $testrun->id, "\n";
-}
-
-sub assign_preconditions {
-        my ($self, $opt, $args, $testrun) = @_;
-
-        my @ids = @{ $opt->{precondition} || [] };
-
-        return unless @ids;
-
-        # delete existing assignments
-        model('TestrunDB')
-            ->resultset('TestrunPrecondition')
-                ->search ({ testrun_id => $testrun->id })
-                    ->delete;
-
-        # re-assign
-        my $succession = 1;
-        foreach (@ids) {
-                my $testrun_precondition = model('TestrunDB')->resultset('TestrunPrecondition')->new
-                    ({
-                      testrun_id      => $testrun->id,
-                      precondition_id => $_,
-                      succession      => $succession,
-                     });
-                $testrun_precondition->insert;
-                $succession++
+        if ($opt->{verbose}) {
+                my $testrun_search = model('TestrunDB')->resultset('Testrun')->search({id => $testrun_id});
+                say $testrun_search->to_string;
+        } else {
+                say $testrun_id;
         }
 }
 
