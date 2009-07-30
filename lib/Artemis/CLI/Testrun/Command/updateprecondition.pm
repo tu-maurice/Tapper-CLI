@@ -12,7 +12,7 @@ use Artemis::Model 'model';
 use Artemis::Schema::TestrunDB;
 use Artemis::CLI::Testrun;
 use YAML::Syck;
-
+use TryCatch;
 
 sub abstract {
         'Create a new precondition'
@@ -107,7 +107,13 @@ sub update_precondition
 
 
         my $cmd = Artemis::Cmd::Precondition->new();
-        $id = $cmd->update($id, $condition);
+
+        try {
+                $id = $cmd->update($id, $condition);
+        }
+          catch (Artemis::Exception::Param $except) {
+                  die $except->msg();
+          }
 
         if ($opt->{verbose}) {
                 my $precondition = model('TestrunDB')->resultset('Precondition')->search({id => $id})->first;
