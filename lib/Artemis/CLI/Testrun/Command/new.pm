@@ -103,19 +103,19 @@ sub validate_args
         my $topic_re = '('.join('|', keys %Artemis::Schema::TestrunDB::Result::Topic::topic_description).')';
         my $topic_ok = (!$topic || ($topic =~ /^$topic_re$/)) ? 1 : 0;
         say STDERR "Topic must match $topic_re." unless $topic_ok;
-        
+
         my $msg = "Unknown option";
         $msg   .= ($args and $#{$args} >=1) ? 's' : '';
         $msg   .= ": ";
         say STDERR $msg, join(', ',@$args) if ($args and @$args);
-        
+
 
         my @needed_opts;
         my $precondition_ok;
         foreach my $key (keys %$options) {
                 push @needed_opts, $key if  $options->{$key}->{needed};
         }
-        
+
         my $needed_opts_re = join '|', @needed_opts;
 
         if (grep /$needed_opts_re/, keys %$opt) {
@@ -135,7 +135,7 @@ sub validate_args
                         @mandatory = split (" ", $2);
                         shift @precond_lines;
                 }
-                
+
                 foreach my $field(@mandatory)
                 {
                         if (not $opt->{d}{$field}) {
@@ -172,13 +172,11 @@ App::Cmd::Command API.
 
 @returnlist array containing precondition ids
 
-=cut 
+=cut
 
 sub create_macro_preconditions
 {
         my ($self, $opt, $args) = @_;
-
-        my @ids = ();
 
         my $D             = $opt->{d}; # options are auto-down-cased
         my $tt            = new Template ();
@@ -186,21 +184,8 @@ sub create_macro_preconditions
         my $ttapplied;
 
         $tt->process(\$macro, $D, \$ttapplied) || die $tt->error();
-        exit -1 if ! Artemis::CLI::Testrun::_yaml_ok($ttapplied);
-        my @precond_data = Load($ttapplied);
-
- CONDITION:
-        foreach my $condition (@precond_data)
-        {
-                my $shortname    = $opt->{shortname} || $condition->{shortname} || $condition->{name} || 'macro.'.$condition->{precondition_type};
-                my $precondition = model('TestrunDB')->resultset('Precondition')->new
-                    ({
-                      shortname    => $shortname,
-                      precondition => Dump($condition),
-                     });
-                $precondition->insert;
-                push @ids, $precondition->id;
-        }
+        my $precondition = Artemis::Cmd::Precondition->new();
+        my @ids = $precondition->add($macro);
         return @ids;
 }
 
@@ -210,54 +195,36 @@ sub new_runtest
 
         #print "opt  = ", Dumper($opt);
 
-        my $notes        = $opt->{notes}        || '';
-        my $shortname    = $opt->{shortname}    || '';
-        my $topic_name   = $opt->{topic}        || 'Misc';
-        my $date         = $opt->{earliest}     || DateTime->now;
-        my $hostname     = $opt->{hostname};
-        my $owner        = $opt->{owner}        || $ENV{USER};
-
-        my $hardwaredb_systems_id = Artemis::CLI::Testrun::_get_systems_id_for_hostname( $hostname );
-        my $owner_user_id         = Artemis::CLI::Testrun::_get_user_id_for_login( $owner );
-
-        my $testrun = model('TestrunDB')->resultset('Testrun')->new
-            ({
-              notes                 => $notes,
-              shortname             => $shortname,
-              topic_name            => $topic_name,
-              starttime_earliest    => $date,
-              owner_user_id         => $owner_user_id,
-              hardwaredb_systems_id => $hardwaredb_systems_id,
-             });
-        $testrun->insert;
-        $self->assign_preconditions($opt, $args, $testrun);
-        print $opt->{verbose} ? $testrun->to_string : $testrun->id, "\n";
-}
-
-sub assign_preconditions {
-        my ($self, $opt, $args, $testrun) = @_;
-
+        my $testrun = {
+                       notes        => $opt->{notes}        || '',
+                       shortname    => $opt->{shortname}    || '',
+                       topic_name   => $opt->{topic}        || 'Misc',
+                       date         => $opt->{earliest}     || DateTime->now,
+                       hostname     => $opt->{hostname},
+                       owner        => $opt->{owner}        || $ENV{USER}
+                      };
         my @ids;
-        if ($opt->{macroprecond})
-        {
-                @ids = $self->create_macro_preconditions($opt, $args);
-        }
-        else
-        {
-                @ids = @{ $opt->{precondition} || [] };
-        }
-        my $succession = 1;
-        foreach (@ids) {
-                my $testrun_precondition = model('TestrunDB')->resultset('TestrunPrecondition')->new
-                    ({
-                      testrun_id      => $testrun->id,
-                      precondition_id => $_,
-                      succession      => $succession,
-                     });
-                $testrun_precondition->insert;
-                $succession++
+
+        @ids = $self->create_macro_preconditions($opt, $args) if $opt->{macroprecond};
+        push @ids, @{$opt->{precondition}} if $opt->{precondition};
+
+        die "No valid preconditions given" if not @ids;
+
+        my $cmd = Artemis::Cmd::Testrun->new();
+        my $testrun_id = $cmd->add($testrun);
+        die "Can't create new testrun because of an unknown error" if not $testrun_id;
+
+        my $retval = $cmd->assign_preconditions($testrun_id, @ids);
+        die $retval if $retval;
+
+        if ($opt->{verbose}) {
+                my $testrun_search = model('TestrunDB')->resultset('Testrun')->search({id => $testrun_id});
+                say $testrun_search->to_string;
+        } else {
+                say $testrun_id;
         }
 }
+
 
 
 # perl -Ilib bin/artemis-testrun new --topic=Software --precondition=14  --hostname=iring --owner=ss5
