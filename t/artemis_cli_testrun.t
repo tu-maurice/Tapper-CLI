@@ -13,40 +13,7 @@ use Artemis::Schema::TestTools;
 use Artemis::Model 'model';
 use Test::Fixture::DBIC::Schema;
 
-plan tests => 29;
-
-# --------------------------------------------------
-
-my $OK_YAML = '
----
-file_order:
-  - t/00-artemis-meta.t
-  - t/00-load.t
-  - t/artemis_logging_netlogappender.t
-  - t/artemis_mcp_builder.t
-  - t/artemis_mcp_runtest.t
-  - t/artemis_model.t
-  - t/artemis_systeminstaller.t
-  - t/artemis.t
-  - t/boilerplate.t
-  - t/experiments.t
-start_time: 1213352566
-stop_time: 1213352568
-';
-
-my $ERR_YAML = '
----
-file_order:
-  - t/experiments.t
-start_time: 1213352566
-  stop_time: 1213352568
-';
-
-is(Artemis::CLI::Testrun::_yaml_ok($OK_YAML), 1, "ok_yaml with correct yaml");
-is(Artemis::CLI::Testrun::_yaml_ok($ERR_YAML), 0, "ok_yaml with error yaml");
-
-# --------------------------------------------------
-
+plan tests => 24;
 
 # -----------------------------------------------------------------------------------------------------------------
 construct_fixture( schema  => testrundb_schema, fixture => 't/fixtures/testrundb/testrun_with_preconditions.yml' );
@@ -64,36 +31,25 @@ is($testrun->topic_name, 'Software', "testrun topic_name");
 is($testrun->topic->name, 'Software', "testrun topic->name");
 is($testrun->topic->description, 'any non-kernel software, e.g., libraries, programs', "testrun topic->description");
 
-is(Artemis::CLI::Testrun::_get_user_id_for_login('sschwigo'), 12, "_get_user_id_for_login / existing");
-is(Artemis::CLI::Testrun::_get_user_id_for_login('nonexistentuser'), 0, "_get_user_id_for_login / nonexisting");
 
 
-# --------------------------------------------------
-
-# TODO: {
-#         local $TODO = 'do not forget to implement some subs';
-
-#         isnt(Artemis::CLI::Testrun::_get_systems_id_for_hostname("affe"), 42, "_get_systems_id_for_hostname");
-# }
-
-my $precond_id = `/usr/bin/env perl -Ilib bin/artemis-testrun newprecondition --shortname="perl-5.10" --condition="affe:"`;
+my $precond_id = `/usr/bin/env perl -Ilib bin/artemis-testrun newprecondition  --condition="affe: ~"`;
 chomp $precond_id;
 
 my $precond = model('TestrunDB')->resultset('Precondition')->find($precond_id);
 ok($precond->id, 'inserted precond / id');
-is($precond->shortname, "perl-5.10", 'inserted precond / shortname');
-is($precond->precondition, "affe:\n", 'inserted precond / yaml');
+like($precond->precondition, qr"affe: ~", 'inserted precond / yaml');
 
 # --------------------------------------------------
 
 my $old_precond_id = $precond_id;
-$precond_id = `/usr/bin/env perl -Ilib bin/artemis-testrun updateprecondition --id=$old_precond_id --shortname="foobar-perl-5.11" --condition="not_affe_again:"`;
+$precond_id = `/usr/bin/env perl -Ilib bin/artemis-testrun updateprecondition --id=$old_precond_id --shortname="foobar-perl-5.11" --condition="not_affe_again: ~"`;
 chomp $precond_id;
 
 $precond = model('TestrunDB')->resultset('Precondition')->find($precond_id);
 is($precond->id, $old_precond_id, 'update precond / id');
 is($precond->shortname, 'foobar-perl-5.11', 'update precond / shortname');
-is($precond->precondition, 'not_affe_again:', 'update precond / yaml');
+is($precond->precondition, 'not_affe_again: ~', 'update precond / yaml');
 
 # --------------------------------------------------
 
