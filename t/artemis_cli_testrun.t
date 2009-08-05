@@ -13,7 +13,7 @@ use Artemis::Schema::TestTools;
 use Artemis::Model 'model';
 use Test::Fixture::DBIC::Schema;
 
-plan tests => 24;
+plan tests => 26;
 
 # -----------------------------------------------------------------------------------------------------------------
 construct_fixture( schema  => testrundb_schema, fixture => 't/fixtures/testrundb/testrun_with_preconditions.yml' );
@@ -101,3 +101,12 @@ like($testrun_id, qr/Expected macro field 'kernel_version' missing./, "missing m
 $testrun_id = `/usr/bin/env perl -Ilib bin/artemis-testrun new --hostname=iring 2>&1`;
 chomp $testrun_id;
 like($testrun_id, qr/At least one of .+ is required./, "Prevented testrun without precondition");
+
+$testrun_id = `/usr/bin/env perl -Ilib bin/artemis-testrun rerun --testrun=23`;
+chomp $testrun_id;
+isnt($testrun_id, 23, 'Rerun creates new testrun');
+$testrun = model('TestrunDB')->resultset('Testrun')->find($testrun_id);
+my $testrun_old = model('TestrunDB')->resultset('Testrun')->find(23);
+@precond_array = $testrun->ordered_preconditions;
+my @precond_array_old = $testrun_old->ordered_preconditions;
+is_deeply(\@precond_array, \@precond_array_old, 'Rerun testrun with same preconditions');
