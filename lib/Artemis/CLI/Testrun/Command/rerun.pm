@@ -73,12 +73,12 @@ sub validate_args
 {
         my ($self, $opt, $args) = @_;
 
-        
+
         my $msg = "Unknown option";
         $msg   .= ($args and $#{$args} >=1) ? 's' : '';
         $msg   .= ": ";
         say STDERR $msg, join(', ',@$args) if ($args and @$args);
-        
+
         unless ($opt->{testrun}) {
                 say "Missing argument --testrun";
                 die $self->usage->text;
@@ -100,37 +100,14 @@ sub new_runtest
 {
         my ($self, $opt, $args) = @_;
 
-        #print "opt  = ", Dumper($opt);
         my $id                    = $opt->{testrun};
-        my $date                  = $opt->{earliest} || DateTime->now;
-        my $testrun               = model('TestrunDB')->resultset('Testrun')->find( $id );
-        my $owner_user_id         = Artemis::CLI::Testrun::_get_user_id_for_login(       $opt->{owner}    ) if $opt->{owner};
-        my $hardwaredb_systems_id = Artemis::CLI::Testrun::_get_systems_id_for_hostname( $opt->{hostname} ) if $opt->{hostname};
-        my $testrun_new           = model('TestrunDB')->resultset('Testrun')->new
-            ({
-              notes                 => $opt->{notes} || $testrun->notes,
-              shortname             => $testrun->shortname,
-              topic_name            => $testrun->topic_name,
-              starttime_earliest    => $date,
-              test_program          => '',
-              owner_user_id         => $owner_user_id || $testrun->owner_user_id,
-              hardwaredb_systems_id => $hardwaredb_systems_id || $testrun->hardwaredb_systems_id,
-             });
+        my $cmd = Artemis::Cmd::Testrun->new();
+        my $retval = $cmd->rerun($id, $opt);
+        die "Can't restart testrun $id" if not $retval;
 
-        $testrun_new->insert;
+        my $testrun = model('TestrunDB')->resultset('Testrun')->find( $retval );
 
-        my $preconditions = model('TestrunDB')->resultset('TestrunPrecondition')->search({testrun_id => $testrun->id}, { order_by => 'precondition_id' });
-        while (my $precond = $preconditions->next) {
-                my $precond_new = model('TestrunDB')->resultset('TestrunPrecondition')->new
-                  ({
-                    testrun_id => $testrun_new->id,
-                    precondition_id => $precond->precondition_id,
-                    succession => $precond->succession,
-                   });
-                $precond_new->insert;
-        }
-
-        print $opt->{verbose} ? $testrun_new->to_string : $testrun_new->id, "\n";
+        print $opt->{verbose} ? $testrun->to_string : $testrun->id, "\n";
 }
 
 
