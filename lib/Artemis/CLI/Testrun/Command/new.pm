@@ -198,7 +198,7 @@ sub new_runtest
         my $testrun = {
                        notes        => $opt->{notes}        || '',
                        shortname    => $opt->{shortname}    || '',
-                       topic_name   => $opt->{topic}        || 'Misc',
+                       topic        => $opt->{topic}        || 'Misc',
                        date         => $opt->{earliest}     || DateTime->now,
                        hostname     => $opt->{hostname},
                        owner        => $opt->{owner}        || $ENV{USER}
