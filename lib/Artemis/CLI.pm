@@ -3,7 +3,7 @@ package Artemis::CLI;
 use warnings;
 use strict;
 
-our $VERSION = '2.010018';
+our $VERSION = '2.010019';
 
 
 
