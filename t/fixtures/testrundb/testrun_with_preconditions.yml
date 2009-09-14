@@ -29,6 +29,7 @@
     notes: perfmon
     topic_name: Software
     test_program: /usr/local/share/artemis/testsuites/perfmon/t/do_test.sh
+    hardwaredb_systems_id: 12
 
 - schema: Testrun
   name: lmbench
@@ -148,3 +149,48 @@
     child_precondition_id: 11
     succession: 1
 
+# -------------------- hosts --------------------
+
+- schema: Host
+  name: iring
+  data:
+    id: 5
+    name: iring
+    free: 1
+
+- schema: Host
+  name: bullock
+  data:
+    id: 6
+    name: bullock
+    free: 1
+
+- schema: Host
+  name: dickstone
+  data:
+    id: 7
+    name: dickstone
+    free: 1
+
+- schema: Host
+  name: athene
+  data:
+    id: 8
+    name: athene
+    free: 1
+
+- schema: Host
+  name: bascha
+  data:
+    id: 9
+    name: bascha
+    free: 1
+
+# ----------------------------- Queues ----------------------
+
+- schema: Queue
+  name: AdHoc
+  data:
+    id: 65
+    name: AdHoc
+    priority: 700

@@ -13,7 +13,7 @@ use Artemis::Schema::TestTools;
 use Artemis::Model 'model';
 use Test::Fixture::DBIC::Schema;
 
-plan tests => 29;
+plan tests => 30;
 
 # -----------------------------------------------------------------------------------------------------------------
 construct_fixture( schema  => testrundb_schema, fixture => 't/fixtures/testrundb/testrun_with_preconditions.yml' );
@@ -104,7 +104,9 @@ like($testrun_id, qr/At least one of .+ is required./, "Prevented testrun withou
 
 $testrun_id = `/usr/bin/env perl -Ilib bin/artemis-testrun rerun --testrun=23`;
 chomp $testrun_id;
+ok($testrun_id, 'Got some testrun');
 isnt($testrun_id, 23, 'Rerun creates new testrun');
+diag $testrun_id;
 $testrun = model('TestrunDB')->resultset('Testrun')->find($testrun_id);
 my $testrun_old = model('TestrunDB')->resultset('Testrun')->find(23);
 @precond_array = $testrun->ordered_preconditions;
