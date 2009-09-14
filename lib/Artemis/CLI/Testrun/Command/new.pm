@@ -29,6 +29,7 @@ sub abstract {
 my $options = { "verbose"          => { text => "some more informational output" },
                 "notes"            => { text => "TEXT; notes", type => 'string' },
                 "shortname"        => { text => "TEXT; shortname", type => 'string' },
+                "queue"            => { text => "STRING, default=AdHoc", type => 'string' },
                 "topic"            => { text => "STRING, default=Misc; one of: Kernel, Xen, KVM, Hardware, Distribution, Benchmark, Software, Misc", type => 'string' },
                 "hostname"         => { text => "INT; the hostname on which the test should be run", type => 'string' },
                 "owner"            => { text => "STRING, default=\$USER; user login name", type => 'string' },
@@ -60,7 +61,7 @@ sub opt_spec {
 sub usage_desc
 {
         my $allowed_opts = join ' ', map { '--'.$_ } _allowed_opts();
-        "artemis-testruns new --hostname=s [ --topic=s --notes=s | --shortname=s | --owner=s | --wait_after_tests=s | --macroprecond=s | -Dkey=val ]*";
+        "artemis-testruns new --hostname=s [ --topic=s | --queue=s | --notes=s | --shortname=s | --owner=s | --wait_after_tests=s | --macroprecond=s | -Dkey=val ]*";
 }
 
 sub _allowed_opts
