@@ -101,9 +101,6 @@ sub validate_args
 
         # -- topic constraints --
         my $topic    = $opt->{topic} || '';
-        my $topic_re = '('.join('|', keys %Artemis::Schema::TestrunDB::Result::Topic::topic_description).')';
-        my $topic_ok = (!$topic || ($topic =~ /^$topic_re$/)) ? 1 : 0;
-        say STDERR "Topic must match $topic_re." unless $topic_ok;
 
         my $msg = "Unknown option";
         $msg   .= ($args and $#{$args} >=1) ? 's' : '';
@@ -147,7 +144,7 @@ sub validate_args
                 $self->{macropreconds} = join '',@precond_lines;
         }
 
-        return 1 if $opt->{hostname} and $topic_ok and $precondition_ok and $macrovalues_ok;
+        return 1 if $opt->{hostname} and $precondition_ok and $macrovalues_ok;
 
         die $self->usage->text;
 }
@@ -199,7 +196,7 @@ sub new_runtest
         my $testrun = {
                        notes        => $opt->{notes}        || '',
                        shortname    => $opt->{shortname}    || '',
-                       topic_name   => $opt->{topic}        || 'Misc',
+                       topic        => $opt->{topic}        || 'Misc',
                        date         => $opt->{earliest}     || DateTime->now,
                        hostname     => $opt->{hostname},
                        owner        => $opt->{owner}        || $ENV{USER}

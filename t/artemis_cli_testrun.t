@@ -13,8 +13,6 @@ use Artemis::Schema::TestTools;
 use Artemis::Model 'model';
 use Test::Fixture::DBIC::Schema;
 
-plan tests => 30;
-
 # -----------------------------------------------------------------------------------------------------------------
 construct_fixture( schema  => testrundb_schema, fixture => 't/fixtures/testrundb/testrun_with_preconditions.yml' );
 # -----------------------------------------------------------------------------------------------------------------
@@ -59,6 +57,7 @@ chomp $testrun_id;
 $testrun = model('TestrunDB')->resultset('Testrun')->find($testrun_id);
 ok($testrun->id, 'inserted testrun / id');
 is($testrun->hardwaredb_systems_id, 12, 'inserted testrun / systems_id');
+is($testrun->topic->name, 'Software', 'Topic for new testrun');
 
 # --------------------------------------------------
 
@@ -113,9 +112,7 @@ my $testrun_old = model('TestrunDB')->resultset('Testrun')->find(23);
 my @precond_array_old = $testrun_old->ordered_preconditions;
 is_deeply(\@precond_array, \@precond_array_old, 'Rerun testrun with same preconditions');
 
-
 # --------------------------------------------------
-
 
 my $queue_id = `/usr/bin/env perl -Ilib bin/artemis-testrun newqueue  --name="Affe" --priority=4711`;
 chomp $queue_id;
@@ -126,3 +123,4 @@ is($queue->name, "Affe", 'inserted queue / name');
 is($queue->priority, 4711, 'inserted queue / priority');
 
 # --------------------------------------------------
+done_testing();
