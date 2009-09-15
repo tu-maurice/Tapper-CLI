@@ -33,7 +33,8 @@ my $options = { "verbose"          => { text => "some more informational output"
                 "topic"            => { text => "STRING, default=Misc; one of: Kernel, Xen, KVM, Hardware, Distribution, Benchmark, Software, Misc", type => 'string' },
                 "hostname"         => { text => "INT; the hostname on which the test should be run", type => 'string' },
                 "owner"            => { text => "STRING, default=\$USER; user login name", type => 'string' },
-                "wait_after_tests" => { text => "BOOL, default=0; wait after testrun for human investigation", type => 'string' },
+                "wait_after_tests" => { text => "BOOL, default=0; wait after testrun for human investigation", type => 'bool' },
+                "auto_rerun"       => { text => "BOOL, default=0; put this testrun into db again when it is chosen by scheduler", type => 'bool' },
                 "earliest"         => { text => "STRING, default=now; don't start testrun before this time (format: YYYY-MM-DD hh:mm:ss or now)", type => 'string' },
                 "precondition"     => { text => "assigned precondition ids", needed => 1, type => 'manystring'  },
                 "macroprecond"     => { text => "STRING, use this macro precondition file", needed => 1 , type => 'string' },
@@ -61,7 +62,7 @@ sub opt_spec {
 sub usage_desc
 {
         my $allowed_opts = join ' ', map { '--'.$_ } _allowed_opts();
-        "artemis-testruns new --hostname=s [ --topic=s | --queue=s | --notes=s | --shortname=s | --owner=s | --wait_after_tests=s | --macroprecond=s | -Dkey=val ]*";
+        "artemis-testruns new --hostname=s [ --topic=s | --queue=s | --notes=s | --shortname=s | --owner=s | --wait_after_tests=s | --macroprecond=s | -Dkey=val | --auto_rerun]*";
 }
 
 sub _allowed_opts
@@ -199,7 +200,9 @@ sub new_runtest
                        topic        => $opt->{topic}        || 'Misc',
                        date         => $opt->{earliest}     || DateTime->now,
                        hostname     => $opt->{hostname},
-                       owner        => $opt->{owner}        || $ENV{USER}
+                       owner        => $opt->{owner}        || $ENV{USER},
+                       auto_rerun   => $opt->{auto_rerun},
+                       queue        => $opt->{queue}        || 'AdHoc',
                       };
         my @ids;
 
