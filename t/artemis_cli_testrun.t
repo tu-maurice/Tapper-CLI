@@ -122,5 +122,16 @@ ok($queue->id, 'inserted queue / id');
 is($queue->name, "Affe", 'inserted queue / name');
 is($queue->priority, 4711, 'inserted queue / priority');
 
+$testrun_id = `/usr/bin/env perl -Ilib bin/artemis-testrun new --topic=Software --hostname=iring --precondition=1 --queue=Affe --auto_rerun`;
+chomp $testrun_id;
+
+$testrun = model('TestrunDB')->resultset('Testrun')->find($testrun_id);
+ok($testrun->id, 'inserted testrun / id');
+is($testrun->hardwaredb_systems_id, 12, 'inserted testrun / systems_id');
+is($testrun->topic->name, 'Software', 'Topic for new testrun');
+is($testrun->testrun_scheduling->queue->name, 'Affe', 'Queue for new testrun');
+is($testrun->testrun_scheduling->auto_rerun, '1', 'Auto_rerun new testrun');
+
+
 # --------------------------------------------------
 done_testing();
