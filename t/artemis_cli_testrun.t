@@ -14,7 +14,7 @@ use Artemis::Model 'model';
 use Test::Fixture::DBIC::Schema;
 
 # -----------------------------------------------------------------------------------------------------------------
-construct_fixture( schema  => testrundb_schema, fixture => 't/fixtures/testrundb/testrun_with_preconditions.yml' );
+construct_fixture( schema  => testrundb_schema, fixture => 't/fixtures/testrundb/testruns_with_scheduling.yml' );
 # -----------------------------------------------------------------------------------------------------------------
 # -----------------------------------------------------------------------------------------------------------------
 construct_fixture( schema  => hardwaredb_schema, fixture => 't/fixtures/hardwaredb/systems.yml' );
@@ -51,24 +51,41 @@ like($precond->precondition, qr'not_affe_again: ~', 'update precond / yaml');
 
 # --------------------------------------------------
 
-my $testrun_id = `/usr/bin/env perl -Ilib bin/artemis-testrun new --topic=Software --hostname=iring --precondition=1`;
+my $testrun_id = `/usr/bin/env perl -Ilib bin/artemis-testrun new --topic=Software --requested_host=iring --precondition=1`;
 chomp $testrun_id;
 
 $testrun = model('TestrunDB')->resultset('Testrun')->find($testrun_id);
 ok($testrun->id, 'inserted testrun / id');
-is($testrun->hardwaredb_systems_id, 12, 'inserted testrun / systems_id');
+is($testrun->testrun_scheduling->requested_hosts->first->host->name, 'iring', 'inserted testrun / first requested host');
 is($testrun->topic->name, 'Software', 'Topic for new testrun');
 
 # --------------------------------------------------
+#
+# Testrun with requested feature
+#
 
-my $old_testrun_id = $testrun_id;
-$testrun_id = `/usr/bin/env perl -Ilib bin/artemis-testrun update --id=$old_testrun_id --topic=Hardware --hostname=iring`;
+$testrun_id = `/usr/bin/env perl -Ilib bin/artemis-testrun new --requested_feature='mem > 4096' --queue=KVM --precondition=1`;
 chomp $testrun_id;
 
 $testrun = model('TestrunDB')->resultset('Testrun')->find($testrun_id);
-is($testrun->id, $old_testrun_id, 'updated testrun / id');
-is($testrun->topic_name, "Hardware", 'updated testrun / topic');
-is($testrun->hardwaredb_systems_id, 12, 'updated testrun / systems_id');
+ok($testrun->id, 'inserted testrun / id');
+is($testrun->testrun_scheduling->requested_features->first->feature, 'mem > 4096', 'inserted testrun / first requested feature');
+is($testrun->testrun_scheduling->queue->name, 'KVM', 'inserted testrun / Queue');
+
+
+
+# --------------------------------------------------
+SKIP: {
+        skip "Update is currently deprecated", 3;
+        my $old_testrun_id = $testrun_id;
+        $testrun_id = `/usr/bin/env perl -Ilib bin/artemis-testrun update --id=$old_testrun_id --topic=Hardware --requested_host=iring`;
+        chomp $testrun_id;
+
+        $testrun = model('TestrunDB')->resultset('Testrun')->find($testrun_id);
+        is($testrun->id, $old_testrun_id, 'updated testrun / id');
+        is($testrun->topic_name, "Hardware", 'updated testrun / topic');
+        is($testrun->testrun_scheduling->requested_hosts->first->host->name, 'iring', 'updated testrun / first requested host');
+}
 
 # --------------------------------------------------
 
@@ -82,7 +99,7 @@ is($precond, undef, "delete precond");
 
 # --------------------------------------------------
 
-$testrun_id = `/usr/bin/env perl -Ilib bin/artemis-testrun new --macroprecond=t/files/kernel_boot.mpc -Dkernel_version=2.6.19 --hostname=iring`;
+$testrun_id = `/usr/bin/env perl -Ilib bin/artemis-testrun new --macroprecond=t/files/kernel_boot.mpc -Dkernel_version=2.6.19 --requested_host=iring`;
 chomp $testrun_id;
 $testrun = model('TestrunDB')->resultset('Testrun')->search({id => $testrun_id,})->first();
 
@@ -93,11 +110,11 @@ is($precond_array[1]->precondition_as_hash->{precondition_type}, "exec",'Parsing
 is($precond_array[1]->precondition_as_hash->{options}->[0], "2.6.19",'Parsing macropreconditions, template toolkit substitution');
 is($precond_array[0]->precondition_as_hash->{filename}, "kernel/linux-2.6.19.tar.gz",'Parsing macropreconditions, template toolkit with if block');
 
-$testrun_id = `/usr/bin/env perl -Ilib bin/artemis-testrun new --macroprecond=t/files/kernel_boot.mpc --hostname=iring 2>&1`;
+$testrun_id = `/usr/bin/env perl -Ilib bin/artemis-testrun new --macroprecond=t/files/kernel_boot.mpc --requested_host=iring 2>&1`;
 chomp $testrun_id;
 like($testrun_id, qr/Expected macro field 'kernel_version' missing./, "missing mandatory field recognized");
 
-$testrun_id = `/usr/bin/env perl -Ilib bin/artemis-testrun new --hostname=iring 2>&1`;
+$testrun_id = `/usr/bin/env perl -Ilib bin/artemis-testrun new --requested_host=iring 2>&1`;
 chomp $testrun_id;
 like($testrun_id, qr/At least one of .+ is required./, "Prevented testrun without precondition");
 
@@ -105,7 +122,6 @@ $testrun_id = `/usr/bin/env perl -Ilib bin/artemis-testrun rerun --testrun=23`;
 chomp $testrun_id;
 ok($testrun_id, 'Got some testrun');
 isnt($testrun_id, 23, 'Rerun creates new testrun');
-diag $testrun_id;
 $testrun = model('TestrunDB')->resultset('Testrun')->find($testrun_id);
 my $testrun_old = model('TestrunDB')->resultset('Testrun')->find(23);
 @precond_array = $testrun->ordered_preconditions;
@@ -122,12 +138,11 @@ ok($queue->id, 'inserted queue / id');
 is($queue->name, "Affe", 'inserted queue / name');
 is($queue->priority, 4711, 'inserted queue / priority');
 
-$testrun_id = `/usr/bin/env perl -Ilib bin/artemis-testrun new --topic=Software --hostname=iring --precondition=1 --queue=Affe --auto_rerun`;
+$testrun_id = `/usr/bin/env perl -Ilib bin/artemis-testrun new --topic=Software --requested_host=iring --precondition=1 --queue=Affe --auto_rerun`;
 chomp $testrun_id;
 
 $testrun = model('TestrunDB')->resultset('Testrun')->find($testrun_id);
 ok($testrun->id, 'inserted testrun / id');
-is($testrun->hardwaredb_systems_id, 12, 'inserted testrun / systems_id');
 is($testrun->topic->name, 'Software', 'Topic for new testrun');
 is($testrun->testrun_scheduling->queue->name, 'Affe', 'Queue for new testrun');
 is($testrun->testrun_scheduling->auto_rerun, '1', 'Auto_rerun new testrun');
