@@ -130,22 +130,22 @@ sub validate_args
         if ($opt->{macroprecond}) {
                 my @precond_lines =  slurp $opt->{macroprecond};
                 my @mandatory;
-                if ($precond_lines[0] =~/# (artemis[_-])?mandatory[_-]fields:(.+)/) {
-                        @mandatory = split (" ", $2);
-                        shift @precond_lines;
+                my $required;
+                foreach my $line (@precond_lines) {
+                        ($required) = $line =~/# (?:artemis[_-])?mandatory[_-]fields:\s*(.+)/;
+                        last if $required;
                 }
 
-                foreach my $field(@mandatory)
-                {
-                        if (not $opt->{d}{$field}) {
-                                say STDERR "Expected macro field '$field' missing.";
+                foreach my $field (split $delim, $required) {
+                        my ($name, $type) = split /\./, $field;
+                        if (not $opt->{d}{$name}) {
+                                say STDERR "Expected macro field '$name' missing.";
                                 $macrovalues_ok = 0;
                         }
                 }
-                $self->{macropreconds} = join '',@precond_lines;
         }
 
-        return 1 if $opt->{hostname} and $precondition_ok and $macrovalues_ok;
+        return 1 if $precondition_ok and $macrovalues_ok;
 
         die $self->usage->text;
 }
