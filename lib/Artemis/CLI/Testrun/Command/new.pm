@@ -149,7 +149,6 @@ sub validate_args
                         }
                 }
                 $self->{macropreconds} = join '',@precond_lines;
-
         }
 
         return 1 if $precondition_ok and $macrovalues_ok;
