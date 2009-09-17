@@ -12,6 +12,8 @@ use Data::Dumper;
 use File::Slurp 'slurp';
 use Artemis::Model 'model';
 use Artemis::Schema::TestrunDB;
+use Artemis::Cmd::Precondition;
+use Artemis::Cmd::Requested;
 use Artemis::CLI::Testrun;
 use DateTime::Format::Natural;
 require Artemis::Schema::TestrunDB::Result::Topic;
@@ -26,19 +28,23 @@ sub abstract {
 }
 
 
-my $options = { "verbose"          => { text => "some more informational output" },
-                "notes"            => { text => "TEXT; notes", type => 'string' },
-                "shortname"        => { text => "TEXT; shortname", type => 'string' },
-                "queue"            => { text => "STRING, default=AdHoc", type => 'string' },
-                "topic"            => { text => "STRING, default=Misc; one of: Kernel, Xen, KVM, Hardware, Distribution, Benchmark, Software, Misc", type => 'string' },
-                "hostname"         => { text => "INT; the hostname on which the test should be run", type => 'string' },
-                "owner"            => { text => "STRING, default=\$USER; user login name", type => 'string' },
-                "wait_after_tests" => { text => "BOOL, default=0; wait after testrun for human investigation", type => 'bool' },
-                "auto_rerun"       => { text => "BOOL, default=0; put this testrun into db again when it is chosen by scheduler", type => 'bool' },
-                "earliest"         => { text => "STRING, default=now; don't start testrun before this time (format: YYYY-MM-DD hh:mm:ss or now)", type => 'string' },
-                "precondition"     => { text => "assigned precondition ids", needed => 1, type => 'manystring'  },
-                "macroprecond"     => { text => "STRING, use this macro precondition file", needed => 1 , type => 'string' },
-                "D"                => { text => "Define a key=value pair used in macro preconditions", type => 'keyvalue' },
+my $options = { "verbose"           => { text => "some more informational output" },
+                "notes"             => { text => "TEXT; notes", type => 'string' },
+                "shortname"         => { text => "TEXT; shortname", type => 'string' },
+                "queue"             => { text => "STRING, default=AdHoc", type => 'string' },
+                "topic"             => { text => "STRING, default=Misc; one of: Kernel, Xen, KVM, Hardware, Distribution, Benchmark, Software, Misc", type => 'string' },
+                "owner"             => { text => "STRING, default=\$USER; user login name", type => 'string' },
+                "wait_after_tests"  => { text => "BOOL, default=0; wait after testrun for human investigation", type => 'bool' },
+                "auto_rerun"        => { text => "BOOL, default=0; put this testrun into db again when it is chosen by scheduler", type => 'bool' },
+                "earliest"          => { text => "STRING, default=now; don't start testrun before this time (format: YYYY-MM-DD hh:mm:ss or now)", type => 'string' },
+                "precondition"      => { text => "assigned precondition ids", needed => 1, type => 'manystring'  },
+                "macroprecond"      => { text => "STRING, use this macro precondition file", needed => 1 , type => 'string' },
+                "D"                 => { text => "Define a key=value pair used in macro preconditions", type => 'keyvalue' },
+                "requested_host"    => { text => "String; name one possible host for this testrequest; \n\t\t\t\t  ".
+                                                "multiple requested hosts are OR evaluated, i.e. each is appropriate", type => 'manystring' },
+                "requested_feature" => { text => "String; description of one requested feature of a matching host for this testrequest; \n\t\t\t\t  ".
+                                                "multiple requested features are AND evaluated, i.e. each must fit; ".
+                                                "not evaluated if a matching requested host is found already", type => 'manystring' },
                 };
 
 sub opt_spec {
@@ -62,7 +68,7 @@ sub opt_spec {
 sub usage_desc
 {
         my $allowed_opts = join ' ', map { '--'.$_ } _allowed_opts();
-        "artemis-testruns new --hostname=s [ --topic=s | --queue=s | --notes=s | --shortname=s | --owner=s | --wait_after_tests=s | --macroprecond=s | -Dkey=val | --auto_rerun]*";
+        "artemis-testruns new  [ --requested_host=s@ | --requested_feature=s@ | --topic=s | --queue=s | --notes=s | --shortname=s | --owner=s | --wait_after_tests=s | --macroprecond=s | -Dkey=val | --auto_rerun]*";
 }
 
 sub _allowed_opts
@@ -97,8 +103,6 @@ sub validate_args
 
         #         print "opt  = ", Dumper($opt);
         #         print "args = ", Dumper($args);
-
-        say "Missing argument --hostname"                   unless  $opt->{hostname};
 
         # -- topic constraints --
         my $topic    = $opt->{topic} || '';
@@ -136,6 +140,7 @@ sub validate_args
                         last if $required;
                 }
 
+                my $delim = qr/,+\s*/;
                 foreach my $field (split $delim, $required) {
                         my ($name, $type) = split /\./, $field;
                         if (not $opt->{d}{$name}) {
@@ -143,6 +148,8 @@ sub validate_args
                                 $macrovalues_ok = 0;
                         }
                 }
+                $self->{macropreconds} = join '',@precond_lines;
+
         }
 
         return 1 if $precondition_ok and $macrovalues_ok;
@@ -153,8 +160,6 @@ sub validate_args
 sub run
 {
         my ($self, $opt, $args) = @_;
-
-        require Artemis;
 
         $self->new_runtest ($opt, $args);
 }
@@ -188,6 +193,27 @@ sub create_macro_preconditions
         return @ids;
 }
 
+
+sub add_host
+{
+        my ($self, $testrun_id, $host) = @_;
+        my $cmd =  Artemis::Cmd::Requested->new();
+        my $id = $cmd->add_host($testrun_id, $host);
+        return $id;
+
+}
+
+
+sub add_feature
+{
+        my ($self, $testrun_id, $feature) = @_;
+        my $cmd = Artemis::Cmd::Requested->new();
+        my $id = $cmd->add_feature($testrun_id, $feature);
+        return $id;
+
+}
+
+
 sub new_runtest
 {
         my ($self, $opt, $args) = @_;
@@ -199,12 +225,12 @@ sub new_runtest
                        shortname    => $opt->{shortname}    || '',
                        topic        => $opt->{topic}        || 'Misc',
                        date         => $opt->{earliest}     || DateTime->now,
-                       hostname     => $opt->{hostname},
                        owner        => $opt->{owner}        || $ENV{USER},
                        auto_rerun   => $opt->{auto_rerun},
                        queue        => $opt->{queue}        || 'AdHoc',
                       };
         my @ids;
+
 
         @ids = $self->create_macro_preconditions($opt, $args) if $opt->{macroprecond};
         push @ids, @{$opt->{precondition}} if $opt->{precondition};
@@ -214,12 +240,29 @@ sub new_runtest
         my $cmd = Artemis::Cmd::Testrun->new();
         my $testrun_id = $cmd->add($testrun);
         die "Can't create new testrun because of an unknown error" if not $testrun_id;
+        my $testrun_search = model('TestrunDB')->resultset('Testrun')->find($testrun_id);
 
         my $retval = $cmd->assign_preconditions($testrun_id, @ids);
-        die $retval if $retval;
+        if ($retval) {
+                $testrun_search->delete();     
+                die $retval;
+        }
+
+        if ($opt->{requested_host}) {
+                foreach my $host(@{$opt->{requested_host}}) {
+                        push @ids, $self->add_host($testrun_id, $host);
+                }
+        }
+
+        if ($opt->{requested_feature}) {
+                foreach my $feature(@{$opt->{requested_feature}}) {
+                        push @ids, $self->add_feature($testrun_id, $feature);
+                }
+        }
+        $testrun_search->testrun_scheduling->status('schedule');
+        $testrun_search->testrun_scheduling->update;  
 
         if ($opt->{verbose}) {
-                my $testrun_search = model('TestrunDB')->resultset('Testrun')->search({id => $testrun_id});
                 say $testrun_search->to_string;
         } else {
                 say $testrun_id;
@@ -228,6 +271,6 @@ sub new_runtest
 
 
 
-# perl -Ilib bin/artemis-testrun new --topic=Software --precondition=14  --hostname=iring --owner=ss5
+# perl -Ilib bin/artemis-testrun new --topic=Software --precondition=14  --owner=ss5
 
 1;
