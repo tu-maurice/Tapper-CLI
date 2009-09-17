@@ -147,6 +147,16 @@ is($testrun->topic->name, 'Software', 'Topic for new testrun');
 is($testrun->testrun_scheduling->queue->name, 'Affe', 'Queue for new testrun');
 is($testrun->testrun_scheduling->auto_rerun, '1', 'Auto_rerun new testrun');
 
+# --------------------------------------------------
+
+my $host_id = `/usr/bin/env perl -Ilib bin/artemis-testrun newhost --name=fritz --active`;
+chomp $host_id;
+
+my $host = model('TestrunDB')->resultset('Host')->find($host_id);
+ok($host->id, 'inserted testrun has id');
+is($host->id, $host_id, 'inserted testrun has right id');
+is($host->name, 'fritz', 'Name of new host');
+
 
 # --------------------------------------------------
 done_testing();
