@@ -28,19 +28,16 @@ sub abstract {
 
 sub opt_spec {
         return (
-                [ "verbose",            "some more informational output"                                                                    ],
-                [ "notes=s",            "TEXT; notes"                                                                                       ],
-                [ "hostname=s",         "STRING; rerun test on a different machine"                                                 ],
-                [ "owner=s",            "STRING, rerun test with a different user name"                                                           ],
-                [ "testrun=s",          "INT, testrun to start again"                                                           ],
-                [ "earliest=s",         "STRING, default=now; don't start testrun before this time (format: YYYY-MM-DD hh:mm:ss or now)"    ],
+                [ "verbose",            "some more informational output"                                                                 ],
+                [ "notes=s",            "TEXT; notes"                                                                                    ],
+                [ "testrun=s",          "INT, testrun to start again"                                                                    ],
                );
 }
 
 sub usage_desc
 {
         my $allowed_opts = join ' ', map { '--'.$_ } _allowed_opts();
-        "artemis-testruns rerun --testrun=s [ --notes=s | --owner=s | --hostname=s | --earliest=s ]*";
+        "artemis-testruns rerun --testrun=s [ --notes=s ]?";
 }
 
 sub _allowed_opts
@@ -48,26 +45,6 @@ sub _allowed_opts
         my @allowed_opts = map { $_->[0] } opt_spec();
 }
 
-sub convert_format_datetime_natural
-{
-        my ($self, $opt, $args) = @_;
-        # handle natural datetimes
-        if ($opt->{earliest}) {
-                my $parser = DateTime::Format::Natural->new;
-                my $dt = $parser->parse_datetime($opt->{earliest});
-                if ($parser->success) {
-                        print("%02d.%02d.%4d %02d:%02d:%02d\n", $dt->day,
-                              $dt->month,
-                              $dt->year,
-                              $dt->hour,
-                              $dt->min,
-                              $dt->sec) if $opt->{verbose};
-                        $opt->{earliest} = $dt;
-                } else {
-                        die $parser->error;
-                }
-        }
-}
 
 sub validate_args
 {
@@ -90,8 +67,6 @@ sub run
 {
         my ($self, $opt, $args) = @_;
 
-        require Artemis;
-
         $self->new_runtest ($opt, $args);
 }
 
@@ -100,7 +75,7 @@ sub new_runtest
 {
         my ($self, $opt, $args) = @_;
 
-        my $id                    = $opt->{testrun};
+        my $id  = $opt->{testrun};
         my $cmd = Artemis::Cmd::Testrun->new();
         my $retval = $cmd->rerun($id, $opt);
         die "Can't restart testrun $id" if not $retval;
