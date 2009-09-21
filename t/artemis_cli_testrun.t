@@ -138,7 +138,7 @@ ok($queue->id, 'inserted queue / id');
 is($queue->name, "Affe", 'inserted queue / name');
 is($queue->priority, 4711, 'inserted queue / priority');
 
-$testrun_id = `/usr/bin/env perl -Ilib bin/artemis-testrun new --topic=Software --requested_host=iring --precondition=1 --queue=Affe --auto_rerun`;
+$testrun_id = `/usr/bin/env perl -Ilib bin/artemis-testrun new --topic=Software --requested_host=iring --precondition=1 --precondition=2 --queue=Affe --auto_rerun`;
 chomp $testrun_id;
 
 $testrun = model('TestrunDB')->resultset('Testrun')->find($testrun_id);
