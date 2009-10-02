@@ -23,7 +23,7 @@ use Moose;
 has macropreconds => ( is => "rw" );
 
 sub abstract {
-        'Create a new testrun'
+        'Create a new queue'
 }
 
 
