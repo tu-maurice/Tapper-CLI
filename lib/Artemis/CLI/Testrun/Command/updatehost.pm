@@ -11,7 +11,7 @@ use Artemis::Model 'model';
 use Artemis::CLI::Testrun;
 
 sub abstract {
-        'Update a new host'
+        'Update an existing host'
 }
 
 
