@@ -12,7 +12,7 @@ use Artemis::CLI::Testrun;
 
 
 sub abstract {
-        'Create a new testrun'
+        'Create a new host'
 }
 
 
