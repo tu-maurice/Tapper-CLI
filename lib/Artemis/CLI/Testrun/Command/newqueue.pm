@@ -7,20 +7,10 @@ use warnings;
 
 use parent 'App::Cmd::Command';
 
-use YAML::Syck;
-use Data::Dumper;
-use File::Slurp 'slurp';
 use Artemis::Model 'model';
-use Artemis::Schema::TestrunDB;
 use Artemis::CLI::Testrun;
 use Artemis::Cmd::Queue;
-use DateTime::Format::Natural;
-require Artemis::Schema::TestrunDB::Result::Topic;
-use Template;
 
-use Moose;
-
-has macropreconds => ( is => "rw" );
 
 sub abstract {
         'Create a new queue'
