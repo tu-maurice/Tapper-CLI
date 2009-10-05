@@ -46,6 +46,7 @@ sub validate_args {
         say STDERR $msg, join(', ',@$args) if ($args and @$args);
 
         my $allowed_opts_re = join '|', _extract_bare_option_names();
+        die "Really? Then add --really to the options.\n" unless $opt->{really};
 
         return 1 if grep /$allowed_opts_re/, keys %$opt;
         die $self->usage->text;
