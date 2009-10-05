@@ -32,4 +32,11 @@ my $retval = `/usr/bin/env perl -Ilib bin/artemis-testrun listqueue --maxprio=30
 my @words = $retval =~ m/ *(\d+)(?: |\|)*(\w+)(?: |\|)*(\d+)(?:(?: |\|)*(\w+))/mg;
 is_deeply(\@words,[2,'KVM', 200, 'host3', 1, 'Xen', 300, 'host3'], 'Listqueue / verbose');
 
+$retval = `/usr/bin/env perl -Ilib bin/artemis-testrun updatequeue --name=Xen -p500 -v`;
+is($retval, "Xen | 500\n", 'Update queue');
+
+$retval = `/usr/bin/env perl -Ilib bin/artemis-testrun deletequeue --name=Xen`;
+is($retval, "Deleted queue Xen\n", 'Delete queue');
+
+
 done_testing();
