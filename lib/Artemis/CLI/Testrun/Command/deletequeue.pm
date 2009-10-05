@@ -17,8 +17,9 @@ sub abstract {
 
 
 my $options =  {
-                "verbose"          => { text => "some more informational output", short => 'v' },
-                "name"             => { text => "TEXT; name of the queue to be changed",    type => 'string' },
+                "verbose" => { text => "some more informational output", short => 'v'            },
+                "really"  => { text => "really execute the command"                              },
+                "name"    => { text => "TEXT; name of the queue to be changed", type => 'string' },
                 };
 
 sub opt_spec {
@@ -52,6 +53,7 @@ sub validate_args
         my ($self, $opt, $args) = @_;
 
         say "Missing argument --name"     unless  $opt->{name};
+        die "Really? Then add --really to the options.\n" unless $opt->{really};
 
         return 1 if $opt->{name};
 
