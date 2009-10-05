@@ -1,0 +1,84 @@
+package Artemis::CLI::Testrun::Command::deletequeue;
+
+use 5.010;
+
+use strict;
+use warnings;
+
+use parent 'App::Cmd::Command';
+
+use Artemis::Model 'model';
+use Artemis::CLI::Testrun;
+use Artemis::Cmd::Queue;
+
+sub abstract {
+        'Delete an existing queue'
+}
+
+
+my $options =  {
+                "verbose"          => { text => "some more informational output", short => 'v' },
+                "name"             => { text => "TEXT; name of the queue to be changed",    type => 'string' },
+                };
+
+sub opt_spec {
+        my @opt_spec;
+        foreach my $key (keys %$options) {
+                my $pushkey = $key;
+                $pushkey    = $pushkey."|".$options->{$key}->{short} if $options->{$key}->{short};
+
+                given($options->{$key}->{type}){
+                        when ("string")        {$pushkey .="=s";}
+                        when ("withno")        {$pushkey .="!";}
+                        when ("manystring")    {$pushkey .="=s@";}
+                        when ("optmanystring") {$pushkey .=":s@";}
+                        when ("keyvalue")      {$pushkey .="=s%";}
+                }
+                push @opt_spec, [$pushkey, $options->{$key}->{text}];
+        }
+        return (
+                @opt_spec
+               );
+}
+
+
+sub usage_desc
+{
+        "artemis-testruns deletequeue --name=s";
+}
+
+sub validate_args
+{
+        my ($self, $opt, $args) = @_;
+
+        say "Missing argument --name"     unless  $opt->{name};
+
+        return 1 if $opt->{name};
+
+        die $self->usage->text;
+}
+
+sub delete_queue
+{
+        my ($self, $opt, $args) = @_;
+
+        my $queue = model('TestrunDB')->resultset('Queue')->search({name => $opt->{name}})->first;
+        die "No such queue: ".$opt->{name} if not $queue;
+
+        my $cmd = Artemis::Cmd::Queue->new();
+        $cmd->del($queue->id);
+
+        say "Deleted queue ".$queue->name;
+}
+
+sub run
+{
+        my ($self, $opt, $args) = @_;
+
+        $self->delete_queue ($opt, $args);
+}
+
+
+# perl -Ilib bin/artemis-testrun deletequeue --name="xen-3.2"
+
+1;
