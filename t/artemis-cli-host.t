@@ -74,7 +74,7 @@ is($host_result->queuehosts->count, 0, 'Update host / delete all queues');
 # --------------------------------------------------
 $host_result = model('TestrunDB')->resultset('Host')->find(7);
 ok($host_result, 'Delete host / host exists before delete');
-qx(/usr/bin/env perl -Ilib bin/artemis-testrun deletehost --id=7 2>&1);
+qx(/usr/bin/env perl -Ilib bin/artemis-testrun deletehost --id=7 --really 2>&1);
 $host_result = model('TestrunDB')->resultset('Host')->find(7);
 is($host_result, undef, 'Delete host / host does not exist after delete');
 
