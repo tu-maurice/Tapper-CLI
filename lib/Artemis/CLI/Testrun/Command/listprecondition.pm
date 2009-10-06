@@ -15,24 +15,31 @@ sub abstract {
         'List preconditions'
 }
 
-my $options = { "verbose"     => { text => "some more informational output" },
-                "id_only"     => { text => "only show ids of matching preconditions" },
+my $options = { "verbose"     => { text => "Show all information of preconditions, otherwise only show ids", short => 'v' },
                 "nonewlines"  => { text => "escape newlines in values to avoid multilines" },
-                "quotevalues" => { text => "put quotes around the values" },
-                "colnames"    => { text => "print out column names" },
-                "all"         => { text => "list all preconditions", needed => 1 },
-                "lonely"      => { text => "neither a preprecondition nor assigned to a testrun", needed => 1 },
-                "primary"     => { text => "assigned to one or more testruns", needed => 1 },
-                "testrun"     => { text => "assigned to given testrun id", needed => 1, type => 'int' },
-                "pre"         => { text => "only prepreconditions not assigned to a testrun", needed => 1 },
-                "id"          => { text => "list particular precondition", needed => 1, type => 'int'  },
+                "quotevalues" => { text => "put quotes around the values", short => 'q' },
+                "colnames"    => { text => "print out column names", short => 'c' },
+                "all"         => { text => "list all preconditions", needed => 1, short => 'a' },
+                "testrun"     => { text => "assigned to given testrun id", needed => 1, type => 'multiint' },
+                "id"          => { text => "list particular precondition", needed => 1, type => 'multiint', short => 'i'  },
               };
                 
 
 sub opt_spec {
         my @opt_spec;
         foreach my $key (keys %$options) {
-                my $pushkey = defined $options->{$key}->{type} ? $key."=s@" : $key;
+                my $pushkey = $key;
+                $pushkey    = $pushkey."|".$options->{$key}->{short} if $options->{$key}->{short};
+
+                given($options->{$key}->{type}){
+                        when ("string")        {$pushkey .="=s";}
+                        when ("withno")        {$pushkey .="!";}
+                        when ("manystring")    {$pushkey .="=s@";}
+                        when ("optmanystring") {$pushkey .=":s@";}
+                        when ("int")           {$pushkey .="=i";}
+                        when ("multiint")      {$pushkey .="=i@";}
+                        when ("keyvalue")      {$pushkey .="=s%";}
+                }
                 push @opt_spec, [$pushkey, $options->{$key}->{text}];
         }
         return (
@@ -87,20 +94,20 @@ Return all preconditions for a given testrun id.
 sub testrun
 { 
         my ($self, $opt, $args) = @_;
-        print "All preconditions:\n" if $opt->{verbose};
-        print "| Id |\n------\n" if $opt->{id_only};
         my @ids = @{ $opt->{testrun} };
         $self->print_colnames($opt, $args);
         
         my $preconditions = model('TestrunDB')->resultset('TestrunPrecondition')->search({testrun_id => @ids}, { order_by => 'precondition_id' });
         while (my $precond = $preconditions->next) {
-                if ($opt->{id_only}) {
-                        print "| ",join (", ",$precond->id)," |\n";
-                } else {
+                if ($opt->{verbose}) {
                         my $precond_yaml = model('TestrunDB')->resultset('Precondition')->search({id => $precond->precondition_id});
                         foreach my $yaml($precond_yaml->next) {
-                                print $yaml->to_string()."\n";
+                                print $yaml->to_string($opt)."\n";
                         }
+
+                } else {
+                        say $precond->precondition_id;
+
                 }
         }
         
@@ -121,68 +128,19 @@ sub all
 {
         my ($self, $opt, $args) = @_;
 
-        print "All preconditions:\n" if $opt->{verbose};
         print "| Id |\n------\n" if $opt->{id_only};
         $self->print_colnames($opt, $args);
 
-        my $preconditions = model('TestrunDB')->resultset('Precondition')->all_preconditions->search({}, { order_by => 'id' });
+        my $preconditions = model('TestrunDB')->resultset('Precondition')->search({}, { order_by => 'id' });
         while (my $precond = $preconditions->next) {
-                if ($opt->{id_only}) {
-                        print "| ",$precond->id," |\n";
-                } else {
+                if ($opt->{verbose}) {
                         print $precond->to_string($opt)."\n";
+                } else {
+                        say $precond->id;
                 }
         }
 }
 
-
-sub lonely
-{
-        my ($self, $opt, $args) = @_;
-
-        print "Preconditions referenced by neither precondition nor testrun:\n" if $opt->{verbose};
-        $self->print_colnames($opt, $args);
-
-        print "Implement me. Now!\n";
-        return;
-
-        my $preconditions = model('TestrunDB')->resultset('Precondition')->lonely_preconditions->search({}, { order_by => 'id' });
-        while (my $precond = $preconditions->next) {
-                print $precond->to_string($opt)."\n";
-        }
-}
-
-sub primary
-{
-        my ($self, $opt, $args) = @_;
-
-        print "Preconditions directly referenced by a testrun:\n" if $opt->{verbose};
-        $self->print_colnames($opt, $args);
-
-        print "Implement me. Now!\n";
-        return;
-
-        my $preconditions = model('TestrunDB')->resultset('Precondition')->primary_preconditions->search({}, { order_by => 'id' });
-        while (my $precond = $preconditions->next) {
-                print $precond->to_string($opt)."\n";
-        }
-}
-
-sub pre
-{
-        my ($self, $opt, $args) = @_;
-
-        print "Preconditions directly referenced by another precondition:\n" if $opt->{verbose};
-        $self->print_colnames($opt, $args);
-
-        print "Implement me. Now!\n";
-        return;
-
-        my $preconditions = model('TestrunDB')->resultset('Precondition')->pre_preconditions->search({}, { order_by => 'id' });
-        while (my $precond = $preconditions->next) {
-                print $precond->to_string($opt)."\n";
-        }
-}
 
 sub id
 {
@@ -193,7 +151,7 @@ sub id
         $self->print_colnames($opt, $args);
         foreach (@ids) {
                 my $entry = _get_entry_by_id($_);
-                say $entry ? $entry->to_string : "No such id $_";
+                say $entry ? $entry->to_string($opt) : "No such id $_";
         }
 }
 
