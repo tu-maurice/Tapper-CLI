@@ -35,7 +35,7 @@ is_deeply(\@words,[2,'KVM', 200, 'host3', 1, 'Xen', 300, 'host3'], 'Listqueue / 
 $retval = `/usr/bin/env perl -Ilib bin/artemis-testrun updatequeue --name=Xen -p500 -v`;
 is($retval, "Xen | 500\n", 'Update queue');
 
-$retval = `/usr/bin/env perl -Ilib bin/artemis-testrun deletequeue --name=Xen`;
+$retval = `/usr/bin/env perl -Ilib bin/artemis-testrun deletequeue --name=Xen --really`;
 is($retval, "Deleted queue Xen\n", 'Delete queue');
 
 
