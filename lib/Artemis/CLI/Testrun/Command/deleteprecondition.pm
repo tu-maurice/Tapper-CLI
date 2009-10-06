@@ -3,6 +3,8 @@ package Artemis::CLI::Testrun::Command::deleteprecondition;
 use strict;
 use warnings;
 
+use 5.010;
+
 use parent 'App::Cmd::Command';
 
 use Data::Dumper;
@@ -20,7 +22,7 @@ sub opt_spec {
         return (
                 [ "verbose",  "some more informational output" ],
                 [ "really",   "really execute the command"     ],
-                [ "id=s@",    "delete particular precondition",    ],
+                [ "id=s@",    "delete particular precondition",  {required => 1}  ],
                );
 }
 
@@ -47,17 +49,24 @@ sub validate_args {
         say STDERR $msg, join(', ',@$args) if ($args and @$args);
 
         my $allowed_opts_re = join '|', _extract_bare_option_names();
-        die "Really? Then add --really to the options.\n" unless $opt->{really};
-
-        return 1 if grep /$allowed_opts_re/, keys %$opt;
-        die $self->usage->text;
+        if (not $opt->{really}) {
+                say STDERR "Really? Then add --really to the options.";
+                die $self->usage->text;
+        }
+        return 0; 
 }
 
 sub run {
         my ($self, $opt, $args) = @_;
+        my $retval;
         my $cmd = Artemis::Cmd::Precondition->new();
         foreach my $id (@{$opt->{id}}){
-                $cmd->del($id);
+                $retval = $cmd->del($id);
+                if ($retval) {
+                        say STDERR $retval;
+                } else {
+                        say "Precondition with $id deleted";
+                }
         }
 
 }
