@@ -15,18 +15,18 @@ use YAML::Syck;
 use TryCatch;
 
 sub abstract {
-        'Create a new precondition'
+        'Update an existing precondition'
 }
 
 sub opt_spec {
         return (
-                [ "verbose",                           "some more informational output"                                            ],
+                [ "verbose|v",                           "some more informational output"                                            ],
                 [ "shortname=s",                       "TEXT; shortname", { required => 1 }                                        ],
                 [ "timeout=s",                         "INT; stop trying to fullfill this precondition after timeout second",      ],
                 [ "condition=s",                       "TEXT; condition description in YAML format (see Spec)"                     ],
                 [ "condition_file=s",                  "STRING; filename from where to read condition, use - to read from STDIN"   ],
                 [ "precondition=s@",                   "INT; assigned pre-precondition ids"                                        ],
-                [ "id=s",                              "INT; the precondition id to change",                                       ],
+                [ "id=s",                              "INT; the precondition id to change", {required => 1 }                      ],
                );
 }
 
@@ -42,17 +42,11 @@ sub _allowed_opts {
 sub validate_args {
         my ($self, $opt, $args) = @_;
 
-#         print "opt  = ", Dumper($opt);
-#         print "args = ", Dumper($args);
-
         my $msg = "Unknown option";
         $msg   .= ($args and $#{$args} >=1) ? 's' : '';
         $msg   .= ": ";
         say STDERR $msg, join(', ',@$args) if ($args and @$args);
 
-        say "Missing argument --id"                   unless $opt->{id};
-        #say "Missing argument --shortname"            unless $opt->{shortname};
-        #say "Missing --condition or --condition_file" unless $opt->{condition} || $opt->{condition_file};
         say "Only one of --condition or --condition_file allowed." if $opt->{condition} && $opt->{condition_file};
 
         return 1 if $opt->{id};
