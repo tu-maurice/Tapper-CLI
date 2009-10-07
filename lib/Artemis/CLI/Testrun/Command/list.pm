@@ -70,17 +70,19 @@ sub validate_args {
         foreach my $key (keys %$options) {
                 push @allowed_opts, $key if  $options->{$key}->{filter};
         }
+        my $allowed_opts_re = join '|', @allowed_opts;
         if ($opt->{all} ) {
-                say STDERR "You provided --all and a filter option. Filter options imply --all which can be left out in this case" if @allowed_opts;
+                say STDERR "You provided --all and a filter option. Filter options imply --all which can be left out in this case" if grep /$allowed_opts_re/, keys %$opt;
                 push @allowed_opts, 'all';
                 
         }
         
         if ($opt->{id}) {
+                $opt->{verbose} = 1; # id does not make sense without verbose
                 if ($opt->{all}) {
                         say STDERR "--id can not be used together --all";
                         die $self->usage_desc;
-                } elsif (@allowed_opts) {
+                } elsif (grep /$allowed_opts_re/, keys %$opt) {
                         say STDERR "--id can not be used together with filter options";
                         die $self->usage_desc;
                 } 
@@ -93,8 +95,7 @@ sub validate_args {
         $msg   .= ": ";
         say STDERR $msg, join(', ',@$args) if ($args and @$args);
         
-        
-        my $allowed_opts_re = join '|', @allowed_opts;
+        $allowed_opts_re = join '|', @allowed_opts;
 
         return 1 if grep /$allowed_opts_re/, keys %$opt;
         die $self->usage_desc->text;
