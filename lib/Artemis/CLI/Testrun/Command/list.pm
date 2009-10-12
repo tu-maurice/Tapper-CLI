@@ -98,7 +98,7 @@ sub validate_args {
         $allowed_opts_re = join '|', @allowed_opts;
 
         return 1 if grep /$allowed_opts_re/, keys %$opt;
-        die $self->usage_desc->text;
+        die $self->usage->text;
 }
 
 sub run {
