@@ -134,7 +134,7 @@ sub validate_args
         if ($opt->{macroprecond}) {
                 my @precond_lines =  slurp $opt->{macroprecond};
                 my @mandatory;
-                my $required;
+                my $required = '';
                 foreach my $line (@precond_lines) {
                         ($required) = $line =~/# (?:artemis[_-])?mandatory[_-]fields:\s*(.+)/;
                         last if $required;
