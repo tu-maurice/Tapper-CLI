@@ -129,11 +129,16 @@ sub print_hosts_verbose
 
         foreach my $host ($hosts->all) {
                 my ($name_length, $queue_length) = ($max{name}, $max{queue});
-                my $output = sprintf("%10d | %${name_length}s | %11s | %6s", 
+                my $testrun_id = 'unknown id';
+                if (not $host->free) {
+                        my $job_rs = model('TestrunDB')->resultset('TestrunScheduling')->search({host_id => $host->id, status => 'running'});
+                        $testrun_id = $job_rs->first->testrun_id if $job_rs->count;
+                }
+                my $output = sprintf("%10d | %${name_length}s | %11s | %16s", 
                                      $host->id, 
                                      $host->name, 
                                      $host->active ? 'active' : 'deactivated', 
-                                     $host->free   ? 'free'   : 'in use');
+                                     $host->free   ? 'free'   : "testrun $testrun_id");
                 if ($host->queuehosts->count) {
                         foreach my $queuehost ($host->queuehosts->all) {
                                 $output.= sprintf(" | %${queue_length}s",$queuehost->queue->name);
