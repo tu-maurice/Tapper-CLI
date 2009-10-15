@@ -23,8 +23,6 @@ is($testrun->id, 23, "testrun id");
 is($testrun->notes, 'perfmon', "testrun notes");
 is($testrun->shortname, 'perfmon', "testrun shortname");
 is($testrun->topic_name, 'Software', "testrun topic_name");
-is($testrun->topic->name, 'Software', "testrun topic->name");
-is($testrun->topic->description, 'any non-kernel software, e.g., libraries, programs', "testrun topic->description");
 
 
 
@@ -54,7 +52,7 @@ chomp $testrun_id;
 $testrun = model('TestrunDB')->resultset('Testrun')->find($testrun_id);
 ok($testrun->id, 'inserted testrun / id');
 is($testrun->testrun_scheduling->requested_hosts->first->host->name, 'iring', 'inserted testrun / first requested host');
-is($testrun->topic->name, 'Software', 'Topic for new testrun');
+is($testrun->topic_name, 'Software', 'Topic for new testrun');
 
 # --------------------------------------------------
 #
@@ -140,7 +138,7 @@ chomp $testrun_id;
 
 $testrun = model('TestrunDB')->resultset('Testrun')->find($testrun_id);
 ok($testrun->id, 'inserted testrun / id');
-is($testrun->topic->name, 'Software', 'Topic for new testrun');
+is($testrun->topic_name, 'Software', 'Topic for new testrun');
 is($testrun->testrun_scheduling->queue->name, 'Affe', 'Queue for new testrun');
 is($testrun->testrun_scheduling->auto_rerun, '1', 'Auto_rerun new testrun');
 
