@@ -79,7 +79,7 @@ sub validate_args {
         die $self->usage->text;
 }
 
-sub run {
+sub execute {
         my ($self, $opt, $args) = @_;
 
         $self->$_ ($opt, $args) foreach grep /^(all|lonely|primary|pre|id|testrun)$/, keys %$opt;

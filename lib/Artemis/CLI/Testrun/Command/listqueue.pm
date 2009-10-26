@@ -70,7 +70,7 @@ sub validate_args {
         return 1;
 }
 
-sub run {
+sub execute {
         my ($self, $opt, $args) = @_;
         my %options= (order_by => 'name');
         my %search;

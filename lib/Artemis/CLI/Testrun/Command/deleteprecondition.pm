@@ -56,7 +56,7 @@ sub validate_args {
         return 0; 
 }
 
-sub run {
+sub execute {
         my ($self, $opt, $args) = @_;
         my $retval;
         my $cmd = Artemis::Cmd::Precondition->new();

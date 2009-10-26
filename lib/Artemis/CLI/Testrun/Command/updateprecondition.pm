@@ -53,7 +53,7 @@ sub validate_args {
         die $self->usage->text;
 }
 
-sub run {
+sub execute {
         my ($self, $opt, $args) = @_;
 
         require Artemis;

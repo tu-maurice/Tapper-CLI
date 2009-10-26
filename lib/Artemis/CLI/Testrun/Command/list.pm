@@ -101,7 +101,7 @@ sub validate_args {
         die $self->usage->text;
 }
 
-sub run {
+sub execute {
         my ($self, $opt, $args) = @_;
         $self->print_colnames if $opt->{colnames};
         my $use_flag;

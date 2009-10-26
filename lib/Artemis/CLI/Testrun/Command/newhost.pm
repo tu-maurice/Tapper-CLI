@@ -103,7 +103,7 @@ sub new_host
         say $newhost->id;
 }
 
-sub run
+sub execute 
 {
         my ($self, $opt, $args) = @_;
 

@@ -73,7 +73,7 @@ sub delete_queue
         say "Deleted queue ".$queue->name;
 }
 
-sub run
+sub execute 
 {
         my ($self, $opt, $args) = @_;
 

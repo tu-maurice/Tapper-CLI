@@ -85,7 +85,7 @@ sub new_queue
         }
 }
 
-sub run
+sub execute 
 {
         my ($self, $opt, $args) = @_;
 

@@ -123,7 +123,7 @@ sub del_queues
 }
 
 
-sub run
+sub execute 
 {
         my ($self, $opt, $args) = @_;
         my $host = model('TestrunDB')->resultset('Host')->find($opt->{id});
