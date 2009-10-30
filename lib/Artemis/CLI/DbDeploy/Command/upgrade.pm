@@ -8,18 +8,16 @@ use warnings;
 use parent 'App::Cmd::Command';
 
 use Artemis::Model 'model';
-use Artemis::Schema::ReportsDB;
-use Artemis::Schema::TestrunDB;
 use Artemis::CLI::DbDeploy;
 use Artemis::Config;
 use Data::Dumper;
 
 sub opt_spec {
         return (
-                [ "verbose", "some more informational output"       ],
-                [ "db=s",    "STRING, one of: ReportsDB, TestrunDB" ],
-                [ "env=s",   "STRING, default=development; one of: live, development, test" ],
-                [ "upgradedir=s", "STRING, directory where upgradefiles are stored" ],
+                [ "verbose",      "some more informational output"       ],
+                [ "db=s",         "STRING, one of: ReportsDB, TestrunDB" ],
+                [ "env=s",        "STRING, default=development; one of: live, development, test" ],
+                [ "upgradedir=s", "STRING, directory where upgradefiles are stored, default=./upgrades/" ],
                 [ "fromversion=s","STRING" ],
                 [ "toversion=s",  "STRING" ],
                );
@@ -34,12 +32,15 @@ sub abstract {
 
 sub usage_desc
 {
-        my $allowed_opts = join ' ', map { '--'.$_ } _allowed_opts();
+        my ($self, $opt, $args) = @_;
+
+        my $allowed_opts = join ' ', map { '--'.$_ } $self->_allowed_opts();
         "artemis-db-deploy upgrade --db=DBNAME  [ --verbose | --env=s ]";
 }
 
 sub _allowed_opts {
-        my @allowed_opts = map { $_->[0] } opt_spec();
+        my ($self, $opt, $args) = @_;
+        my @allowed_opts = map { $_->[0] } $self->opt_spec();
 }
 
 sub validate_args {

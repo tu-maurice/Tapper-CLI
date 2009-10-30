@@ -16,13 +16,31 @@ sub opt_spec
                );
 }
 
-sub validate_args
-{
-        my ( $self, $opt, $args ) = @_;
-
-        die $self->_usage_text if $opt->{help};
-        $self->validate( $opt, $args );
+sub global_opt_spec {
+        return (
+                [ 'l'    => "Prepend ./lib/ to module search path \@INC" ],
+               );
 }
 
-1;
 
+sub execute_command
+{
+        my ($cmd, $opt, $args) = @_;
+
+        if ($cmd->global_options->{l}) {
+                eval "use lib './lib/'";
+        }
+
+        App::Cmd::execute_command(@_);
+}
+
+# sub validate_args
+# {
+#         my ( $self, $opt, $args ) = @_;
+
+#         die $self->_usage_text if $opt->{help};
+#         use Data::Dumper;
+#         $self->validate( $opt, $args );
+# }
+
+1;
