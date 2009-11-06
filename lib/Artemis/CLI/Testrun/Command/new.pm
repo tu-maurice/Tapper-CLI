@@ -4,6 +4,7 @@ use 5.010;
 
 use strict;
 use warnings;
+no warnings 'uninitialized';
 
 use parent 'App::Cmd::Command';
 
