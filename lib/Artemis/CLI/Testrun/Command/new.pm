@@ -4,6 +4,7 @@ use 5.010;
 
 use strict;
 use warnings;
+no warnings 'uninitialized';
 
 use parent 'App::Cmd::Command';
 
@@ -212,6 +213,11 @@ sub add_feature
 
 }
 
+sub analyse_preconditions
+{
+        my ($self, @ids) = @_;
+}
+
 
 sub new_runtest
 {
@@ -240,8 +246,10 @@ sub new_runtest
         my $testrun_id = $cmd->add($testrun);
         die "Can't create new testrun because of an unknown error" if not $testrun_id;
         my $testrun_search = model('TestrunDB')->resultset('Testrun')->find($testrun_id);
-
-        my $retval = $cmd->assign_preconditions($testrun_id, @ids);
+        
+        my $retval = $self->analyse_preconditions(@ids);
+        
+        $retval = $cmd->assign_preconditions($testrun_id, @ids);
         if ($retval) {
                 $testrun_search->delete();     
                 die $retval;
