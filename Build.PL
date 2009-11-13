@@ -10,9 +10,11 @@ my $builder = Module::Build->new
      dist_author         => 'OSRC SysInt Team <osrc-sysint@elbe.amd.com>',
      dist_version_from   => 'lib/Artemis/CLI.pm',
      build_requires => {
-                        'Test::More' => 0,
+                        'Test::More'                  => 0,
                         'Test::Fixture::DBIC::Schema' => 0,
+                        'DBIx::Class'                 => '0.08112',
                         'Artemis::Test'               => '2.010005',
+                        'SQL::Translator'             => '0.11003',
                        },
      requires => {
                   'perl'                      => '5.010',
