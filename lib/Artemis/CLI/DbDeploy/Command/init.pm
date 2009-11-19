@@ -8,12 +8,7 @@ use warnings;
 use parent 'App::Cmd::Command';
 
 use Artemis::Model 'model';
-
-use Artemis::Schema::ReportsDB;
-use Artemis::Schema::TestrunDB;
-
 use Artemis::CLI::DbDeploy;
-
 use Data::Dumper;
 
 sub opt_spec {
@@ -29,12 +24,14 @@ sub abstract {
 
 sub usage_desc
 {
-        my $allowed_opts = join ' ', map { '--'.$_ } _allowed_opts();
+        my ($self, $opt, $args) = @_;
+        my $allowed_opts = join ' ', map { '--'.$_ } $self->_allowed_opts();
         "artemis-db-deploy init --db=DBNAME  [ --verbose ]";
 }
 
 sub _allowed_opts {
-        my @allowed_opts = map { $_->[0] } opt_spec();
+        my ($self, $opt, $args) = @_;
+        my @allowed_opts = map { $_->[0] } $self->opt_spec();
 }
 
 sub validate_args {
