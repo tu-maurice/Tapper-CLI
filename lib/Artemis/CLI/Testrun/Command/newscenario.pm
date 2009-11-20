@@ -25,7 +25,7 @@ use Moose;
 has macropreconds => ( is => "rw" );
 
 sub abstract {
-        'Create a new testrun'
+        'Create a new testrun';
 }
 
 
@@ -63,27 +63,6 @@ sub _allowed_opts
         my @allowed_opts = map { $_->[0] } opt_spec();
 }
 
-sub convert_format_datetime_natural
-{
-        my ($self, $opt, $args) = @_;
-        # handle natural datetimes
-        if ($opt->{earliest}) {
-                my $parser = DateTime::Format::Natural->new;
-                my $dt = $parser->parse_datetime($opt->{earliest});
-                if ($parser->success) {
-                        print("%02d.%02d.%4d %02d:%02d:%02d\n", $dt->day,
-                              $dt->month,
-                              $dt->year,
-                              $dt->hour,
-                              $dt->min,
-                              $dt->sec) if $opt->{verbose};
-                        $opt->{earliest} = $dt;
-                } else {
-                        die $parser->error;
-                }
-        }
-}
-
 sub validate_args
 {
         my ($self, $opt, $args) = @_;
@@ -102,7 +81,7 @@ sub validate_args
 
 =head2 execute
 
-Worker function that 
+Worker function 
 
 =cut
 
@@ -111,17 +90,17 @@ sub execute
         my ($self, $opt, $args) = @_;
 
         my $scenario = slurp($opt->{scenario});
-        $scenario = $self->apply_macro($opt, $args) if $opt->{d};
+        $scenario = $self->apply_macro($opt, $args, $opt->{d}) if $opt->{d};
         
         my $scenario_conf = Load($scenario);
-        given $scenario_conf->{scenario_type} {
-                when    ('interdep') {
+        given ($scenario_conf->{scenario_type}) {
+                when ('interdep') {
                         $self->parse_interdep($scenario_conf->{description});
                 }
                 default {
                         die "Unknown scenario type ", $scenario_conf->{scenario_type};
                 }
-        }
+        };
           
         return 0;
 }
@@ -140,13 +119,12 @@ Process macros and substit using Template::Toolkit.
 
 sub apply_macro
 {
-        my ($self, $macro) = @_;
-
-        my $D             = $opt->{d}; # options are auto-down-cased
+        my ($self, $macro, $substitutes) = @_;
+        
         my $tt            = new Template();
         my $ttapplied;
-
-        $tt->process(\$macro, $D, \$ttapplied) || die $tt->error();
+        
+        $tt->process(\$macro, $substitutes, \$ttapplied) || die $tt->error();
         return $ttapplied;
 }
 
@@ -189,41 +167,15 @@ database.
 sub parse_interdep
 {
         my ($self, $conf) = @_;
-
-        die "No valid preconditions given" if not @ids;
-
-        my $cmd = Artemis::Cmd::Testrun->new();
-        my $testrun_id = $cmd->add($testrun);
-        die "Can't create new testrun because of an unknown error" if not $testrun_id;
-        my $testrun_search = model('TestrunDB')->resultset('Testrun')->find($testrun_id);
-        
-        my $retval = $self->analyse_preconditions(@ids);
-        
-        $retval = $cmd->assign_preconditions($testrun_id, @ids);
-        if ($retval) {
-                $testrun_search->delete();     
-                die $retval;
+        my $scenario = Artemis::Cmd::Scenario->new();
+        my $sc_id    = $scenario->add({type => 'interdep'});
+        foreach my $testrun (@$conf) {
+                my $tr = Artemis::Cmd::Testrun->new();
+                $testrun->{scenario_id} = $sc_id;
+                my $retval = $tr->add($testrun);
+                
         }
 
-        if ($opt->{requested_host}) {
-                foreach my $host(@{$opt->{requested_host}}) {
-                        push @ids, $self->add_host($testrun_id, $host);
-                }
-        }
-
-        if ($opt->{requested_feature}) {
-                foreach my $feature(@{$opt->{requested_feature}}) {
-                        push @ids, $self->add_feature($testrun_id, $feature);
-                }
-        }
-        $testrun_search->testrun_scheduling->status('schedule');
-        $testrun_search->testrun_scheduling->update;  
-
-        if ($opt->{verbose}) {
-                say $testrun_search->to_string;
-        } else {
-                say $testrun_id;
-        }
 }
 
 
