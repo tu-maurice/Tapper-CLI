@@ -13,10 +13,7 @@ use Data::Dumper;
 use File::Slurp 'slurp';
 use Artemis::Model 'model';
 use Artemis::Schema::TestrunDB;
-use Artemis::Cmd::Precondition;
-use Artemis::Cmd::Requested;
-use Artemis::CLI::Testrun;
-use DateTime::Format::Natural;
+use Artemis::Cmd::Scenario;
 require Artemis::Schema::TestrunDB::Result::Topic;
 use Template;
 
@@ -75,7 +72,10 @@ sub validate_args
                 die $self->usage->text;
         }
 
-        die "Scenario file needed\n",$self->usage->text if not $opt->{scenario};
+        die "Scenario file needed\n",$self->usage->text if not $opt->{file};
+        die "Scenario file ",$opt->{file}," does not exist" if not -e $opt->{file};
+        die "Scenario file ",$opt->{file}," is not readable" if not -r $opt->{file};
+       
         return 1;
 }
 
@@ -89,7 +89,7 @@ sub execute
 {
         my ($self, $opt, $args) = @_;
 
-        my $scenario = slurp($opt->{scenario});
+        my $scenario = slurp($opt->{file});
         $scenario = $self->apply_macro($opt, $args, $opt->{d}) if $opt->{d};
         
         my $scenario_conf = Load($scenario);
