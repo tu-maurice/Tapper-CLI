@@ -29,7 +29,8 @@ is($scenario->scenario_elements->count, 2, 'Number of testruns in scenario');
 foreach my $element ($scenario->scenario_elements->all) {
         my @hosts = map {$_->host->name} $element->testrun->testrun_scheduling->requested_hosts;
         cmp_bag(\@hosts, ['bullock','dickstone'], 'Requested hosts for testrun');  # both testruns request the same hosts
-        
+        my $precond_type = $element->testrun->testrun_precondition->first->precondition->precondition_as_hash->{precondition_type};
+        is($precond_type, 'image', 'first precondition\'s type');
 } 
 
 
