@@ -172,9 +172,12 @@ sub parse_interdep
         foreach my $testrun (@$conf) {
                 my $tr = Artemis::Cmd::Testrun->new();
                 $testrun->{scenario_id} = $sc_id;
-                my $retval = $tr->add($testrun);
-                
+                my $testrun_id = $tr->add($testrun);
+                my $precondition = Artemis::Cmd::Precondition->new();
+                my @ids = $precondition->add($testrun->{preconditions});
+                my $retval = $precondition->assign_preconditions($testrun_id, @ids);
         }
+        say $sc_id;
 
 }
 
