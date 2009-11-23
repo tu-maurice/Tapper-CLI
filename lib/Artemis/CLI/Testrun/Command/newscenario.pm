@@ -1,4 +1,4 @@
-package Artemis::CLI::Testrun::Command::new;
+package Artemis::CLI::Testrun::Command::newscenario;
 
 use 5.010;
 
