@@ -1,0 +1,36 @@
+#! /usr/bin/env perl
+
+use strict;
+use warnings;
+
+use Test::More;
+use Test::Deep;
+use Artemis::CLI::Testrun;
+use Artemis::CLI::Testrun::Command::list;
+use Artemis::Schema::TestTools;
+use Artemis::Model 'model';
+use Test::Fixture::DBIC::Schema;
+
+# -----------------------------------------------------------------------------------------------------------------
+construct_fixture( schema  => testrundb_schema, fixture => 't/fixtures/testrundb/testruns_with_scheduling.yml' );
+# -----------------------------------------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------------------------------------------
+construct_fixture( schema  => hardwaredb_schema, fixture => 't/fixtures/hardwaredb/systems.yml' );
+# -----------------------------------------------------------------------------------------------------------------
+
+my $scenario_id = `/usr/bin/env perl -Ilib bin/artemis-testrun newscenario --file t/files/interdep.sc`;
+chomp $scenario_id;
+ok($scenario_id, 'newscenario returns a true value');
+my $scenario = model('TestrunDB')->resultset('Scenario')->find($scenario_id);
+ok($scenario, 'Find new scenario in DB');
+
+is($scenario->scenario_elements->count, 2, 'Number of testruns in scenario');
+
+foreach my $element ($scenario->scenario_elements->all) {
+        my @hosts = map {$_->host->name} $element->testrun->testrun_scheduling->requested_hosts;
+        cmp_bag(\@hosts, ['bullock','dickstone'], 'Requested hosts for testrun');  # both testruns request the same hosts
+        
+} 
+
+
+done_testing();
