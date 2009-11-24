@@ -75,23 +75,23 @@ sub validate_args
         die "Scenario file needed\n",$self->usage->text if not $opt->{file};
         die "Scenario file ",$opt->{file}," does not exist" if not -e $opt->{file};
         die "Scenario file ",$opt->{file}," is not readable" if not -r $opt->{file};
-       
+
         return 1;
 }
 
 =head2 execute
 
-Worker function 
+Worker function
 
 =cut
 
-sub execute 
+sub execute
 {
         my ($self, $opt, $args) = @_;
 
         my $scenario = slurp($opt->{file});
         $scenario = $self->apply_macro($opt, $args, $opt->{d}) if $opt->{d};
-        
+
         my $scenario_conf = Load($scenario);
         given ($scenario_conf->{scenario_type}) {
                 when ('interdep') {
@@ -101,7 +101,7 @@ sub execute
                         die "Unknown scenario type ", $scenario_conf->{scenario_type};
                 }
         };
-          
+
         return 0;
 }
 
@@ -120,10 +120,10 @@ Process macros and substit using Template::Toolkit.
 sub apply_macro
 {
         my ($self, $macro, $substitutes) = @_;
-        
+
         my $tt            = new Template();
         my $ttapplied;
-        
+
         $tt->process(\$macro, $substitutes, \$ttapplied) || die $tt->error();
         return $ttapplied;
 }
