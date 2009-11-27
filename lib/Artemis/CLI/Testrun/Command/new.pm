@@ -4,7 +4,6 @@ use 5.010;
 
 use strict;
 use warnings;
-no warnings 'uninitialized';
 
 use parent 'App::Cmd::Command';
 
@@ -21,6 +20,7 @@ require Artemis::Schema::TestrunDB::Result::Topic;
 use Template;
 
 use Moose;
+no warnings 'uninitialized';
 
 has macropreconds => ( is => "rw" );
 
