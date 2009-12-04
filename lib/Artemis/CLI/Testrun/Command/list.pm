@@ -27,7 +27,7 @@ my $options = { "verbose"   => { text => "print all output, without only print i
                 "id"        => { text => "list particular testruns", type => 'int', short => 'i' },
 
               };
-                
+
 
 sub opt_spec {
         my @opt_spec;
@@ -74,9 +74,9 @@ sub validate_args {
         if ($opt->{all} ) {
                 say STDERR "You provided --all and a filter option. Filter options imply --all which can be left out in this case" if grep /$allowed_opts_re/, keys %$opt;
                 push @allowed_opts, 'all';
-                
+
         }
-        
+
         if ($opt->{id}) {
                 $opt->{verbose} = 1; # id does not make sense without verbose
                 if ($opt->{all}) {
@@ -85,16 +85,16 @@ sub validate_args {
                 } elsif (grep /$allowed_opts_re/, keys %$opt) {
                         say STDERR "--id can not be used together with filter options";
                         die $self->usage_desc;
-                } 
+                }
                 push @allowed_opts, 'id';
         }
 
-        
+
         my $msg = "Unknown option";
         $msg   .= ($args and $#{$args} >=1) ? 's' : '';
         $msg   .= ": ";
         say STDERR $msg, join(', ',@$args) if ($args and @$args);
-        
+
         $allowed_opts_re = join '|', @allowed_opts;
 
         return 1 if grep /$allowed_opts_re/, keys %$opt;
@@ -103,7 +103,6 @@ sub validate_args {
 
 sub execute {
         my ($self, $opt, $args) = @_;
-        $self->print_colnames if $opt->{colnames};
         my $use_flag;
         my $testrun_rs;
         my @opts;
@@ -124,7 +123,7 @@ sub execute {
                 }
                 $testrun_rs = $testrun_rs->search({id =>[ @ids ] }) if $use_flag;  # @ids may be empty if no state filter or filter results in 0 tests found
 
-                
+
                 @ids = (); $use_flag = 0;
         QUEUE:
                 foreach my $queue (@{$opt->{queue}}) {
@@ -149,22 +148,52 @@ sub execute {
                 }
                 $testrun_rs = $testrun_rs->search({id => [ @ids ] }) if $use_flag;
         }
-        
-        foreach my $testrun ($testrun_rs->all) {
-                if ($opt->{verbose}) {
-                        say $testrun->to_string;
-                } else {
+
+        if ($opt->{verbose}) {
+                $self->print_testruns($testrun_rs, $opt);
+        } else {
+                $self->print_colnames() if $opt->{colnames};
+                foreach my $testrun ($testrun_rs->all) {
                         say $testrun->id;
 
                 }
         }
 }
 
+sub print_testruns
+{
+        my ($self, $testruns, $opt) = @_;
+
+ TESTRUN:
+        foreach my $tr ($testruns->all) {
+                print "\n",'*'x80,"\n\n";
+                say "id: ",$tr->id;
+                say "topic: ", $tr->topic_name;
+                say "shortname: ",$tr->shortname if $tr->shortname;
+
+                if (not $tr->testrun_scheduling) {
+                        say "Old testrun with no scheduling information";
+                        next TESTRUN;
+                }
+                say "state: ",$tr->testrun_scheduling->status;
+                say "queue: ",$tr->testrun_scheduling->queue->name;
+                if ($tr->testrun_scheduling->status eq "schedule") {
+                        if ($tr->testrun_scheduling->requested_hosts->count) {
+                                print "requested hosts: ";
+                                say join ",", map {$_->host->name} $tr->testrun_scheduling->requested_hosts->all;
+                        }
+                } else {
+                        say "used host: ", $tr->testrun_scheduling->host->name if $tr->testrun_scheduling->host;
+                }
+                say "auto rerun: ", $tr->testrun_scheduling->auto_rerun ? 'yes' : 'no';
+        }
+
+}
+
+
 sub print_colnames
 {
-        my ($self, $opt, $args) = @_;
-
-
+        my ($self, $width) = @_;
         my $columns = model('TestrunDB')->resultset('Testrun')->result_source->{_ordered_columns};
         print join( $Artemis::Schema::TestrunDB::DELIM, @$columns, '' ), "\n";
 }
