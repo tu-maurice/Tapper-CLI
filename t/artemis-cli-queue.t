@@ -29,8 +29,15 @@ is($queue->priority, 4711, 'inserted queue / priority');
 is($?, 0, 'New host / return value');
 
 my $retval = `/usr/bin/env perl -Ilib bin/artemis-testrun listqueue --maxprio=300 --minprio=200 -v `;
-my @words = $retval =~ m/ *(\d+)(?: |\|)*(\w+)(?: |\|)*(\d+)(?:(?: |\|)*(\w+))/mg;
-is_deeply(\@words,[2,'KVM', 200, 'host3', 1, 'Xen', 300, 'host3'], 'Listqueue / verbose');
+is ($retval, "Id: 2\nName: KVM\nPriority: 200\nBound hosts: host3\n
+********************************************************************************
+Id: 1\nName: Xen\nPriority: 300\nBound hosts: host3\n
+********************************************************************************
+", 'List queues');
+$retval = `/usr/bin/env perl -Ilib bin/artemis-testrun listqueue --maxprio=10 -v `;
+is($retval, "Id: 3\nName: Kernel\nPriority: 10\nQueued testruns (ids): 301, 302\n
+********************************************************************************
+", 'Queued testruns in listqueue');
 
 $retval = `/usr/bin/env perl -Ilib bin/artemis-testrun updatequeue --name=Xen -p500 -v`;
 is($retval, "Xen | 500\n", 'Update queue');
