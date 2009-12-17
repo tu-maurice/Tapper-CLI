@@ -94,35 +94,29 @@ sub execute {
 sub print_queues_verbose
 {
         my ($self, $queues) = @_;
-        my %max = (
-                   host => 0,
-                   queue => 0,
-                  );
- QUEUE:
         foreach my $queue ($queues->all) {
-                $max{queue} = length($queue->name) if length($queue->name) > $max{queue};
-                next QUEUE if not $queue->queuehosts->count;
-                foreach my $queuehost ($queue->queuehosts->all) {
-                        $max{host} = length($queuehost->host->name) if length($queuehost->host->name) > $max{host};
-                }
-        }
-
-        foreach my $queue ($queues->all) {
-                my ($host_length, $queue_length) = ($max{host}, $max{queue});
-                my $output = sprintf("%10d | %${queue_length}s | %5d",
+                my $output = sprintf("Id: %s\nName: %s\nPriority: %s\n",
                                      $queue->id, 
                                      $queue->name, 
                                      $queue->priority);
                 if ($queue->queuehosts->count) {
-                        foreach my $queuehost ($queue->queuehosts->all) {
-                                $output.= sprintf(" | %${host_length}s",$queuehost->host->name);
-                        }
-                } 
+                        my @hosts = map {$_->host->name} $queue->queuehosts->all;
+                        $output  .= "Bound hosts: ";
+                        $output  .= join ", ",@hosts;
+                        $output  .= "\n";
+                }
+                if ($queue->queued_testruns->count) {
+                        my @ids   = map {$_->id} $queue->queued_testruns->all;
+                        $output  .= "Queued testruns (ids): ";
+                        $output  .= join ", ",@ids;
+                        $output  .= "\n";
+                }
                 say $output;
+                say "*"x80;
         }
 }
 
 
 1;
 
-# perl -Ilib bin/artemis-testrun list --id 16
+# perl -Ilib bin/artemis-testrun listqueue -v
