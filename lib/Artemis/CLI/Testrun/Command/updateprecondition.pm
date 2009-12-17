@@ -56,10 +56,6 @@ sub validate_args {
 sub execute {
         my ($self, $opt, $args) = @_;
 
-        require Artemis;
-        require Artemis::Config;
-
-        #say STDERR "\n\n\n*** env: ", Artemis::Config::_getenv;
         $self->update_precondition ($opt, $args);
 }
 
