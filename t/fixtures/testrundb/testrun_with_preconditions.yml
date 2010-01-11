@@ -28,7 +28,6 @@
     shortname: perfmon
     notes: perfmon
     topic_name: Software
-    test_program: /usr/local/share/artemis/testsuites/perfmon/t/do_test.sh
     hardwaredb_systems_id: 12
 
 - schema: Testrun
@@ -39,7 +38,6 @@
     shortname: lmbench
     notes: artemis test suite lmbench wrapper
     topic_name: Distribution
-    test_program: /usr/local/share/artemis/testsuites/lmbench/t/do_test.sh
 
 # -------------------- preconditions
 
