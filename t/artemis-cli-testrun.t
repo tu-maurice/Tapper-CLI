@@ -154,4 +154,13 @@ is($host->name, 'fritz', 'Name of new host');
 
 
 # --------------------------------------------------
+
+$testrun_id = `/usr/bin/env perl -Ilib bin/artemis-testrun new --topic=Software --rerun_on_error=3 --precondition=1`;
+chomp $testrun_id;
+
+$testrun = model('TestrunDB')->resultset('Testrun')->find($testrun_id);
+ok($testrun->id, 'inserted testrun / id');
+is($testrun->rerun_on_error, 3, 'Setting rerun on error');
+
+
 done_testing();
