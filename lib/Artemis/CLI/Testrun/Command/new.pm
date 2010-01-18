@@ -41,6 +41,7 @@ my $options = { "verbose"           => { text => "some more informational output
                 "precondition"      => { text => "assigned precondition ids", needed => 1, type => 'manystring'  },
                 "macroprecond"      => { text => "STRING, use this macro precondition file", needed => 1 , type => 'string' },
                 "D"                 => { text => "Define a key=value pair used in macro preconditions", type => 'keyvalue' },
+                "rerun_on_error"    => { text => "INT, retry this testrun this many times if an error occurs", type => 'string' },
                 "requested_host"    => { text => "String; name one possible host for this testrequest; \n\t\t\t\t  ".
                                                 "multiple requested hosts are OR evaluated, i.e. each is appropriate", type => 'manystring' },
                 "requested_feature" => { text => "String; description of one requested feature of a matching host for this testrequest; \n\t\t\t\t  ".
@@ -152,6 +153,10 @@ sub validate_args
                 $self->{macropreconds} = join '',@precond_lines;
         }
 
+        if (exists $opt->{rerun_on_error} and not int($opt->{rerun_on_error})) {
+                say STDERR "Value for rerun_on_error ($opt->{rerun_on_error}) can not be parsed as integer value. Won't set rerun_on_error";
+        }
+
         return 1 if $precondition_ok and $macrovalues_ok;
 
         die $self->usage->text;
@@ -226,13 +231,14 @@ sub new_runtest
         #print "opt  = ", Dumper($opt);
 
         my $testrun = {
-                       notes        => $opt->{notes}        || '',
-                       shortname    => $opt->{shortname}    || '',
-                       topic        => $opt->{topic}        || 'Misc',
-                       date         => $opt->{earliest}     || DateTime->now,
-                       owner        => $opt->{owner}        || $ENV{USER},
-                       auto_rerun   => $opt->{auto_rerun},
-                       queue        => $opt->{queue}        || 'AdHoc',
+                       notes          => $opt->{notes}               || '',
+                       shortname      => $opt->{shortname}           || '',
+                       topic          => $opt->{topic}               || 'Misc',
+                       date           => $opt->{earliest}            || DateTime->now,
+                       owner          => $opt->{owner}               || $ENV{USER},
+                       auto_rerun     => $opt->{auto_rerun},
+                       rerun_on_error => int($opt->{rerun_on_error}) || 0,
+                       queue          => $opt->{queue}               || 'AdHoc',
                       };
         my @ids;
 
