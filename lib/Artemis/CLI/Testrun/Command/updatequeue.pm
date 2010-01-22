@@ -20,6 +20,7 @@ my $options =  {
                 "verbose"          => { text => "some more informational output", short => 'v' },
                 "name"             => { text => "TEXT; name of the queue to be changed",    type => 'string' },
                 "priority"         => { text => "INT; priority", type => 'string', short => 'p' },
+                "active"           => { text => "set active flag to this value, prepend with no to unset", type => 'withno' },
                 };
 
 sub opt_spec {
@@ -52,10 +53,10 @@ sub validate_args
 {
         my ($self, $opt, $args) = @_;
 
-        say "Missing argument --name"     unless  $opt->{name};
-        say "Missing argument --priority, this is the only changable value" unless  $opt->{priority};
+        say "Missing argument --name"         unless  $opt->{name};
+        say "Missing argument what to change" unless  exists($opt->{priority}) or exists($opt->{active});
 
-        return 1 if $opt->{name} and $opt->{priority};
+        return 1 if $opt->{name} and (exists($opt->{priority}) or exists($opt->{active}));
 
         die $self->usage->text;
 }
@@ -67,12 +68,17 @@ sub update_queue
         my $queue = model('TestrunDB')->resultset('Queue')->search({name => $opt->{name}})->first;
         
         my $cmd = Artemis::Cmd::Queue->new();
-        my $queue_id = $cmd->update($queue->id, {priority => $opt->{priority}});
+        my $new_opts = {};
+
+        $new_opts->{priority} = $opt->{priority} if defined($opt->{priority});
+        $new_opts->{active}   = $opt->{active}   if defined($opt->{active});
+
+        my $queue_id = $cmd->update($queue->id, $new_opts);
         die "Can't create new queue because of an unknown error" if not $queue_id;
 
         if ($opt->{verbose}) {
                 $queue = model('TestrunDB')->resultset('Queue')->find($queue_id);
-                say $queue->name, " | ", $queue->priority;
+                say join " | ", ($queue->name, $queue->priority, $queue->active ? 'active' : 'not active');
         } else {
                 say $queue_id;
         }
