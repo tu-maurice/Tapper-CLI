@@ -186,6 +186,12 @@ sub print_testruns
                         say "used host: ", $tr->testrun_scheduling->host->name if $tr->testrun_scheduling->host;
                 }
                 say "auto rerun: ", $tr->testrun_scheduling->auto_rerun ? 'yes' : 'no';
+                print "precondition_ids: ";
+                if ($tr->ordered_preconditions) {
+                        say join ", ", map {$_->id} $tr->ordered_preconditions;
+                } else {
+                        say "None";
+                }
         }
 
 }
