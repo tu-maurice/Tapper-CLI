@@ -21,6 +21,7 @@ my $options =  {
                 "verbose"          => { text => "some more informational output" },
                 "name"             => { text => "TEXT; name",    type => 'string' },
                 "priority"         => { text => "INT; priority", type => 'string' },
+                "active"           => { text => "set active flag to this value, prepend with no to unset", type => 'withno' },
                 };
 
 sub opt_spec {
@@ -54,7 +55,7 @@ sub validate_args
         #         print "args = ", Dumper($args);
 
         say "Missing argument --name"     unless  $opt->{name};
-        say "Missing argument --priority" unless  $opt->{priority};
+        say "Missing argument --priority" unless  exists($opt->{priority});
 
         return 1 if $opt->{name} and $opt->{priority};
 
@@ -70,6 +71,7 @@ sub new_queue
         my $queue = {
                      name        => $opt->{name},
                      priority    => $opt->{priority},
+                     active      => $opt->{active} // 0,
                     };
         my @ids;
 
