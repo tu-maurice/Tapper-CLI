@@ -29,18 +29,25 @@ is($queue->priority, 4711, 'inserted queue / priority');
 is($?, 0, 'New host / return value');
 
 my $retval = `/usr/bin/env perl -Ilib bin/artemis-testrun listqueue --maxprio=300 --minprio=200 -v `;
-is ($retval, "Id: 2\nName: KVM\nPriority: 200\nBound hosts: host3\n
+is ($retval, "Id: 2\nName: KVM\nPriority: 200\nActive: no\nBound hosts: host3\n
 ********************************************************************************
-Id: 1\nName: Xen\nPriority: 300\nBound hosts: host3\n
+Id: 1\nName: Xen\nPriority: 300\nActive: no\nBound hosts: host3\n
 ********************************************************************************
 ", 'List queues');
 $retval = `/usr/bin/env perl -Ilib bin/artemis-testrun listqueue --maxprio=10 -v `;
-is($retval, "Id: 3\nName: Kernel\nPriority: 10\nQueued testruns (ids): 301, 302\n
+is($retval, "Id: 3\nName: Kernel\nPriority: 10\nActive: no\nQueued testruns (ids): 301, 302\n
 ********************************************************************************
 ", 'Queued testruns in listqueue');
 
 $retval = `/usr/bin/env perl -Ilib bin/artemis-testrun updatequeue --name=Xen -p500 -v`;
-is($retval, "Xen | 500\n", 'Update queue');
+is($retval, "Xen | 500 | not active\n", 'Update queue priority');
+
+$retval = `/usr/bin/env perl -Ilib bin/artemis-testrun updatequeue --name=Xen --active -v`;
+is($retval, "Xen | 500 | active\n", 'Update queue active flag');
+
+$retval = `/usr/bin/env perl -Ilib bin/artemis-testrun updatequeue --name=Xen --noactive -v`;
+is($retval, "Xen | 500 | not active\n", 'Update queue active flag');
+
 
 $retval = `/usr/bin/env perl -Ilib bin/artemis-testrun deletequeue --name=Xen --really`;
 is($retval, "Deleted queue Xen\n", 'Delete queue');
