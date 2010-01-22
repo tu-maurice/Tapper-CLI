@@ -95,10 +95,11 @@ sub print_queues_verbose
 {
         my ($self, $queues) = @_;
         foreach my $queue ($queues->all) {
-                my $output = sprintf("Id: %s\nName: %s\nPriority: %s\n",
+                my $output = sprintf("Id: %s\nName: %s\nPriority: %s\nActive: %s\n",
                                      $queue->id, 
                                      $queue->name, 
-                                     $queue->priority);
+                                     $queue->priority,
+                                     $queue->active ? 'yes' : 'no');
                 if ($queue->queuehosts->count) {
                         my @hosts = map {$_->host->name} $queue->queuehosts->all;
                         $output  .= "Bound hosts: ";
