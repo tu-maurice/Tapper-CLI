@@ -28,6 +28,7 @@ state: schedule
 queue: Kernel
 requested hosts: iring
 auto rerun: no
+precondition_ids: 9, 10, 8, 5
 ', 'List testrun / by id');
 
 $retval = `/usr/bin/env perl -Ilib bin/artemis-testrun list --host=iring --schedule`;
