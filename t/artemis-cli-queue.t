@@ -35,7 +35,7 @@ Id: 1\nName: Xen\nPriority: 300\nActive: no\nBound hosts: host3\n
 ********************************************************************************
 ", 'List queues');
 $retval = `/usr/bin/env perl -Ilib bin/artemis-testrun listqueue --maxprio=10 -v `;
-is($retval, "Id: 3\nName: Kernel\nPriority: 10\nActive: no\nQueued testruns (ids): 301, 302\n
+is($retval, "Id: 3\nName: Kernel\nPriority: 10\nActive: no\nQueued testruns (ids): 3001, 3002\n
 ********************************************************************************
 ", 'Queued testruns in listqueue');
 
