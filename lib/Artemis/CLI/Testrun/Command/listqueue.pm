@@ -107,7 +107,7 @@ sub print_queues_verbose
                         $output  .= "\n";
                 }
                 if ($queue->queued_testruns->count) {
-                        my @ids   = map {$_->id} $queue->queued_testruns->all;
+                        my @ids   = map {$_->testrun_id} $queue->queued_testruns->all;
                         $output  .= "Queued testruns (ids): ";
                         $output  .= join ", ",@ids;
                         $output  .= "\n";
