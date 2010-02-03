@@ -138,12 +138,13 @@ sub validate_args
                 my @mandatory;
                 my $required = '';
                 foreach my $line (@precond_lines) {
-                        ($required) = $line =~/# (?:artemis[_-])?mandatory[_-]fields:\s*(.+)/;
+                        ($required) = $line =~/# (?:artemis[_-])?mandatory[_-]fields:\s*(.?+)/;
                         last if $required;
                 }
 
                 my $delim = qr/,+\s*/;
                 foreach my $field (split $delim, $required) {
+                        $field =~ s/\s+//g;
                         my ($name, $type) = split /\./, $field;
                         if (not $opt->{d}{$name}) {
                                 say STDERR "Expected macro field '$name' missing.";
