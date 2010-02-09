@@ -45,11 +45,6 @@ sub opt_spec {
 }
 
 
-# sub usage_desc
-# {
-#         "artemis-testruns updatehost --=s [ --queue=s@ --active=s --verbose ]*";
-# }
-
 sub validate_args
 {
         my ($self, $opt, $args) = @_;
@@ -148,7 +143,5 @@ sub execute
         say $output;
 }
 
-
-# perl -Ilib bin/artemis-testrun newqueue --name="xen-3.2" --priority=200
 
 1;
