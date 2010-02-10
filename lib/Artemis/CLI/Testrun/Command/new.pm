@@ -138,7 +138,7 @@ sub validate_args
                 my @mandatory;
                 my $required = '';
                 foreach my $line (@precond_lines) {
-                        ($required) = $line =~/# (?:artemis[_-])?mandatory[_-]fields:\s*(.?+)/;
+                        ($required) = $line =~/# (?:artemis[_-])?mandatory[_-]fields:\s*(.+)/;
                         last if $required;
                 }
 
