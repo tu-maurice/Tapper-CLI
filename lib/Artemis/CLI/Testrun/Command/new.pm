@@ -47,6 +47,8 @@ my $options = { "verbose"           => { text => "some more informational output
                 "requested_feature" => { text => "String; description of one requested feature of a matching host for this testrequest; \n\t\t\t\t  ".
                                                 "multiple requested features are AND evaluated, i.e. each must fit; ".
                                                 "not evaluated if a matching requested host is found already", type => 'manystring' },
+                "priority"          => { text => "Boolean; This is a very important testrun that should bypass scheduling and not wait for others", type => 'withno' },
+
                 };
 
 sub opt_spec {
@@ -241,6 +243,7 @@ sub new_runtest
                        date           => $opt->{earliest}            || DateTime->now,
                        owner          => $opt->{owner}               || $ENV{USER},
                        auto_rerun     => $opt->{auto_rerun},
+                       priority       => $opt->{priority},
                        rerun_on_error => int($opt->{rerun_on_error}) || 0,
                        queue          => $opt->{queue}               || 'AdHoc',
                       };
