@@ -237,15 +237,15 @@ sub new_runtest
         #print "opt  = ", Dumper($opt);
 
         my $testrun = {
+                       auto_rerun     => $opt->{auto_rerun},
+                       date           => $opt->{earliest}            || DateTime->now,
                        notes          => $opt->{notes}               || '',
+                       owner          => $opt->{owner}               || $ENV{USER},
+                       priority       => $opt->{priority},
+                       queue          => $opt->{queue}               || 'AdHoc',
+                       rerun_on_error => int($opt->{rerun_on_error}) || 0,
                        shortname      => $opt->{shortname}           || '',
                        topic          => $opt->{topic}               || 'Misc',
-                       date           => $opt->{earliest}            || DateTime->now,
-                       owner          => $opt->{owner}               || $ENV{USER},
-                       auto_rerun     => $opt->{auto_rerun},
-                       priority       => $opt->{priority},
-                       rerun_on_error => int($opt->{rerun_on_error}) || 0,
-                       queue          => $opt->{queue}               || 'AdHoc',
                       };
         my @ids;
 
