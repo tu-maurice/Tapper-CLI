@@ -52,12 +52,15 @@ my $options = { "verbose"           => { text => "some more informational output
 sub opt_spec {
         my @opt_spec;
         foreach my $key (keys %$options) {
-                my $pushkey;
+                my $pushkey = $key;
+                $pushkey    = $pushkey."|".$options->{$key}->{short} if $options->{$key}->{short};
+
                 given($options->{$key}->{type}){
-                        when ("string")     {$pushkey = $key ."=s";}
-                        when ("manystring") {$pushkey = $key ."=s@";}
-                        when ("keyvalue")   {$pushkey = $key ."=s%";}
-                        default             {$pushkey = $key; }
+                        when ("string")        {$pushkey .="=s";}
+                        when ("withno")        {$pushkey .="!";}
+                        when ("manystring")    {$pushkey .="=s@";}
+                        when ("optmanystring") {$pushkey .=":s@";}
+                        when ("keyvalue")      {$pushkey .="=s%";}
                 }
                 push @opt_spec, [$pushkey, $options->{$key}->{text}];
         }
