@@ -163,4 +163,16 @@ ok($testrun->id, 'inserted testrun / id');
 is($testrun->rerun_on_error, 3, 'Setting rerun on error');
 
 
+# --------------------------------------------------
+#         Priorities
+# --------------------------------------------------
+$testrun_id = `/usr/bin/env perl -Ilib bin/artemis-testrun new --topic=Software --priority --precondition=1`;
+chomp $testrun_id;
+$testrun = model('TestrunDB')->resultset('Testrun')->find($testrun_id);
+ok($testrun->id, 'inserted testrun / id');
+ok(defined($testrun->testrun_scheduling->prioqueue_seq), 'inserted testrun is in priority queue');
+
+
+
+
 done_testing();
