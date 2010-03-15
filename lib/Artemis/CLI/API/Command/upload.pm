@@ -47,14 +47,14 @@ sub validate_args
         # -- file constraints --
         my $file    = $opt->{file};
         my $file_ok = $file && ($file eq '-' || -r $file);
-        say "Missing argument --file"                        unless $file;
-        say "Error: file '$file' must be readable or STDIN." unless $file_ok;
+        say "Missing argument --file"                                  unless $file;
+        say "Error: file '".($file//"")."' must be readable or STDIN." unless $file_ok;
 
         # -- report constraints --
         my $reportid  = $opt->{reportid};
         my $report_ok = $reportid && $reportid =~ /^\d+$/;
-        say "Missing argument --reportid"           unless $reportid;
-        say "Error: Strange report id '$reportid'." unless $report_ok;
+        say "Missing argument --reportid"                              unless $reportid;
+        say "Error: Strange target report (id '".($reportid//"")."')." unless $report_ok;
 
         return 1 if $opt->{reportid} && $file_ok && $report_ok;
         die $self->usage->text;
