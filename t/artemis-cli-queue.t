@@ -17,7 +17,7 @@ construct_fixture( schema  => testrundb_schema, fixture => 't/fixtures/testrundb
 construct_fixture( schema  => hardwaredb_schema, fixture => 't/fixtures/hardwaredb/systems.yml' );
 # -----------------------------------------------------------------------------------------------------------------
 
-my $queue_id = `/usr/bin/env perl -Ilib bin/artemis-testrun newqueue  --name="Affe" --priority=4711`;
+my $queue_id = `$^X -Ilib bin/artemis-testrun newqueue  --name="Affe" --priority=4711`;
 chomp $queue_id;
 
 my $queue = model('TestrunDB')->resultset('Queue')->find($queue_id);
