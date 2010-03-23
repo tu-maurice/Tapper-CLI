@@ -25,7 +25,7 @@ no warnings 'uninitialized';
 has macropreconds => ( is => "rw" );
 
 sub abstract {
-        'Create a new testrun'
+        'Update an existing testrun'
 }
 
 
