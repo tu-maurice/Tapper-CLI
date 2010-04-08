@@ -27,6 +27,7 @@ my $builder = Module::Build->new
                   'Artemis::Model'            => '2.010003',
                   'Artemis::Config'           => '2.010003',
                   'Artemis::Schema'           => '2.010022',
+                  'Artemis::Cmd   '           => '2.010023',
                   'Data::Dumper'              => 0,
                   'DateTime::Format::Natural' => 0,
                   'YAML::Syck'                => 0,
