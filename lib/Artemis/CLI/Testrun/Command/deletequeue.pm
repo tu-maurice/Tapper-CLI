@@ -42,22 +42,28 @@ sub opt_spec {
                );
 }
 
+sub _allowed_opts {
+        my @allowed_opts = map { $_->[0] } opt_spec();
+}
+
 
 sub usage_desc
 {
-        "artemis-testruns deletequeue --name=s";
+        my $allowed_opts = join ' | ', map { '--'.$_ } _allowed_opts();
+        "artemis-testruns listprecondition [ " . $allowed_opts ." ]";
 }
 
 sub validate_args
 {
         my ($self, $opt, $args) = @_;
 
-        say "Missing argument --name"     unless  $opt->{name};
+        die $self->usage->text unless %$opt ;
+        
+        die "Missing argument --name" unless  $opt->{name};
         die "Really? Then add --really to the options.\n" unless $opt->{really};
 
         return 1 if $opt->{name};
 
-        die $self->usage->text;
 }
 
 sub delete_queue
