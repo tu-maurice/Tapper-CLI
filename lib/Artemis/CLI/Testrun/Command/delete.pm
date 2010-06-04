@@ -55,7 +55,11 @@ sub execute {
 
         my $cmd = Artemis::Cmd::Testrun->new();
         foreach my $id (@{$opt->{id}}){
-                $cmd->del($id);
+                my $error = $cmd->del($id);
+                if ($error) {
+                        say STDERR "Can not delete testrun $id: $error";
+                }
+                say "Deleted testrun $id" if $opt->{verbose};
         }
 }
 
