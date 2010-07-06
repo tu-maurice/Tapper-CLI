@@ -18,6 +18,7 @@ sub abstract {
 my $options = { "verbose"  => { text => "show all available information; without only show names", short => 'v' },
                 "minprio"  => { text => "INT; queues with at least this priority level", type => 'string'},
                 "maxprio"  => { text => "INT; queues with at most this priority level", type => 'string'},
+                "name"     => { text => "show only queue with this name, implies verbose, can be given more than once", type => 'manystring' }
               };
                 
 
@@ -67,6 +68,11 @@ sub validate_args {
                 say STDERR $msg, join(', ',@$args);
                 die $self->usage->text;
         }
+        if ($opt->{name} and ($opt->{minprio} or $opt->{maxprio})) {
+                say STDERR "Search for either name or priority. Both together are not supported.";
+                die $self->usage->text;
+        }
+
         return 1;
 }
 
@@ -80,6 +86,12 @@ sub execute {
                 $search{priority} = {'>=' => $opt->{minprio}} if $opt->{minprio};
                 $search{priority} = {'<=' => $opt->{maxprio}} if $opt->{maxprio};
         }
+
+        if ($opt->{name}) {
+                $search{"name"} = { '-in' => $opt->{name}};
+                $opt->{verbose} = 1;
+        }
+
         my $queues = model('TestrunDB')->resultset('Queue')->search(\%search, \%options);
         if ($opt->{verbose}) {
                 $self->print_queues_verbose($queues)
