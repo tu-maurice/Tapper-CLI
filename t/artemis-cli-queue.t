@@ -39,6 +39,24 @@ is($retval, "Id: 3\nName: Kernel\nPriority: 10\nActive: no\nQueued testruns (ids
 ********************************************************************************
 ", 'Queued testruns in listqueue');
 
+$retval = `/usr/bin/env perl -Ilib bin/artemis-testrun listqueue --name=Xen --name=Kernel`;
+is($retval, 'Id: 3
+Name: Kernel
+Priority: 10
+Active: no
+Queued testruns (ids): 3001, 3002
+
+********************************************************************************
+Id: 1
+Name: Xen
+Priority: 300
+Active: no
+Bound hosts: host3
+
+********************************************************************************
+', 'List queues by name');
+
+
 $retval = `/usr/bin/env perl -Ilib bin/artemis-testrun updatequeue --name=Xen -p500 -v`;
 is($retval, "Xen | 500 | not active\n", 'Update queue priority');
 
