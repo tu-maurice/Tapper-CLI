@@ -75,7 +75,7 @@ sub execute {
         my %options= (order_by => 'name');
         my %search;
         if ($opt->{minprio} and $opt->{maxprio}) {
-                $search{"-and"} = { priority => {'>=' => $opt->{minprio}, priority => {'<=' => $opt->{maxprio}}}};
+                $search{"-and"} = [ priority => {'>=' => $opt->{minprio}}, priority => {'<=' => $opt->{maxprio}}];
         } else {
                 $search{priority} = {'>=' => $opt->{minprio}} if $opt->{minprio};
                 $search{priority} = {'<=' => $opt->{maxprio}} if $opt->{maxprio};
