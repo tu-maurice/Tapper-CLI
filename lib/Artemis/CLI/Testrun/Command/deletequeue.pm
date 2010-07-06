@@ -50,7 +50,7 @@ sub _allowed_opts {
 sub usage_desc
 {
         my $allowed_opts = join ' | ', map { '--'.$_ } _allowed_opts();
-        "artemis-testruns listprecondition [ " . $allowed_opts ." ]";
+        "artemis-testrun listprecondition [ " . $allowed_opts ." ]";
 }
 
 sub validate_args

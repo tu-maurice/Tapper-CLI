@@ -76,7 +76,7 @@ sub opt_spec {
 sub usage_desc
 {
         my $allowed_opts = join ' ', map { '--'.$_ } _allowed_opts();
-        "artemis-testruns new  [ --requested_host=s@ | --requested_feature=s@ | --topic=s | --queue=s | --notes=s | --shortname=s | --owner=s | --wait_after_tests=s | --macroprecond=s | -Dkey=val | --auto_rerun]*";
+        "artemis-testrun new  [ --requested_host=s@ | --requested_feature=s@ | --topic=s | --queue=s | --notes=s | --shortname=s | --owner=s | --wait_after_tests=s | --macroprecond=s | -Dkey=val | --auto_rerun]*";
 }
 
 sub _allowed_opts

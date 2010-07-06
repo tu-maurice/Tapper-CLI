@@ -45,7 +45,7 @@ sub opt_spec {
 
 sub usage_desc {
         my $allowed_opts = join ' | ', map { '--'.$_ } _allowed_opts();
-        "artemis-testruns listqueue " . $allowed_opts ;
+        "artemis-testrun listqueue " . $allowed_opts ;
 }
 
 sub _allowed_opts {

@@ -46,7 +46,7 @@ sub opt_spec {
 
 sub usage_desc
 {
-        "artemis-testruns newqueue --name=s [ --queue=s@ --active=s --verbose ]*";
+        "artemis-testrun newhost --name=s [ --queue=s@ --active=s --verbose ]*";
 }
 
 sub validate_args

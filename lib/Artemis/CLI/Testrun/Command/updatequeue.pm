@@ -46,7 +46,7 @@ sub opt_spec {
 
 sub usage_desc
 {
-        "artemis-testruns updatequeue --name=s --priority=s [ --verbose ]";
+        "artemis-testrun updatequeue --name=s --priority=s [ --verbose ]";
 }
 
 sub validate_args

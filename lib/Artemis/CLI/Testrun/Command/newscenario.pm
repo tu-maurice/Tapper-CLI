@@ -22,7 +22,7 @@ use Moose;
 has macropreconds => ( is => "rw" );
 
 sub abstract {
-        'Create a new testrun';
+        'Create a new scenario';
 }
 
 
@@ -52,7 +52,7 @@ sub opt_spec {
 sub usage_desc
 {
         my $allowed_opts = join ' ', map { '--'.$_ } _allowed_opts();
-        "artemis-testruns newscenario --file=s";
+        "artemis-testrun newscenario --file=s";
 }
 
 sub _allowed_opts

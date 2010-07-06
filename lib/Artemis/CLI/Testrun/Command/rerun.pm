@@ -37,7 +37,7 @@ sub opt_spec {
 sub usage_desc
 {
         my $allowed_opts = join ' ', map { '--'.$_ } _allowed_opts();
-        "artemis-testruns rerun --testrun=s [ --notes=s ]?";
+        "artemis-testrun rerun --testrun=s [ --notes=s ]?";
 }
 
 sub _allowed_opts

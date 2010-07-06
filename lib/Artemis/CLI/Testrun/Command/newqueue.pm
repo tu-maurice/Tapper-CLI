@@ -44,7 +44,7 @@ sub opt_spec {
 
 sub usage_desc
 {
-        "artemis-testruns newqueue --name=s --priority=s [ --verbose ]";
+        "artemis-testrun newqueue --name=s --priority=s [ --verbose ]";
 }
 
 sub validate_args
