@@ -3,6 +3,8 @@ package Artemis::CLI::Testrun::Command::delete;
 use strict;
 use warnings;
 
+use 5.010;
+
 use parent 'App::Cmd::Command';
 
 use Data::Dumper;
