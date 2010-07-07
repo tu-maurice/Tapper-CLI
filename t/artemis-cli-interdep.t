@@ -18,7 +18,7 @@ construct_fixture( schema  => testrundb_schema, fixture => 't/fixtures/testrundb
 construct_fixture( schema  => hardwaredb_schema, fixture => 't/fixtures/hardwaredb/systems.yml' );
 # -----------------------------------------------------------------------------------------------------------------
 
-my $scenario_id = `/usr/bin/env perl -Ilib bin/artemis-testrun newscenario --file t/files/interdep.sc`;
+my $scenario_id = `/usr/bin/env perl -Ilib bin/artemis-testrun newscenario --file t/files/interdep.sc --quiet`;
 chomp $scenario_id;
 ok($scenario_id, 'newscenario returns a true value');
 my $scenario = model('TestrunDB')->resultset('Scenario')->find($scenario_id);
