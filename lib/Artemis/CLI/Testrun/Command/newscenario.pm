@@ -27,6 +27,7 @@ sub abstract {
 
 
 my $options = { "verbose" => { text => "some more informational output" },
+                "quiet"   => { text => "only show scenario id, not testrun ids"},
                 "D"       => { text => "Define a key=value pair used in macro preconditions", type => 'keyvalue' },
                 "file"    => { text => "String; use macro scenario file", type => 'string' },
                 };
@@ -95,7 +96,7 @@ sub execute
         my $scenario_conf = Load($scenario);
         given ($scenario_conf->{scenario_type}) {
                 when ('interdep') {
-                        $self->parse_interdep($scenario_conf->{description});
+                        $self->parse_interdep($scenario_conf->{description}, $opt);
                 }
                 default {
                         die "Unknown scenario type ", $scenario_conf->{scenario_type};
@@ -158,6 +159,7 @@ Parse an interdep scenario and do everything needed to put it into the
 database.
 
 @param hash ref - config containing all relevant information
+@param hash ref - options
 
 @return success - 0
 @return error   - die with error text
@@ -166,18 +168,25 @@ database.
 
 sub parse_interdep
 {
-        my ($self, $conf) = @_;
+        my ($self, $conf, $opt) = @_;
         my $scenario = Artemis::Cmd::Scenario->new();
         my $sc_id    = $scenario->add({type => 'interdep'});
+        my @testrun_ids;
         foreach my $testrun (@$conf) {
                 my $tr = Artemis::Cmd::Testrun->new();
                 $testrun->{scenario_id} = $sc_id;
                 my $testrun_id = $tr->add($testrun);
+                push @testrun_ids, $testrun_id;
                 my $precondition = Artemis::Cmd::Precondition->new();
                 my @ids = $precondition->add($testrun->{preconditions});
                 my $retval = $precondition->assign_preconditions($testrun_id, @ids);
+
         }
-        say $sc_id;
+        if ($opt->{quiet}) {
+                say $sc_id;
+        } else {
+                say "scenario $sc_id consists of testruns ",join ", ",@testrun_ids;
+        }
 
 }
 
