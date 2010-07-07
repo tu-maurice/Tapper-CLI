@@ -23,7 +23,6 @@ my $options =  {
                 "verbose"          => { text => "some more informational output", short=> 'v' },
                 "id"               => { text => "INT; change host with this id; required", type => 'string'},
                 "name"             => { text => "TEXT; update name",    type => 'string' },
-                "free"             => { text => "Cancel the currently running test and set the host free"},
                 "active"           => { text => "set active flag to this value, prepend with not to unset", type => 'withno' },
                 "addqueue"         => { text => "TEXT; Bind host to named queue without deleting other bindings (queue has to exists already)", type => 'manystring'},
                 "delqueue"         => { text => "TEXT; delete queue from this host's bindings, empty string means 'all bindings'", type => 'optmanystring'},
@@ -122,21 +121,6 @@ sub del_queues
         }
 }
 
-sub free_host
-{
-        my ($self, $host) = @_;
-        my $cfg = Artemis::Config::subconfig();
-        my $file = $cfg->{paths}{localdata_path}.$host->name."-install";
-        my $mcp_config = LoadFile($file);
-        die "Can't get MCP port from $file, unable to send quit signal" if not $mcp_config->{mcp_port};
-        my $sock = IO::Socket::INET->new(PeerAddr => $mcp_config->{mcp_host} || 'localhost',
-                                         PeerPort => $mcp_config->{mcp_port});
-        die ("Can not contact MCP on ",$mcp_config->{mcp_host} || 'localhost',":",$mcp_config->{mcp_port}," - $!") if not $sock;
-        $sock->say("state: quit");
-        $sock->close();
-}
-
-
 sub execute 
 {
         my ($self, $opt, $args) = @_;
@@ -147,7 +131,6 @@ sub execute
         $host->name($opt->{name}) if $opt->{name};
         $self->del_queues($host, $opt->{delqueue}) if $opt->{delqueue};
         $self->add_queues($host, $opt->{addqueue}) if $opt->{addqueue};
-        $self->free_host($host) if $opt->{free};
         $host->update;
 
         my $output = sprintf("%s | %s | %s | %s", 
