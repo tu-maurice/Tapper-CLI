@@ -50,7 +50,10 @@ sub validate_args
 {
         my ($self, $opt, $args) = @_;
 
-        die "Missing argument --name" unless  $opt->{name};
+        if (not $opt->{name}) {
+                
+                die "Missing argument --name\n", $self->usage->text;
+        }
         return 1;
 }
 
