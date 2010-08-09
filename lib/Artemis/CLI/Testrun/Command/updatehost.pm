@@ -53,7 +53,7 @@ sub validate_args
 {
         my ($self, $opt, $args) = @_;
 
-        die "Missing argument --id" unless  $opt->{id};
+        warn "Missing argument --id" unless  $opt->{id};
         
         $opt->{active} = 1 if @$args and (grep {$_ eq '--active'} @$args);   # allow --active, even though it's not official
 
