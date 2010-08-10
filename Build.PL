@@ -33,6 +33,7 @@ my $builder = Module::Build->new
                   'DateTime::Format::Natural' => 0,
                   'YAML::Syck'                => 0,
                   'Moose'                     => 0,
+	          'MooseX::LazyRequire'       => '0.06',
                  },
      add_to_cleanup      => [ 'Artemis-CLI-*' ],
     );
