@@ -117,7 +117,10 @@ sub validate_args
         my $msg = "Unknown option";
         $msg   .= ($args and $#{$args} >=1) ? 's' : '';
         $msg   .= ": ";
-        say STDERR $msg, join(', ',@$args) if ($args and @$args);
+        if (($args and @$args)) {
+                say STDERR $msg, join(', ',@$args);
+                die $self->usage->text;
+        }
 
 
         my @needed_opts;
