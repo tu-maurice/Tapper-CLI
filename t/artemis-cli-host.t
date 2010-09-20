@@ -16,6 +16,7 @@ construct_fixture( schema  => testrundb_schema, fixture => 't/fixtures/testrundb
 construct_fixture( schema  => hardwaredb_schema, fixture => 't/fixtures/hardwaredb/systems.yml' );
 # -----------------------------------------------------------------------------------------------------------------
 
+my $retval;
 my $host_id = `/usr/bin/env perl -Ilib bin/artemis-testrun newhost  --name="host1"`;
 chomp $host_id;
 
@@ -69,6 +70,19 @@ is($?, 0, 'Update host / return value');
 $host_result = model('TestrunDB')->resultset('Host')->find(7);
 ok($host_result->active, 'Update host / active');
 is($host_result->queuehosts->count, 0, 'Update host / delete all queues');
+
+# --------------------------------------------------
+$retval = qx(/usr/bin/env perl -Ilib bin/artemis-testrun updatehost --active --name athene 2>&1);
+diag($retval) if $?;
+is($?, 0, 'Update host / return value');
+$host_result = model('TestrunDB')->resultset('Host')->find(8);
+ok($host_result->active, 'Update host by name/ active');
+
+$retval = qx(/usr/bin/env perl -Ilib bin/artemis-testrun updatehost --noactive --name athene 2>&1);
+diag($retval) if $?;
+is($?, 0, 'Update host / return value');
+$host_result = model('TestrunDB')->resultset('Host')->find(8);
+ok(!$host_result->active, 'Update host by name/ deactivate');
 
 
 # --------------------------------------------------
