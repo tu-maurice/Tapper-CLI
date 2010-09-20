@@ -17,23 +17,23 @@ construct_fixture( schema  => testrundb_schema, fixture => 't/fixtures/testrundb
 construct_fixture( schema  => hardwaredb_schema, fixture => 't/fixtures/hardwaredb/systems.yml' );
 # -----------------------------------------------------------------------------------------------------------------
 
-my $precond_id = `/usr/bin/env perl -Ilib bin/artemis-testrun newprecondition  --condition="affe: ~"`;
+my $precond_id = `/usr/bin/env perl -Ilib bin/artemis-testrun newprecondition  --condition="precondition_type: image\nname: suse.tgz"`;
 chomp $precond_id;
 
 my $precond = model('TestrunDB')->resultset('Precondition')->find($precond_id);
 ok($precond->id, 'inserted precond / id');
-like($precond->precondition, qr"affe: ~", 'inserted precond / yaml');
+like($precond->precondition, qr"precondition_type: image", 'inserted precond / yaml');
 
 # --------------------------------------------------
 
 my $old_precond_id = $precond_id;
-$precond_id = `/usr/bin/env perl -Ilib bin/artemis-testrun updateprecondition --id=$old_precond_id --shortname="foobar-perl-5.11" --condition="not_affe_again: ~"`;
+$precond_id = `/usr/bin/env perl -Ilib bin/artemis-testrun updateprecondition --id=$old_precond_id --shortname="foobar-perl-5.11" --condition="precondition_type: file\nname: some_file"`;
 chomp $precond_id;
 
 $precond = model('TestrunDB')->resultset('Precondition')->find($precond_id);
 is($precond->id, $old_precond_id, 'update precond / id');
 is($precond->shortname, 'foobar-perl-5.11', 'update precond / shortname');
-like($precond->precondition, qr'not_affe_again: ~', 'update precond / yaml');
+like($precond->precondition, qr'precondition_type: file', 'update precond / yaml');
 
 my @retval = `/usr/bin/env perl -Ilib bin/artemis-testrun listprecondition --all`;
 chomp @retval;
@@ -46,7 +46,7 @@ is($retval, "5 | temare_producer | ---\nprecondition_type: produce\nproducer: Te
 chomp @retval;
 is_deeply(\@retval, [5, 8], 'List preconditions / per testrun, short');
 
-@retval = `/usr/bin/env perl -Ilib bin/artemis-testrun updateprecondition  --shortname="foobar-perl-5.11" --condition="not_affe_again: ~" 2>&1`;
+@retval = `/usr/bin/env perl -Ilib bin/artemis-testrun updateprecondition  --shortname="foobar-perl-5.11" --condition="precondition_type: file\nname: some_file" 2>&1`;
 chomp @retval;
 is($retval[0], "Required option missing: id", 'Update precondition / id');
 

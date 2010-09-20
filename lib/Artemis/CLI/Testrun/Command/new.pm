@@ -18,7 +18,6 @@ use Artemis::CLI::Testrun;
 use DateTime::Format::Natural;
 require Artemis::Schema::TestrunDB::Result::Topic;
 use Template;
-use TryCatch;
 
 use Moose;
 no warnings 'uninitialized';
@@ -118,7 +117,10 @@ sub validate_args
         my $msg = "Unknown option";
         $msg   .= ($args and $#{$args} >=1) ? 's' : '';
         $msg   .= ": ";
-        say STDERR $msg, join(', ',@$args) if ($args and @$args);
+        if (($args and @$args)) {
+                say STDERR $msg, join(', ',@$args);
+                die $self->usage->text;
+        }
 
 
         my @needed_opts;
@@ -169,7 +171,7 @@ sub validate_args
         die $self->usage->text;
 }
 
-sub execute 
+sub execute
 {
         my ($self, $opt, $args) = @_;
 
@@ -251,47 +253,43 @@ sub new_runtest
         my @ids;
 
 	my $exception;
-	try{
-                @ids = $self->create_macro_preconditions($opt, $args) if $opt->{macroprecond};
-                push @ids, @{$opt->{precondition}} if $opt->{precondition};
+        @ids = $self->create_macro_preconditions($opt, $args) if $opt->{macroprecond};
+        push @ids, @{$opt->{precondition}} if $opt->{precondition};
 
-                die "No valid preconditions given" if not @ids;
+        die "No valid preconditions given" if not @ids;
 
-                my $cmd = Artemis::Cmd::Testrun->new();
-                my $testrun_id = $cmd->add($testrun);
-                die "Can't create new testrun because of an unknown error" if not $testrun_id;
-                my $testrun_search = model('TestrunDB')->resultset('Testrun')->find($testrun_id);
-        
-                my $retval = $self->analyse_preconditions(@ids);
-        
-                $retval = $cmd->assign_preconditions($testrun_id, @ids);
-                if ($retval) {
-                        $testrun_search->delete();     
-                        die $retval;
+        my $cmd = Artemis::Cmd::Testrun->new();
+        my $testrun_id = $cmd->add($testrun);
+        die "Can't create new testrun because of an unknown error" if not $testrun_id;
+        my $testrun_search = model('TestrunDB')->resultset('Testrun')->find($testrun_id);
+
+        my $retval = $self->analyse_preconditions(@ids);
+
+        $retval = $cmd->assign_preconditions($testrun_id, @ids);
+        if ($retval) {
+                $testrun_search->delete();
+                die $retval;
+        }
+
+        if ($opt->{requested_host}) {
+                foreach my $host (@{$opt->{requested_host}}) {
+                        push @ids, $self->add_host($testrun_id, $host);
                 }
+        }
 
-                if ($opt->{requested_host}) {
-                        foreach my $host (@{$opt->{requested_host}}) {
-                                push @ids, $self->add_host($testrun_id, $host);
-                        }
+        if ($opt->{requested_feature}) {
+                foreach my $feature (@{$opt->{requested_feature}}) {
+                        push @ids, $self->add_feature($testrun_id, $feature);
                 }
+        }
+        $testrun_search->testrun_scheduling->status('schedule');
+        $testrun_search->testrun_scheduling->update;
 
-                if ($opt->{requested_feature}) {
-                        foreach my $feature (@{$opt->{requested_feature}}) {
-                                push @ids, $self->add_feature($testrun_id, $feature);
-                        }
-                }
-                $testrun_search->testrun_scheduling->status('schedule');
-                $testrun_search->testrun_scheduling->update;  
-
-                if ($opt->{verbose}) {
-                        say $testrun_search->to_string;
-                } else {
-                        say $testrun_id;
-                }
-	} catch ($exception) {
-		die $exception->msg;
-	}
+        if ($opt->{verbose}) {
+                say $testrun_search->to_string;
+        } else {
+                say $testrun_id;
+        }
 }
 
 
