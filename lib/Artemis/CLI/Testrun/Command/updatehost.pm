@@ -53,9 +53,22 @@ sub validate_args
 {
         my ($self, $opt, $args) = @_;
 
-        warn "Missing argument --id" unless  $opt->{id};
-        
+        unless (($opt->{id} or $opt->{name})) {
+                warn "Please specify which host to update using --id or --name";
+                die $self->usage->text;
+        }
+
         $opt->{active} = 1 if @$args and (grep {$_ eq '--active'} @$args);   # allow --active, even though it's not official
+
+        if ($opt->{name} and not $opt->{id}) {
+                my $host = model('TestrunDB')->resultset('Host')->search({name => $opt->{name}})->first;
+                if (not  $host) {
+                        warn "No such host: $opt->{name}";
+                        die $self->usage->text;
+                }
+                $opt->{id} = $host->id;
+        }
+
 
         my $host = model('TestrunDB')->resultset('Host')->find($opt->{id});
         if (not $host) {
@@ -75,8 +88,7 @@ sub validate_args
                 }
         }
 
-        return 1 if $opt->{id};
-        die $self->usage->text;
+        return 1;
 }
 
 sub add_queues
@@ -124,8 +136,10 @@ sub del_queues
 sub execute 
 {
         my ($self, $opt, $args) = @_;
-        my $host = model('TestrunDB')->resultset('Host')->find($opt->{id});
-        die "No such host: $opt->id" if not  $host;
+        my $host;
+
+        $host = model('TestrunDB')->resultset('Host')->find($opt->{id});
+        die "No such host: $opt->{id}" if not  $host;
 
         $host->active($opt->{active}) if defined($opt->{active});
         $host->name($opt->{name}) if $opt->{name};
