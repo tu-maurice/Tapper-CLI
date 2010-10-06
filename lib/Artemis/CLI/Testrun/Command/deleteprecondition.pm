@@ -36,7 +36,7 @@ sub _allowed_opts {
 }
 
 sub _extract_bare_option_names {
-        map { s/=.*//; $_} _allowed_opts();
+        map { my ($x = $_) =~ s/=.*//; $x } _allowed_opts();
 }
 
 sub validate_args {
