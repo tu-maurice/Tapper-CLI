@@ -11,6 +11,7 @@ my $builder = Module::Build->new
      dist_version_from   => 'lib/Artemis/CLI.pm',
      build_requires => {
                         'Test::More'                  => 0,
+                        'Test::Perl::Critic'          => 0,
                         'Test::Fixture::DBIC::Schema' => 0,
                         'DBIx::Class'                 => '0.08112',
                         'Artemis::Test'               => '2.010005',
