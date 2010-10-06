@@ -28,7 +28,7 @@ sub execute_command
         my ($cmd, $opt, $args) = @_;
 
         if ($cmd->global_options->{l}) {
-                eval "use lib './lib/'";
+                eval "use lib './lib/'"; ## no critic
         }
 
         App::Cmd::execute_command(@_);

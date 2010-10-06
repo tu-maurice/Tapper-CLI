@@ -4,7 +4,6 @@ use strict;
 use warnings;
 
 use parent 'App::Cmd';
-use Artemis::Exception::Param;
 
 sub opt_spec
 {
