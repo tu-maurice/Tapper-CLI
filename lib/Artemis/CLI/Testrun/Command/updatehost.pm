@@ -146,7 +146,7 @@ sub execute
         $host->name($opt->{name}) if $opt->{name};
         $self->del_queues($host, $opt->{delqueue}) if $opt->{delqueue};
         $self->add_queues($host, $opt->{addqueue}) if $opt->{addqueue};
-        $host->comment = $opt->{comment} if $opt->{comment};
+        $host->comment($opt->{comment}) if $opt->{comment};
         $host->update;
 
         my $output = sprintf("%s | %s | %s | %s", 
