@@ -121,7 +121,8 @@ sub print_hosts_verbose
                   );
  HOST:
         foreach my $host ($hosts->all) {
-                $max{name} = length($host->name) if length($host->name) > $max{name};
+                $max{name}    = length($host->name) if length($host->name) > $max{name};
+                $max{comment} = length($host->comment) if length($host->comment) > $max{comment};
                 next HOST if not $host->queuehosts->count;
                 foreach my $queuehost ($host->queuehosts->all) {
                         $max{queue} = length($queuehost->queue->name) if length($queuehost->queue->name) > $max{queue};
