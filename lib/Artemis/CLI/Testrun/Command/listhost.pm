@@ -115,8 +115,9 @@ sub print_hosts_verbose
 {
         my ($self, $hosts) = @_;
         my %max = (
-                   name => 0,
-                   queue => 0,
+                   name    => 4,
+                   comment => 7,
+                   queue   => 0,
                   );
  HOST:
         foreach my $host ($hosts->all) {
@@ -126,6 +127,12 @@ sub print_hosts_verbose
                         $max{queue} = length($queuehost->queue->name) if length($queuehost->queue->name) > $max{queue};
                 }
         }
+        my ($name_length, $comment_length, $queue_length) = ($max{name}, $max{comment}, $max{queue});
+        
+        # use printf to get the wanted field width
+        printf ("%5s | %${name_length}s | %11s | %10s | %${comment_length}s | Queues\n",'ID','Name','Active', 'Testrun ID', 'Comment');
+        say "="x(5+$name_length+11+length('Testrun ID')+$comment_length+length('Queues')+5*length(' | '));
+
 
         foreach my $host ($hosts->all) {
                 my ($name_length, $queue_length) = ($max{name}, $max{queue});
@@ -134,15 +141,15 @@ sub print_hosts_verbose
                         my $job_rs = model('TestrunDB')->resultset('TestrunScheduling')->search({host_id => $host->id, status => 'running'});
                         $testrun_id = $job_rs->first->testrun_id if $job_rs->count;
                 }
-                my $output = sprintf("%10d | %${name_length}s | %11s | %16s", 
+                my $output = sprintf("%5d | %${name_length}s | %11s | %10s | %${comment_length}s | ", 
                                      $host->id, 
                                      $host->name, 
                                      $host->active ? 'active' : 'deactivated', 
-                                     $host->free   ? 'free'   : "testrun $testrun_id");
+                                     $host->free   ? 'free'   : "$testrun_id",
+                                     $host->comment,
+                                    );
                 if ($host->queuehosts->count) {
-                        foreach my $queuehost ($host->queuehosts->all) {
-                                $output.= sprintf(" | %${queue_length}s",$queuehost->queue->name);
-                        }
+                        $output .= join ", ", map {$_->queue->name} $host->queuehosts->all;
                 } 
                 say $output;
         }
