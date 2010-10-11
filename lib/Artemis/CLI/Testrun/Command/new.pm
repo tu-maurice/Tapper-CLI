@@ -252,7 +252,6 @@ sub new_runtest
                       };
         my @ids;
 
-	my $exception;
         @ids = $self->create_macro_preconditions($opt, $args) if $opt->{macroprecond};
         push @ids, @{$opt->{precondition}} if $opt->{precondition};
 
