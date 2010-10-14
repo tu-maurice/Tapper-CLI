@@ -1,5 +1,5 @@
-Artemis-Cmd-*.*.tar.gz
-^Artemis-Cmd-*.*$
+Artemis-CLI-*.*.tar.gz
+^Artemis-CLI-*.*$
 _build
 blib
 ^Build$
