@@ -7,9 +7,11 @@ use warnings;
 
 use parent 'App::Cmd::Command';
 
-use Artemis::Model 'model';
 use Artemis::CLI::DbDeploy;
 use Data::Dumper;
+use Artemis::Schema::TestrunDB;
+use Artemis::Schema::ReportsDB;
+
 
 sub opt_spec {
         return (
@@ -85,29 +87,6 @@ sub insert_initial_values
 
         # ---------- User ----------
 
-        my @users = (
-                     [ 'Boris Petkov',            'bpetkov',  '' ],
-                     [ 'Conny Seidel',            'cseidel',  '' ],
-                     [ 'Frank Arnold',            'farnold',  '' ],
-                     [ 'Frank Becker',            'fbecker',  '' ],
-                     [ 'Jan Krocker',             'jkrocke2', '' ],
-                     [ 'Joerg Roemer',            'jroemer',  '' ],
-                     [ 'Maik Hentsche',           'mhentsc3', '' ],
-                     [ 'Steffen Schwigon',        'sschwigo', '' ],
-                     [ 'Steffen Schwigon@bascha', 'ss5',      '' ],
-                    );
-
-        foreach (@users) {
-                say STDERR "Add ", join(", ", @$_);
-                my $user = $schema->resultset('User')->new
-                    ({
-                      name     => $_->[0],
-                      login    => $_->[1],
-                      password => $_->[2],
-                     });
-                $user->insert;
-                #say STDERR "Got ID ", $user->id;
-        }
         my $user = $schema->resultset('User')->new
             ({
               id       => 0,
