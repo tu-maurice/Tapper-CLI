@@ -31,6 +31,6 @@ requires 'DateTime::Format::Natural' => 0;
 requires 'YAML::Syck'                => 0;
 requires 'Moose'                     => 0;
 requires 'MooseX::LazyRequire'       => '0.06';
-
+install_script glob('bin/*');
 WriteAll;
 
