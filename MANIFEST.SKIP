@@ -1,5 +1,4 @@
-Artemis-Cmd-*.*.tar.gz
-^Artemis-Cmd-*.*$
+Artemis-CLI-*.*
 _build
 blib
 ^Build$
@@ -9,3 +8,4 @@ t/artemis_schema_testrundb_test.sqlite
 t/artemis_schema_hardwaredb_test.sqlite
 
 ^MYMETA.yml$
+^Makefile$
