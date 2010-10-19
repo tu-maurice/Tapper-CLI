@@ -58,11 +58,6 @@ sub validate_args {
         die $self->usage->text;
 }
 
-sub no_live {
-        print "We currently don't do live deployment. To protect *you*!\n";
-        return -1;
-}
-
 sub insert_initial_values
 {
         my ($schema, $db) = @_;
@@ -82,19 +77,6 @@ sub insert_initial_values
                         $topic->insert;
                 }
         }
-
-        # both schema
-
-        # ---------- User ----------
-
-        my $user = $schema->resultset('User')->new
-            ({
-              id       => 0,
-              name     => 'unknown',
-              login    => 'unknown',
-              password => 'unknown',
-             });
-        $user->insert;
 }
 
 sub init_db
@@ -129,15 +111,10 @@ sub run
         my ($self, $opt, $args) = @_;
 
         my $db  = $opt->{db};
-        my $env = $opt->{env} || 'development';
-
-        exit usage()   unless $env =~ /^test|development|live$/;
-        exit no_live() if     $env eq 'live';
-        Artemis::Config::_switch_context($env);
         $self->init_db($db);
 }
 
 
-# perl -Ilib bin/artemis-db-deploy upgrade --db=ReportsDB
+# perl -Ilib bin/artemis-db-deploy init --db=ReportsDB
 
 1;
