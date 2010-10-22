@@ -11,12 +11,13 @@ use Artemis::CLI::DbDeploy;
 use Data::Dumper;
 use Artemis::Schema::TestrunDB;
 use Artemis::Schema::ReportsDB;
+use Artemis::Schema::HardwareDB;
 
 
 sub opt_spec {
         return (
                 [ "verbose", "some more informational output"       ],
-                [ "db=s",    "STRING, one of: ReportsDB, TestrunDB" ],
+                [ "db=s",    "STRING, one of: ReportsDB, TestrunDB, HardwareDB" ],
                );
 }
 
@@ -48,9 +49,9 @@ sub validate_args {
                 say "Missing argument --db\n";
                 $ok = 0;
         }
-        elsif (not $opt->{db} =~ /^ReportsDB|TestrunDB$/)
+        elsif (not $opt->{db} =~ /^ReportsDB|TestrunDB|HardwareDB$/)
         {
-                say "Wrong DB name '".$opt->{db}."' (must be ReportsDB or TestrunDB)";
+                say "Wrong DB name '".$opt->{db}."' (must be ReportsDB, HardwareDB or TestrunDB)";
                 $ok = 0;
         }
 
@@ -108,6 +109,7 @@ sub init_db
         my $schema;
         $schema = Artemis::Schema::TestrunDB->connect ($dsn, $user, $pw) if $db eq 'TestrunDB';
         $schema = Artemis::Schema::ReportsDB->connect ($dsn, $user, $pw) if $db eq 'ReportsDB';
+        $schema = Artemis::Schema::HardwareDB->connect ($dsn, $user, $pw) if $db eq 'HardwareDB';
         $schema->deploy({ add_drop_table => 1 }); # may fail, does not provide correct order to drop tables
         insert_initial_values($schema, $db);
 }
