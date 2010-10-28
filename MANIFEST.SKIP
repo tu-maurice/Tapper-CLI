@@ -1,4 +1,4 @@
-Artemis-CLI-*.*
+^Artemis-CLI-*.*$
 _build
 blib
 ^Build$
