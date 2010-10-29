@@ -13,9 +13,6 @@ use Test::Fixture::DBIC::Schema;
 # -----------------------------------------------------------------------------------------------------------------
 construct_fixture( schema  => testrundb_schema, fixture => 't/fixtures/testrundb/testruns_with_scheduling.yml' );
 # -----------------------------------------------------------------------------------------------------------------
-# -----------------------------------------------------------------------------------------------------------------
-construct_fixture( schema  => hardwaredb_schema, fixture => 't/fixtures/hardwaredb/systems.yml' );
-# -----------------------------------------------------------------------------------------------------------------
 
 my $testrun = Artemis::CLI::Testrun::Command::list::_get_entry_by_id (23); # perfmon
 

@@ -28,7 +28,6 @@
     shortname: perfmon
     notes: perfmon
     topic_name: Software
-    hardwaredb_systems_id: 12
 
 - schema: Testrun
   name: lmbench

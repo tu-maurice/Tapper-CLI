@@ -12,9 +12,6 @@ use Test::Fixture::DBIC::Schema;
 # -----------------------------------------------------------------------------------------------------------------
 construct_fixture( schema  => testrundb_schema, fixture => 't/fixtures/testrundb/testruns_with_scheduling.yml' );
 # -----------------------------------------------------------------------------------------------------------------
-# -----------------------------------------------------------------------------------------------------------------
-construct_fixture( schema  => hardwaredb_schema, fixture => 't/fixtures/hardwaredb/systems.yml' );
-# -----------------------------------------------------------------------------------------------------------------
 
 my $retval;
 my $host_id = `/usr/bin/env perl -Ilib bin/artemis-testrun newhost  --name="host1"`;

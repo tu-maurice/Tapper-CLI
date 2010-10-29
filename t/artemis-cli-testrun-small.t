@@ -12,9 +12,6 @@ use Test::Fixture::DBIC::Schema;
 # -----------------------------------------------------------------------------------------------------------------
 construct_fixture( schema  => testrundb_schema, fixture => 't/fixtures/testrundb/testruns_with_scheduling.yml' );
 # -----------------------------------------------------------------------------------------------------------------
-# -----------------------------------------------------------------------------------------------------------------
-construct_fixture( schema  => hardwaredb_schema, fixture => 't/fixtures/hardwaredb/systems.yml' );
-# -----------------------------------------------------------------------------------------------------------------
 
 my $retval = `/usr/bin/env perl -Ilib bin/artemis-testrun list --id=3002`;
 is($retval,

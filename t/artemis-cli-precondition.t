@@ -13,9 +13,6 @@ use Test::Fixture::DBIC::Schema;
 # -----------------------------------------------------------------------------------------------------------------
 construct_fixture( schema  => testrundb_schema, fixture => 't/fixtures/testrundb/testruns_with_scheduling.yml' );
 # -----------------------------------------------------------------------------------------------------------------
-# -----------------------------------------------------------------------------------------------------------------
-construct_fixture( schema  => hardwaredb_schema, fixture => 't/fixtures/hardwaredb/systems.yml' );
-# -----------------------------------------------------------------------------------------------------------------
 
 my $precond_id = `/usr/bin/env perl -Ilib bin/artemis-testrun newprecondition  --condition="precondition_type: image\nname: suse.tgz"`;
 chomp $precond_id;

@@ -14,9 +14,6 @@ use Test::Fixture::DBIC::Schema;
 # -----------------------------------------------------------------------------------------------------------------
 construct_fixture( schema  => testrundb_schema, fixture => 't/fixtures/testrundb/testruns_with_scheduling.yml' );
 # -----------------------------------------------------------------------------------------------------------------
-# -----------------------------------------------------------------------------------------------------------------
-construct_fixture( schema  => hardwaredb_schema, fixture => 't/fixtures/hardwaredb/systems.yml' );
-# -----------------------------------------------------------------------------------------------------------------
 
 my $scenario_id = `/usr/bin/env perl -Ilib bin/artemis-testrun newscenario --file t/files/interdep.sc --quiet`;
 chomp $scenario_id;
