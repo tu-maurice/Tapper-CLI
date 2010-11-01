@@ -22,6 +22,7 @@ sub opt_spec {
                 [ "verbose",         "some more informational output" ],
                 [ "reportid=s",      "INT; the testrun id where the file is attached" ],
                 [ "file=s",          "STRING; the filename to download" ],
+                [ "nth=s",           "INT; the n-th file if there is more than one with same name; default 0" ],
                 [ "saveas=s",        "STRING; where to write result; default print to STDOUT" ],
                 [ "reportserver=s",  "STRING; use this host for upload" ],
                 [ "reportport=s",    "STRING; use this port for upload" ],
@@ -31,7 +32,7 @@ sub opt_spec {
 sub usage_desc
 {
         my $allowed_opts = join ' ', map { '--'.$_ } _allowed_opts();
-        "artemis-api dowload --reportid=s --file=s [ --saveas=s ]";
+        "artemis-api dowload --reportid=s --file=s [ --saveas=s ] [ --nth=s ]";
 }
 
 sub _allowed_opts
@@ -74,9 +75,10 @@ sub download
         my $reportid    = $opt->{reportid};
         my $file        = $opt->{file};
         my $saveas      = $opt->{saveas};
+        my $nth         = $opt->{nth} || 0;
         my $content;
 
-        my $cmdline     = "#! download $reportid ".($file)."\n";
+        my $cmdline     = "#! download $reportid $file $nth\n";
 
         my $REMOTEAPI   = IO::Socket::INET->new(PeerAddr => $host, PeerPort => $port);
         if ($REMOTEAPI) {
@@ -101,8 +103,7 @@ sub download
         }
 }
 
-# perl -Ilib bin/artemis-api upload --reportid=552 --file ~/xyz
-# perl -Ilib bin/artemis-api upload --reportid=552 --file=$HOME/xyz
-# dmesg | perl -Ilib bin/artemis-api upload --reportid=552 --file=- --filename="dmesg"
+# perl -Ilib bin/artemis-api download --reportid=552 --file ~/xyz         --saveas=/tmp/myxyz
+# perl -Ilib bin/artemis-api download --reportid=552 --file ~/xyz --nth=1 --saveas=/tmp/myxyz
 
 1;
