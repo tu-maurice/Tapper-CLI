@@ -77,9 +77,9 @@ sub insert_initial_values
                              });
                         $topic->insert;
                 }
-                my $queue = $schema->resultset('Topic')->new
-                  ({ name => 'AdHoc',
-                     prio => 1000,
+                my $queue = $schema->resultset('Queue')->new
+                  ({ name     => 'AdHoc',
+                     priority => 1000,
                    });
                 $queue->insert;
 
