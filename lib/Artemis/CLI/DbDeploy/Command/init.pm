@@ -80,6 +80,7 @@ sub insert_initial_values
                 my $queue = $schema->resultset('Queue')->new
                   ({ name     => 'AdHoc',
                      priority => 1000,
+                     active   => 1,
                    });
                 $queue->insert;
 
