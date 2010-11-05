@@ -237,7 +237,6 @@ sub new_runtest
 {
         my ($self, $opt, $args) = @_;
 
-        #print "opt  = ", Dumper($opt);
 
         my $testrun = {
                        auto_rerun     => $opt->{auto_rerun},
