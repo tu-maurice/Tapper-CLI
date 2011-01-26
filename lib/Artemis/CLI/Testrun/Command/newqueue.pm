@@ -7,6 +7,9 @@ use warnings;
 
 use parent 'App::Cmd::Command';
 
+use Artemis::Cmd::Queue;
+use Artemis::Model 'model';
+
 
 sub abstract {
         'Create a new queue'
@@ -71,13 +74,11 @@ sub new_queue
                     };
         my @ids;
 
-        use Artemis::Cmd::Queue;
         my $cmd = Artemis::Cmd::Queue->new();
         my $queue_id = $cmd->add($queue);
         die "Can't create new queue because of an unknown error" if not $queue_id;
 
         if ($opt->{verbose}) {
-                use Artemis::Model 'model';
                 my $entry = model('TestrunDB')->resultset('Queue')->search({id => $queue_id})->first;
                 say $entry->to_string;
         } else {

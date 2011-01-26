@@ -6,6 +6,8 @@ use strict;
 use warnings;
 
 use parent 'App::Cmd::Command';
+use Artemis::Model 'model';
+use Artemis::Cmd::Queue;
 
 
 sub abstract {
@@ -67,11 +69,9 @@ sub delete_queue
 {
         my ($self, $opt, $args) = @_;
 
-        use Artemis::Model 'model';
         my $queue = model('TestrunDB')->resultset('Queue')->search({name => $opt->{name}})->first;
         die "No such queue: ".$opt->{name} if not $queue;
 
-        use Artemis::Cmd::Queue;
         my $cmd = Artemis::Cmd::Queue->new();
         $cmd->del($queue->id);
 

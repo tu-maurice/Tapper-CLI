@@ -7,6 +7,9 @@ use warnings;
 
 use parent 'App::Cmd::Command';
 
+use Artemis::Cmd::Queue;
+use Artemis::Model 'model';
+
 
 sub abstract {
         'Update an existing queue'
@@ -62,11 +65,9 @@ sub update_queue
 {
         my ($self, $opt, $args) = @_;
 
-        use Artemis::Model 'model';
 
         my $queue = model('TestrunDB')->resultset('Queue')->search({name => $opt->{name}})->first;
         
-        use Artemis::Cmd::Queue;
         my $cmd = Artemis::Cmd::Queue->new();
         my $new_opts = {};
 

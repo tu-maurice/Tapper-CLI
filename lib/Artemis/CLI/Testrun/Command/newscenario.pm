@@ -8,6 +8,10 @@ no warnings 'uninitialized';
 
 use parent 'App::Cmd::Command';
 
+use Artemis::Cmd::Scenario;
+use Artemis::Cmd::Testrun;
+use Artemis::Cmd::Precondition;
+use Artemis::Cmd::Requested;
 
 
 sub abstract {
@@ -162,7 +166,6 @@ sub parse_interdep
 {
         my ($self, $conf, $opt) = @_;
 
-        use Artemis::Cmd::Scenario;
         my $scenario = Artemis::Cmd::Scenario->new();
 
         my $sc_id    = $scenario->add({type => 'interdep'});

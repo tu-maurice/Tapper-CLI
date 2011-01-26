@@ -6,6 +6,7 @@ use strict;
 use warnings;
 
 use parent 'App::Cmd::Command';
+use Artemis::Model 'model';
 
 
 
@@ -71,7 +72,6 @@ sub free_host
 {
         my ($self, $opt) = @_;
 
-        use Artemis::Model 'model';
         my $host = model('TestrunDB')->resultset('Host')->search(name => $opt->{name})->first;
         die "No such host: $opt->{name}" if not  $host;
         my $testrun = model('TestrunDB')->resultset('TestrunScheduling')->search({host_id => $host->id, status => 'running'})->first;

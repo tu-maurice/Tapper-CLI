@@ -6,6 +6,7 @@ use warnings;
 use 5.010;
 
 use parent 'App::Cmd::Command';
+use Artemis::Cmd::Precondition;
 
 
 sub abstract {
@@ -54,7 +55,6 @@ sub execute {
         my ($self, $opt, $args) = @_;
         my $retval;
 
-        use Artemis::Cmd::Precondition;
         my $cmd = Artemis::Cmd::Precondition->new();
         foreach my $id (@{$opt->{id}}){
                 $retval = $cmd->del($id);

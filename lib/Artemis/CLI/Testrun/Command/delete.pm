@@ -6,8 +6,8 @@ use warnings;
 use 5.010;
 
 use parent 'App::Cmd::Command';
+use Artemis::Cmd::Testrun;
 
-use Data::Dumper;
 
 sub abstract {
         'Delete a testrun'
@@ -52,7 +52,6 @@ sub validate_args {
 sub execute {
         my ($self, $opt, $args) = @_;
 
-        use Artemis::Cmd::Testrun;
         my $cmd = Artemis::Cmd::Testrun->new();
         foreach my $id (@{$opt->{id}}){
                 my $error = $cmd->del($id);

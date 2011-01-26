@@ -5,6 +5,7 @@ use strict;
 use warnings;
 
 use parent 'App::Cmd::Command';
+use Artemis::Model 'model';
 
 sub abstract {
         'Delete a host'
@@ -49,7 +50,7 @@ sub validate_args {
 
 sub execute {
         my ($self, $opt, $args) = @_;
-        use Artemis::Model 'model';
+
  ID:
         foreach my $id (@{$opt->{id}}){
                 my $host = model('TestrunDB')->resultset('Host')->find($id);

@@ -7,6 +7,8 @@ use warnings;
 
 use parent 'App::Cmd::Command';
 
+use Artemis::Cmd::Testrun;
+use Artemis::Model 'model';
 
 sub abstract {
         'Rerun an existing testrun with the same preconditions.'
@@ -67,7 +69,6 @@ sub new_runtest
         my $retval = $cmd->rerun($id, $opt);
         die "Can't restart testrun $id" if not $retval;
 
-        use Artemis::Model 'model';
         my $testrun = model('TestrunDB')->resultset('Testrun')->find( $retval );
 
         print $opt->{verbose} ? $testrun->to_string : $testrun->id, "\n";
