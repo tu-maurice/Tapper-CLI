@@ -7,12 +7,7 @@ use warnings;
 
 use parent 'App::Cmd::Command';
 
-use Artemis::Model 'model';
-use Artemis::CLI::Testrun;
-use Artemis::Config;
 
-use IO::Socket::INET;
-use YAML::Syck;
 
 sub abstract {
         'Update an existing host'
@@ -59,7 +54,7 @@ sub validate_args
 
 =head2 free_host
 
-Send message to MCP and tell it to cancle the currently running test on
+Send message to MCP and tell it to cancel the currently running test on
 given host. Requires the install config for this host on the same
 machine.
 
@@ -74,18 +69,18 @@ machine.
 
 sub free_host
 {
-        my ($self, $host, $opt) = @_;
-        my $cfg = Artemis::Config::subconfig();
-        my $file = $cfg->{paths}{localdata_path}.$host->name."-install";
-        my $mcp_config = LoadFile($file);
-        die "Can't get MCP port from $file, unable to send quit signal" if not $mcp_config->{mcp_port};
-        my $sock = IO::Socket::INET->new(PeerAddr => $mcp_config->{mcp_host} || 'localhost',
-                                         PeerPort => $mcp_config->{mcp_port});
-        die ("Can not contact MCP on ",$mcp_config->{mcp_host} || 'localhost',":",$mcp_config->{mcp_port}," - $!") if not $sock;
-        my $msg = "state: quit";
-        $msg   .= "\nerror: $opt->{desc}" if $opt->{desc};
-        $sock->say($msg);
-        $sock->close();
+        my ($self, $opt) = @_;
+
+        use Artemis::Model 'model';
+        my $host = model('TestrunDB')->resultset('Host')->search(name => $opt->{name})->first;
+        die "No such host: $opt->{name}" if not  $host;
+        my $testrun = model('TestrunDB')->resultset('TestrunScheduling')->search({host_id => $host->id, status => 'running'})->first;
+        return 0 if not $testrun;
+
+        my $msg       = {state => 'quit'};
+        $msg->{error} = $opt->{desc} if $opt->{desc};
+        my $msg_rs    = model('TestrunDB')->resultset('TestrunScheduling')->new({testrun_id => $testrun->id, message => $msg});
+        $msg->insert;
         return 0;
 }
 
@@ -93,10 +88,8 @@ sub free_host
 sub execute 
 {
         my ($self, $opt, $args) = @_;
-        my $host = model('TestrunDB')->resultset('Host')->search(name => $opt->{name})->first;
-        die "No such host: $opt->{name}" if not  $host;
 
-        $self->free_host($host, $opt);
+        $self->free_host($opt);
         say "Host $opt->{name} is free now";
 }
 

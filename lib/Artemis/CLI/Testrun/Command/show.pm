@@ -5,9 +5,7 @@ use warnings;
 
 use parent 'App::Cmd::Command';
 
-use Data::Dumper;
 use Artemis::Model 'model';
-use Artemis::Schema::TestrunDB;
 
 sub abstract {
         'Show details of a testrun'

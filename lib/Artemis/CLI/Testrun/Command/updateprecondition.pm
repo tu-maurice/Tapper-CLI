@@ -6,12 +6,7 @@ use strict;
 use warnings;
 
 use parent 'App::Cmd::Command';
-use File::Slurp;
 
-use Artemis::Model 'model';
-use Artemis::Schema::TestrunDB;
-use Artemis::CLI::Testrun;
-use YAML::Syck;
 
 sub abstract {
         'Update an existing precondition'
@@ -65,6 +60,7 @@ sub read_condition_file
         my $condition;
 
         # read from file or STDIN if filename == '-'
+        use File::Slurp;
         if ($condition_file) {
                 if ($condition_file eq '-') {
                         $condition = read_file (\*STDIN);
@@ -89,6 +85,7 @@ sub update_precondition
 
         $condition ||= read_condition_file($condition_file);
         if ($shortname) {
+                use YAML::Syck qw/Load Dump/;
                 my $data = Load($condition);
                 $data->{shortname} = $shortname;
                 $condition = Dump($data);
@@ -100,6 +97,7 @@ sub update_precondition
         $id = $cmd->update($id, $condition);
 
         if ($opt->{verbose}) {
+                use Artemis::Model 'model';
                 my $precondition = model('TestrunDB')->resultset('Precondition')->search({id => $id})->first;
                 say $precondition->to_string;
         }  else {

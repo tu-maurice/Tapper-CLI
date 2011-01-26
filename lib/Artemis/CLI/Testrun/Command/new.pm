@@ -7,22 +7,10 @@ use warnings;
 
 use parent 'App::Cmd::Command';
 
-use YAML::Syck;
-use Data::Dumper;
-use File::Slurp 'slurp';
-use Artemis::Model 'model';
-use Artemis::Schema::TestrunDB;
-use Artemis::Cmd::Precondition;
 use Artemis::Cmd::Requested;
-use Artemis::CLI::Testrun;
-use DateTime::Format::Natural;
-require Artemis::Schema::TestrunDB::Result::Topic;
-use Template;
 
-use Moose;
 no warnings 'uninitialized';
 
-has macropreconds => ( is => "rw" );
 
 sub abstract {
         'Update an existing testrun'
@@ -88,6 +76,7 @@ sub convert_format_datetime_natural
         my ($self, $opt, $args) = @_;
         # handle natural datetimes
         if ($opt->{earliest}) {
+                use DateTime::Format::Natural;
                 my $parser = DateTime::Format::Natural->new;
                 my $dt = $parser->parse_datetime($opt->{earliest});
                 if ($parser->success) {
@@ -108,8 +97,6 @@ sub validate_args
 {
         my ($self, $opt, $args) = @_;
 
-        #         print "opt  = ", Dumper($opt);
-        #         print "args = ", Dumper($args);
 
         # -- topic constraints --
         my $topic    = $opt->{topic} || '';
@@ -142,6 +129,7 @@ sub validate_args
 
         my $macrovalues_ok = 1;
         if ($opt->{macroprecond}) {
+                use File::Slurp 'slurp';
                 my @precond_lines =  slurp $opt->{macroprecond};
                 my @mandatory;
                 my $required = '';
@@ -159,7 +147,7 @@ sub validate_args
                                 $macrovalues_ok = 0;
                         }
                 }
-                $self->{macropreconds} = join '',@precond_lines;
+                $opt->{macropreconds} = join '',@precond_lines;
         }
 
         if (exists $opt->{rerun_on_error} and not int($opt->{rerun_on_error})) {
@@ -195,13 +183,16 @@ App::Cmd::Command API.
 sub create_macro_preconditions
 {
         my ($self, $opt, $args) = @_;
+        use Template;
 
         my $D             = $opt->{d}; # options are auto-down-cased
         my $tt            = new Template ();
-        my $macro         = $self->{macropreconds};
+        my $macro         = $opt->{macropreconds};
         my $ttapplied;
 
         $tt->process(\$macro, $D, \$ttapplied) || die $tt->error();
+
+        use Artemis::Cmd::Precondition;
         my $precondition = Artemis::Cmd::Precondition->new();
         my @ids = $precondition->add($ttapplied);
         return @ids;
@@ -256,9 +247,12 @@ sub new_runtest
 
         die "No valid preconditions given" if not @ids;
 
+        use Artemis::Cmd::Testrun;
         my $cmd = Artemis::Cmd::Testrun->new();
         my $testrun_id = $cmd->add($testrun);
         die "Can't create new testrun because of an unknown error" if not $testrun_id;
+
+        use Artemis::Model 'model';
         my $testrun_search = model('TestrunDB')->resultset('Testrun')->find($testrun_id);
 
         my $retval = $self->analyse_preconditions(@ids);

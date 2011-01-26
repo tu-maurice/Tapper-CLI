@@ -8,18 +8,7 @@ no warnings 'uninitialized';
 
 use parent 'App::Cmd::Command';
 
-use YAML::Syck;
-use Data::Dumper;
-use File::Slurp 'slurp';
-use Artemis::Model 'model';
-use Artemis::Schema::TestrunDB;
-use Artemis::Cmd::Scenario;
-require Artemis::Schema::TestrunDB::Result::Topic;
-use Template;
 
-use Moose;
-
-has macropreconds => ( is => "rw" );
 
 sub abstract {
         'Create a new scenario';
@@ -90,9 +79,11 @@ sub execute
 {
         my ($self, $opt, $args) = @_;
 
+        use File::Slurp 'slurp';
         my $scenario = slurp($opt->{file});
         $scenario = $self->apply_macro($opt, $args, $opt->{d}) if $opt->{d};
 
+        use YAML::Syck 'Load';
         my $scenario_conf = Load($scenario);
         given ($scenario_conf->{scenario_type}) {
                 when ('interdep') {
@@ -122,6 +113,7 @@ sub apply_macro
 {
         my ($self, $macro, $substitutes) = @_;
 
+        use Template;
         my $tt            = new Template();
         my $ttapplied;
 
@@ -169,7 +161,10 @@ database.
 sub parse_interdep
 {
         my ($self, $conf, $opt) = @_;
+
+        use Artemis::Cmd::Scenario;
         my $scenario = Artemis::Cmd::Scenario->new();
+
         my $sc_id    = $scenario->add({type => 'interdep'});
         my @testrun_ids;
         foreach my $testrun (@$conf) {

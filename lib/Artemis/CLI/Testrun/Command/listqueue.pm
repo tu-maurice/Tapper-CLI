@@ -7,10 +7,6 @@ use warnings;
 
 use parent 'App::Cmd::Command';
 
-use Data::Dumper;
-use Artemis::Model 'model';
-use Artemis::Schema::TestrunDB;
-
 sub abstract {
         'List queues'
 }
@@ -92,6 +88,7 @@ sub execute {
                 $opt->{verbose} = 1;
         }
 
+        use Artemis::Model 'model';
         my $queues = model('TestrunDB')->resultset('Queue')->search(\%search, \%options);
         if ($opt->{verbose}) {
                 $self->print_queues_verbose($queues)

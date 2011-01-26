@@ -7,22 +7,9 @@ use warnings;
 
 use parent 'App::Cmd::Command';
 
-use YAML::Syck;
-use Data::Dumper;
-use File::Slurp 'slurp';
-use Artemis::Model 'model';
-use Artemis::Schema::TestrunDB;
-use Artemis::CLI::Testrun;
-use DateTime::Format::Natural;
-require Artemis::Schema::TestrunDB::Result::Topic;
-use Template;
-
-use Moose;
-
-has macropreconds => ( is => "rw" );
 
 sub abstract {
-        'Create a new testrun based on existing one'
+        'Rerun an existing testrun with the same preconditions.'
 }
 
 
@@ -80,6 +67,7 @@ sub new_runtest
         my $retval = $cmd->rerun($id, $opt);
         die "Can't restart testrun $id" if not $retval;
 
+        use Artemis::Model 'model';
         my $testrun = model('TestrunDB')->resultset('Testrun')->find( $retval );
 
         print $opt->{verbose} ? $testrun->to_string : $testrun->id, "\n";

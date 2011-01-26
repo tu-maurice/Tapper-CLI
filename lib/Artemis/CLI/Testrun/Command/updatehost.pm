@@ -8,11 +8,6 @@ use warnings;
 use parent 'App::Cmd::Command';
 
 use Artemis::Model 'model';
-use Artemis::CLI::Testrun;
-use Artemis::Config;
-
-use IO::Socket::INET;
-use YAML::Syck;
 
 sub abstract {
         'Update an existing host'

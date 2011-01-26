@@ -6,14 +6,7 @@ use strict;
 use warnings;
 
 use parent 'App::Cmd::Command';
-use File::Slurp;
 
-use Artemis::Model 'model';
-use Artemis::Schema::TestrunDB;
-use Artemis::Cmd::Testrun;
-use Artemis::Cmd::Precondition;
-use Data::Dumper;
-use YAML::Syck;
 
 sub abstract {
         'Create a new precondition'
@@ -79,6 +72,8 @@ sub read_condition_file
         my $condition;
 
         # read from file or STDIN if filename == '-'
+        use File::Slurp qw/read_file/;
+
         if ($condition_file) {
                 if ($condition_file eq '-') {
                         $condition = read_file (\*STDIN);
@@ -100,11 +95,14 @@ sub new_precondition
         $condition ||= read_condition_file($condition_file);
         $condition .= "\n" unless $condition =~ /\n$/;
 
+        use Artemis::Cmd::Precondition;
         my $cmd = Artemis::Cmd::Precondition->new();
 
         my @ids;
         @ids = $cmd->add($condition);
 
+
+        use Artemis::Model 'model';
         foreach my $id (@ids) {
                 my $precondition = model('TestrunDB')->resultset('Precondition')->search({id => $id})->first;
                 print $opt->{verbose} ? $precondition->to_string : $id, "\n";

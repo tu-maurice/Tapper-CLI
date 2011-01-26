@@ -8,7 +8,6 @@ use warnings;
 use parent 'App::Cmd::Command';
 
 use Artemis::Model 'model';
-use Artemis::CLI::Testrun;
 
 
 sub abstract {
