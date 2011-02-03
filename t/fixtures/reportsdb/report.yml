@@ -44,34 +44,34 @@
     tap: |
       1..2
       ok 1 metainformation
-      # Artemis-section: Metainfo
-      # Artemis-Suite-Name: Host-Overview
-      # Artemis-Suite-version: 0.010003
-      # Artemis-machine-name: athene
-      # Artemis-machine-description: PC-Ware
-      # Artemis-cpuinfo: 1x Family: 15, Model: 75, Stepping: 2
-      # Artemis-ram: 3967 MB
-      # Artemis-uptime: 0 hrs
-      # Artemis-reportgroup-testrun: 6567
+      # Tapper-section: Metainfo
+      # Tapper-Suite-Name: Host-Overview
+      # Tapper-Suite-version: 0.010003
+      # Tapper-machine-name: athene
+      # Tapper-machine-description: PC-Ware
+      # Tapper-cpuinfo: 1x Family: 15, Model: 75, Stepping: 2
+      # Tapper-ram: 3967 MB
+      # Tapper-uptime: 0 hrs
+      # Tapper-reportgroup-testrun: 6567
       ok 1 host metadata
       1..1
-      # Artemis-section: XEN-Metainfo
-      # Artemis-xen-version: 3.4.2-rc1-pre
-      # Artemis-xen-changeset: 19754:7422afed66ee
-      # Artemis-xen-base-os-description: SUSE Linux Enterprise Server 10 SP2 (i586)
-      # Artemis-xen-dom0-kernel: 2.6.18.8-xen i686
+      # Tapper-section: XEN-Metainfo
+      # Tapper-xen-version: 3.4.2-rc1-pre
+      # Tapper-xen-changeset: 19754:7422afed66ee
+      # Tapper-xen-base-os-description: SUSE Linux Enterprise Server 10 SP2 (i586)
+      # Tapper-xen-dom0-kernel: 2.6.18.8-xen i686
       ok 1 xen metadata
       1..1
-      # Artemis-section: guest_1_suse_sles10_sp3_rc2_32b_smp_qcow
-      # Artemis-xen-guest-description: 001-lmbench
-      # Artemis-xen-guest-start: 2009-09-10 11:00:16 CEST
-      # Artemis-xen-guest-flags: acpi=1; apic=1; hap=1; hpet=0; memory=1024; pae=1; shadow_memory=10; timer_mode=2; vcpus=2
+      # Tapper-section: guest_1_suse_sles10_sp3_rc2_32b_smp_qcow
+      # Tapper-xen-guest-description: 001-lmbench
+      # Tapper-xen-guest-start: 2009-09-10 11:00:16 CEST
+      # Tapper-xen-guest-flags: acpi=1; apic=1; hap=1; hpet=0; memory=1024; pae=1; shadow_memory=10; timer_mode=2; vcpus=2
       ok 1 - Guest info
       1..1
-      # Artemis-section: guest_2_opensuse_11_1_32b_qcow
-      # Artemis-xen-guest-description: 002-ctcs
-      # Artemis-xen-guest-start: 2009-09-10 11:00:19 CEST
-      # Artemis-xen-guest-flags: acpi=1; apic=1; hap=1; hpet=0; memory=1280; pae=1; shadow_memory=12; timer_mode=2; vcpus=1
+      # Tapper-section: guest_2_opensuse_11_1_32b_qcow
+      # Tapper-xen-guest-description: 002-ctcs
+      # Tapper-xen-guest-start: 2009-09-10 11:00:19 CEST
+      # Tapper-xen-guest-flags: acpi=1; apic=1; hap=1; hpet=0; memory=1280; pae=1; shadow_memory=12; timer_mode=2; vcpus=1
       ok 1 - Guest info
 
 - schema: Report

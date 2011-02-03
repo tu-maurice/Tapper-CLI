@@ -1,5 +1,0 @@
-#! /usr/bin/env perl
-
-use Artemis::CLI::Testrun;
-Artemis::CLI::Testrun->run;
-

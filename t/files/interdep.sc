@@ -10,7 +10,7 @@ description:
     partition: testing
     precondition_type: image
   - precondition_type: testprogram
-    file: /opt/artemis/bin/netperf_client
+    file: /opt/tapper/bin/netperf_client
 - requested_hosts:
   - bullock
   - dickstone
@@ -21,4 +21,4 @@ description:
     partition: testing
     precondition_type: image
   - precondition_type: testprogram
-    file: /opt/artemis/bin/netperf_server
+    file: /opt/tapper/bin/netperf_server

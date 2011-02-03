@@ -1,7 +1,7 @@
 
-Artemis
+Tapper
 
-Collection of Artemis Command line utils
+Collection of Tapper Command line utils
 
 INSTALLATION
 
@@ -17,7 +17,7 @@ SUPPORT AND DOCUMENTATION
 After installing, you can find documentation for this module with the
 perldoc command.
 
-    perldoc Artemis::Cmd
+    perldoc Tapper::Cmd
 
 
 COPYRIGHT AND LICENCE
