@@ -28,6 +28,7 @@ my @modules = (
                'Artemis::CLI::Testrun::Command::newprecondition',
                'Artemis::CLI::Testrun::Command::newqueue',
                'Artemis::CLI::Testrun::Command::newscenario',
+               'Artemis::CLI::Testrun::Command::newtestplan',
                'Artemis::CLI::Testrun::Command::rerun',
                'Artemis::CLI::Testrun::Command::show',
                'Artemis::CLI::Testrun::Command::updatehost',
