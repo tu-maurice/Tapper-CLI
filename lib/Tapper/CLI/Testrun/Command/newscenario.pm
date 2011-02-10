@@ -85,7 +85,7 @@ sub execute
 
         use File::Slurp 'slurp';
         my $scenario = slurp($opt->{file});
-        $scenario = $self->apply_macro($opt, $args, $opt->{d}) if $opt->{d};
+        $scenario = $self->apply_macro($scenario, $opt->{d});
 
         use YAML::Syck 'Load';
         my $scenario_conf = Load($scenario);
