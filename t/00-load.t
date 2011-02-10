@@ -28,6 +28,7 @@ my @modules = (
                'Tapper::CLI::Testrun::Command::newprecondition',
                'Tapper::CLI::Testrun::Command::newqueue',
                'Tapper::CLI::Testrun::Command::newscenario',
+               'Tapper::CLI::Testrun::Command::newtestplan',
                'Tapper::CLI::Testrun::Command::rerun',
                'Tapper::CLI::Testrun::Command::show',
                'Tapper::CLI::Testrun::Command::updatehost',
