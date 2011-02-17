@@ -1,4 +1,4 @@
-package Artemis::CLI::Testrun::Command::newtestplan;
+package Tapper::CLI::Testrun::Command::newtestplan;
 
 use 5.010;
 
@@ -9,8 +9,8 @@ no warnings 'uninitialized';
 use parent 'App::Cmd::Command';
 use Cwd;
 
-use Artemis::Cmd::Testplan;
-use Artemis::Config;
+use Tapper::Cmd::Testplan;
+use Tapper::Config;
 
 sub abstract {
         'Create a new testplan instance';
@@ -49,7 +49,7 @@ sub opt_spec {
 sub usage_desc
 {
         my $allowed_opts = join ' ', map { '--'.$_ } _allowed_opts();
-        "artemis-testrun newtestplan  [ " . $allowed_opts ." ]";
+        "tapper-testrun newtestplan  [ " . $allowed_opts ." ]";
 }
 
 sub _allowed_opts
@@ -91,7 +91,7 @@ sub parse_path
 {
         my ($self, $filename) = @_;
         $filename = Cwd::abs_path($filename);
-        my $basedir = Artemis::Config->subconfig->{paths}{testplan_path};
+        my $basedir = Tapper::Config->subconfig->{paths}{testplan_path};
         # splitting filename at basedir returns an array with the empty
         # string before and the path after the basedir
         my $path = (split $basedir, $filename)[1]; 
@@ -130,7 +130,7 @@ sub execute
         my $plan = slurp($opt->{file});
         $plan = $self->apply_macro($plan, $opt->{d}, $opt->{include});
         
-        my $cmd = Artemis::Cmd::Testplan->new();
+        my $cmd = Tapper::Cmd::Testplan->new();
         my $path = $opt->{path};
         $path = $self->parse_path($opt->{file}) if not $path;
         my $plan_id = $cmd->add($plan, $path);
@@ -161,7 +161,7 @@ sub apply_macro
 
         use Template;
 
-        my @include_paths = (Artemis::Config->subconfig->{paths}{testplan_path});
+        my @include_paths = (Tapper::Config->subconfig->{paths}{testplan_path});
         push @include_paths, @{$includes || [] };
         my $include_path_list = join ":", @include_paths;
 
@@ -178,6 +178,6 @@ sub apply_macro
 
 
 
-# perl -Ilib bin/artemis-testrun new --topic=Software --precondition=14  --owner=ss5
+# perl -Ilib bin/tapper-testrun new --topic=Software --precondition=14  --owner=ss5
 
 1;

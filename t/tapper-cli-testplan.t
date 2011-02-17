@@ -4,10 +4,10 @@ use strict;
 use warnings;
 
 use Test::More;
-use Artemis::CLI::Testrun;
-use Artemis::CLI::Testrun::Command::list;
-use Artemis::Schema::TestTools;
-use Artemis::Model 'model';
+use Tapper::CLI::Testrun;
+use Tapper::CLI::Testrun::Command::list;
+use Tapper::Schema::TestTools;
+use Tapper::Model 'model';
 use Test::Fixture::DBIC::Schema;
 
 # -----------------------------------------------------------------------------------------------------------------
@@ -15,7 +15,7 @@ construct_fixture( schema  => testrundb_schema, fixture => 't/fixtures/testrundb
 # -----------------------------------------------------------------------------------------------------------------
 
 
-my $testplan_id = `/usr/bin/env perl -Ilib bin/artemis-testrun newtestplan --file t/files/testplan/osrc/athlon/kernel.mpc  -It/files/testplan/`;
+my $testplan_id = `/usr/bin/env perl -Ilib bin/tapper-testrun newtestplan --file t/files/testplan/osrc/athlon/kernel.mpc  -It/files/testplan/`;
 chomp $testplan_id;
 like($testplan_id, qr/^\d+$/, 'Testplan id is actually an id');
 
