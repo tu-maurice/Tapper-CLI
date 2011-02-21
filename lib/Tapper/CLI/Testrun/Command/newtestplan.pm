@@ -149,6 +149,8 @@ Process macros and substitute using Template::Toolkit.
 
 @param string  - contains macros
 @param hashref - containing substitutions
+@optparam string - path to more include files
+
 
 @return success - text with applied macros
 @return error   - die with error string
