@@ -15,6 +15,8 @@ build_requires 'DBIx::Class'     => '0.08112';
 build_requires 'Tapper::Test'   => '2.010005';
 build_requires 'SQL::Translator' => '0.11003';
 
+author_requires 'Module::Install::WriteAll';
+
 requires 'perl'                      => '5.010';
 requires 'parent'                    => 0;
 requires 'App::Cmd'                  => '0.301';
