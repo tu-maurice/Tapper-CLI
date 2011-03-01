@@ -7,7 +7,7 @@ our $VERSION = '3.000001';
 
 =head1 NAME
 
-Tapper::CLI - tapper-* commandline tools
+Tapper::CLI - Tapper - tapper-* commandline tools
 
 =head1 SYNOPSIS
 
