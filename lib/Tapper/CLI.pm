@@ -3,13 +3,11 @@ package Tapper::CLI;
 use warnings;
 use strict;
 
-our $VERSION = '2.010064';
-
-
+our $VERSION = '3.000001';
 
 =head1 NAME
 
-Tapper::CLI - tapper-* commandline tools
+Tapper::CLI - Tapper - tapper-* commandline tools
 
 =head1 SYNOPSIS
 
@@ -19,16 +17,16 @@ Tapper::CLI - tapper-* commandline tools
 
 =head1 AUTHOR
 
-OSRC SysInt Team, C<< <osrc-sysint at elbe.amd.com> >>
+AMD OSRC Tapper Team, C<< <tapper at amd64.org> >>
 
 =head1 BUGS
 
 
 =head1 COPYRIGHT & LICENSE
 
-Copyright 2008 OSRC SysInt Team, all rights reserved.
+Copyright 2008-2011 AMD OSRC Tapper Team, all rights reserved.
 
-This program is released under the following license: restrictive
+This program is released under the following license: freebsd
 
 
 =cut
