@@ -30,7 +30,7 @@ requires 'Tapper::Schema'            => "3.000001";
 requires 'Tapper::Cmd'               => "3.000001";
 requires 'Data::Dumper'              => 0;
 requires 'DateTime::Format::Natural' => 0;
-requires 'YAML::Syck'                => 0;
+requires 'YAML::Syck'                => "1.17";
 requires 'Moose'                     => 0;
 requires 'MooseX::LazyRequire'       => '0.06';
 install_script glob('bin/*');
