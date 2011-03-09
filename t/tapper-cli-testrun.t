@@ -53,6 +53,15 @@ is($testrun->topic_name, 'Software', 'Topic for new testrun');
 
 # --------------------------------------------------
 #
+# Testrun with inexisting host
+#
+
+
+$testrun_id = `/usr/bin/env perl -Ilib bin/tapper-testrun new --topic=Software --requested_host=nonexisting --precondition=1 2>&1`;
+is($testrun_id, "Host 'nonexisting' does not exist\n", 'Requested host must exist');
+
+# --------------------------------------------------
+#
 # Testrun with requested feature
 #
 
