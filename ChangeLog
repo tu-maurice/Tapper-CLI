@@ -1,8 +1,12 @@
 2011-03-10 Steffen Schwigon <steffen.schwigon@amd.com>
 
-	* v3.0.2
+	* v3.0.4
 
-	* [FIX] substitute /usr/bin/env perl in tests
+	* repository and bugtracker urls
+
+	* more overviewish README
+
+	* [FIX] more substitute /usr/bin/env perl
 
 	* handling of nonexisting requested hosts
 
