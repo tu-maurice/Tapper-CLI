@@ -17,7 +17,7 @@ sub abstract {
 }
 
 
-my $options = { "verbose" => { text => "some more informational output"                                         },
+my $options = { "verbose" => { text => "some more informational output",                     short => 'v' },
                 "D"       => { text => "Define a key=value pair used for macro expansion",   type => 'keyvalue' },
                 "file"    => { text => "String; use (macro) testplan file",                  type => 'string'   },
                 "path"    => { text => "String; put this path into db instead of file path", type => 'string'   },
@@ -49,14 +49,9 @@ sub opt_spec {
 
 sub usage_desc
 {
-        my $allowed_opts = join ' ', map { '--'.$_ } _allowed_opts();
-        "tapper-testrun newtestplan  [ " . $allowed_opts ." ]";
+        "tapper-testrun newtestplan --file=s [ -Dkey=value ] [ --path=s ] [ --name=s ] [ --include=s ]*";
 }
 
-sub _allowed_opts
-{
-        my @allowed_opts = map { $_->[0] } opt_spec();
-}
 
 sub validate_args
 {
@@ -177,10 +172,5 @@ sub apply_macro
         return $ttapplied;
 }
 
-
-
-
-
-# perl -Ilib bin/tapper-testrun new --topic=Software --precondition=14  --owner=ss5
 
 1;
