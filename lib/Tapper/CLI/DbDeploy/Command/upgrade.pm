@@ -76,7 +76,7 @@ sub run
 
         my $yaml = slurp module_file('Tapper::Config', 'tapper.yml');
         my $db = $opt->{db};
-        my $upgradedir  = $opt->{upgradedir} || module_dir('Tapper::CLI::DbDeploy');;
+        my $upgradedir  = $opt->{upgradedir} || module_dir('Tapper::Schema');;
 
         model($db)->upgrade_directory($upgradedir) if $upgradedir;
         model($db)->upgrade;
