@@ -23,7 +23,7 @@ no warnings 'uninitialized';
 
 
 sub abstract {
-        'Update an existing testrun'
+        'Create a new testrun'
 }
 
 
