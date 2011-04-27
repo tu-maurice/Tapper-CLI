@@ -78,7 +78,7 @@ sub free_host
 {
         my ($self, $opt) = @_;
 
-        my $host = model('TestrunDB')->resultset('Host')->search(name => $opt->{name})->first;
+        my $host = model('TestrunDB')->resultset('Host')->search({name => $opt->{name}})->first;
         die "No such host: $opt->{name}" if not  $host;
         my $tr_sched = model('TestrunDB')->resultset('TestrunScheduling')->search({host_id => $host->id, status => 'running'})->first;
         return 0 if not $tr_sched;
