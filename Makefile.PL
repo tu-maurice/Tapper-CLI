@@ -33,6 +33,7 @@ requires 'DateTime::Format::Natural' => 0;
 requires 'YAML::Syck'                => "1.17";
 requires 'Moose'                     => 0;
 requires 'MooseX::LazyRequire'       => '0.06';
+requires 'File::ShareDir'            => 0;
 
 install_script glob('bin/*');
 

@@ -11,6 +11,7 @@ use Tapper::Model 'model';
 use Tapper::CLI::DbDeploy;
 use Tapper::Config;
 use Data::Dumper;
+use File::ShareDir 'module_dir';
 
 sub opt_spec {
         return (
@@ -73,8 +74,10 @@ sub run
 
         Tapper::Config::_switch_context($opt->{env});
 
+        my $yaml = slurp module_file('Tapper::Config', 'tapper.yml');
         my $db = $opt->{db};
-        my $upgradedir  = $opt->{upgradedir};
+        my $upgradedir  = $opt->{upgradedir} || module_dir('Tapper::CLI::DbDeploy');;
+
         model($db)->upgrade_directory($upgradedir) if $upgradedir;
         model($db)->upgrade;
 }
