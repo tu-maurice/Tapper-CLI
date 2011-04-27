@@ -12,14 +12,14 @@ build_requires 'Test::More';
 build_requires 'Test::Perl::Critic';
 build_requires 'Test::Fixture::DBIC::Schema';
 build_requires 'DBIx::Class'     => '0.08112';
-build_requires 'Tapper::Test' => "3.000010";
+build_requires 'Tapper::Test'    => "3.000010";
 build_requires 'SQL::Translator' => '0.11003';
 
 author_requires 'Module::Install::WriteAll';
 
-requires 'perl'                      => '5.010';
-requires 'parent'                    => 0;
-requires 'App::Cmd'                  => '0.301';
+requires 'perl'     => '5.010';
+requires 'parent'   => 0;
+requires 'App::Cmd' => '0.301';
 requires 'DBIx::Class::TimeStamp'    => 0;
 requires 'File::Slurp'               => 0;
 requires 'IO::Socket'                => 0;
