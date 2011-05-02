@@ -10,6 +10,7 @@ use Tapper::Model 'model';
 use Tapper::CLI::DbDeploy;
 use Tapper::Config;
 use Data::Dumper;
+use File::ShareDir 'module_dir';
 
 sub opt_spec {
         return (
@@ -75,7 +76,7 @@ sub run
 
         my $db          = $opt->{db};
         my $fromversion = $opt->{fromversion};
-        my $upgradedir  = $opt->{upgradedir};
+        my $upgradedir  = $opt->{upgradedir} || module_dir('Tapper::Schema');;
         model($db)->upgrade_directory($upgradedir) if $upgradedir;
         model($db)->create_ddl_dir([qw/MySQL SQLite/],
                                    undef,
