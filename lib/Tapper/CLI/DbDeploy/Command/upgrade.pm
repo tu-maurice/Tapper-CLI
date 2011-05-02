@@ -13,7 +13,6 @@ use Tapper::Config;
 use Data::Dumper;
 use File::ShareDir 'module_dir';
 use Tapper::Schema; # for module_dir
-use File::Slurp 'slurp';
 
 sub opt_spec {
         return (
@@ -76,7 +75,6 @@ sub run
 
         Tapper::Config::_switch_context($opt->{env});
 
-        my $yaml = slurp module_file('Tapper::Config', 'tapper.yml');
         my $db = $opt->{db};
         my $upgradedir  = $opt->{upgradedir} || module_dir('Tapper::Schema');
 
