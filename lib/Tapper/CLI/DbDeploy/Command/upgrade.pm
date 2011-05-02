@@ -12,6 +12,8 @@ use Tapper::CLI::DbDeploy;
 use Tapper::Config;
 use Data::Dumper;
 use File::ShareDir 'module_dir';
+use Tapper::Schema; # for module_dir
+use File::Slurp 'slurp';
 
 sub opt_spec {
         return (
