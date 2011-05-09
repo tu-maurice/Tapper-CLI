@@ -14,6 +14,7 @@ build_requires 'Test::Fixture::DBIC::Schema';
 build_requires 'DBIx::Class'     => '0.08112';
 build_requires 'Tapper::Test'    => "3.000010";
 build_requires 'SQL::Translator' => '0.11003';
+build_requires 'Tapper::Reports::API';
 
 author_requires 'Module::Install::WriteAll';
 
