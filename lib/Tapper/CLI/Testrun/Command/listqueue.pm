@@ -14,6 +14,7 @@ sub abstract {
 }
 
 my $options = { "verbose"  => { text => "show all available information; without only show names", short => 'v' },
+                "active"   => { text => "list active hosts", type => 'withno'},
                 "minprio"  => { text => "INT; queues with at least this priority level", type => 'string'},
                 "maxprio"  => { text => "INT; queues with at most this priority level", type => 'string'},
                 "name"     => { text => "show only queue with this name, implies verbose, can be given more than once", type => 'manystring' }
@@ -91,6 +92,9 @@ sub execute {
         }
 
         my $queues = model('TestrunDB')->resultset('Queue')->search(\%search, \%options);
+        if (defined($opt->{active})) {
+                $queues = $queues->search({active => $opt->{active}});
+        }
         if ($opt->{verbose}) {
                 $self->print_queues_verbose($queues)
         } else {
