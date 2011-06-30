@@ -19,6 +19,7 @@ my $options =  {
                 "verbose"          => { text => "some more informational output", short=> 'v' },
                 "name"             => { text => "TEXT; free host with this name",    type => 'string' },
                 "desc"             => { text => "TEXT; describe why the host is freed",    type => 'string' },
+                "comment"          => { text => "TEXT; alias for desc, ignore if desc exists",    type => 'string' },
                };
 
 sub opt_spec {
@@ -51,6 +52,10 @@ sub validate_args
                 $msg   .= ($args and $#{$args} >=1) ? 's' : '';
                 $msg   .= ": ";
                 die $msg, join(', ',@$args), "\n";
+        }
+
+        if ($opt->{comment} and not $opt->{desc}) {
+                $opt->{desc} = $opt->{comment};
         }
 
         if (not $opt->{name}) {
