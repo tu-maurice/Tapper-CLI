@@ -168,7 +168,7 @@ sub execute
 
         if (defined($opt->{active})) {
                 $host->active($opt->{active});
-                $self->update_grub() if $opt->{active} == 0 and 
+                $self->update_grub($host->name) if $opt->{active} == 0 and 
                   defined Tapper::Config->subconfig->{files}{default_grubfile};
         }
 
