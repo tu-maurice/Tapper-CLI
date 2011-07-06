@@ -8,6 +8,9 @@ use warnings;
 use parent 'App::Cmd::Command';
 
 use Tapper::Model 'model';
+use Tapper::Config;
+use File::Copy;
+
 
 sub abstract {
         'Update an existing host'
@@ -130,6 +133,31 @@ sub del_queues
         }
 }
 
+=head2 update_grub
+
+Install a default grub config for host so that it does no longer try to
+execute Tapper testruns.
+
+@return success - 0
+@return error   - error string
+
+=cut
+
+sub update_grub
+{
+        my ($self, $hostname) = @_;
+        
+        my $default_grubfile = Tapper::Config->subconfig->{files}{default_grubfile} // '';
+        if (not -e $default_grubfile) {
+                return "Default grubfile '$default_grubfile' does not exist";
+        }
+        my $filename    = Tapper::Config->subconfig->{paths}{grubpath}."/$hostname.lst";
+        
+        # use File::Copy to be as system independend as possible
+        File::Copy::copy($default_grubfile, $filename) or return "Can't update grub file for $hostname: $!";
+	return(0);
+}
+
 sub execute 
 {
         my ($self, $opt, $args) = @_;
@@ -138,7 +166,12 @@ sub execute
         $host = model('TestrunDB')->resultset('Host')->find($opt->{id});
         die "No such host: $opt->{id}" if not  $host;
 
-        $host->active($opt->{active}) if defined($opt->{active});
+        if (defined($opt->{active})) {
+                $host->active($opt->{active});
+                $self->update_grub() if $opt->{active} == 0 and 
+                  defined Tapper::Config->subconfig->{files}{default_grubfile};
+        }
+
         $host->name($opt->{name}) if $opt->{name};
         $self->del_queues($host, $opt->{delqueue}) if $opt->{delqueue};
         $self->add_queues($host, $opt->{addqueue}) if $opt->{addqueue};
