@@ -139,7 +139,7 @@ Install a default grub config for host so that it does no longer try to
 execute Tapper testruns.
 
 @return success - 0
-@return error   - error string
+@return error   - die()
 
 =cut
 
@@ -149,12 +149,12 @@ sub update_grub
         
         my $default_grubfile = Tapper::Config->subconfig->{files}{default_grubfile} // '';
         if (not -e $default_grubfile) {
-                return "Default grubfile '$default_grubfile' does not exist";
+                die "Default grubfile '$default_grubfile' does not exist\n";
         }
         my $filename    = Tapper::Config->subconfig->{paths}{grubpath}."/$hostname.lst";
         
         # use File::Copy to be as system independend as possible
-        File::Copy::copy($default_grubfile, $filename) or return "Can't update grub file for $hostname: $!";
+        File::Copy::copy($default_grubfile, $filename) or die "Can't update grub file for $hostname: $!\n";
 	return(0);
 }
 
