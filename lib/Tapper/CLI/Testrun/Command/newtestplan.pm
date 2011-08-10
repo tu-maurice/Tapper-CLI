@@ -158,8 +158,9 @@ sub execute
         my $shortname = $self->get_shortname($plan, $opt->{name});
         my $plan_id = $cmd->add($plan, $path, $shortname);
         die "Plan not created" unless defined $plan_id;
+
         if ($opt->{verbose}) {
-                $self->print_result($plan_id);
+                say "Plan $plan_id created from ",$opt->{file}," with path=$path";
         } else {
                 say $plan_id;
         }
