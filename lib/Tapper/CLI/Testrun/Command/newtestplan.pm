@@ -112,6 +112,31 @@ sub print_result
         return;
 }
 
+
+=head2 get_shortname
+
+Get the shortname for this testplan. The shortname is either given as
+command line option or inside the plan text.
+
+@param string - plan text
+@param string - value of $opt->{name}
+
+@return string - shortname
+
+=cut
+
+sub get_shortname{
+        my ($self, $plan, $name) = @_;
+        return $name if $name;
+
+        foreach my $line (split "\n", $plan) {
+                if ($line =~/^###\s*(?:short)?name\s*:\s*(.+)$/i) {
+                        return $1;
+                }
+        }
+        return;
+}
+
 =head2 execute
 
 Worker function
@@ -129,7 +154,9 @@ sub execute
         my $cmd = Tapper::Cmd::Testplan->new();
         my $path = $opt->{path};
         $path = $self->parse_path($opt->{file}) if not $path;
-        my $plan_id = $cmd->add($plan, $path, $opt->{name});
+
+        my $shortname = $self->get_shortname($plan, $opt->{name});
+        my $plan_id = $cmd->add($plan, $path, $shortname);
         die "Plan not created" unless defined $plan_id;
         if ($opt->{verbose}) {
                 $self->print_result($plan_id);
