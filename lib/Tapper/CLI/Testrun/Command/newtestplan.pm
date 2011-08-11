@@ -160,7 +160,7 @@ sub execute
         die "Plan not created" unless defined $plan_id;
 
         if ($opt->{verbose}) {
-                say "Plan $plan_id created from ",$opt->{file}," with path=$path";
+                say "Plan $plan_id created from ",$opt->{file}," with path = $path";
         } else {
                 say $plan_id;
         }
