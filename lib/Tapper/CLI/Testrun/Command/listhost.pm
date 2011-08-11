@@ -15,7 +15,7 @@ sub abstract {
 
 my $options = { "verbose"  => { text => "show all available information; without only show names", short => 'v' },
                 "queue"    => { text => "list hosts bound to this queue", type=> 'manystring'},
-                "active"   => { text => "list active hosts"},
+                "all"      => { text => "list active and nonactive hosts"},
                 "free"     => { text => "list free hosts" },
                 "name"     => { text => "find host by name, implies verbose", type => 'string'},
               };
@@ -88,7 +88,7 @@ sub execute {
         my ($self, $opt, $args) = @_;
         my %options= (order_by => 'name');
         my %search;
-        $search{active} = 1 if $opt->{active};
+        $search{active} = 1 unless $opt->{all};
         $search{free}   = 1 if $opt->{free};
         $search{name}   = $opt->{name}  if $opt->{name};
         if ($opt->{queue}) {
