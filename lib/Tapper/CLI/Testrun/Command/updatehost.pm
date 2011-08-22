@@ -21,7 +21,7 @@ my $options =  {
                 "verbose"          => { text => "some more informational output", short=> 'v' },
                 "id"               => { text => "INT; change host with this id; required", type => 'optstring'},
                 "name"             => { text => "TEXT; update name",    type => 'string' },
-                "active"           => { text => "set active flag to this value, prepend with not to unset", type => 'withno' },
+                "active"           => { text => "set active flag to this value, prepend with no to unset", type => 'withno' },
                 "comment"          => { text => "Set a new comment for the host", type => 'string'},
                 "addqueue"         => { text => "TEXT; Bind host to named queue without deleting other bindings (queue has to exists already)", type => 'manystring'},
                 "delqueue"         => { text => "TEXT; delete queue from this host's bindings, empty string means 'all bindings'", type => 'optmanystring'},
