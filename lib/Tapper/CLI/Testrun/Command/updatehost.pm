@@ -58,7 +58,19 @@ sub validate_args
                 die $self->usage->text;
         }
 
-        $opt->{active} = 1 if @$args and (grep {$_ eq '--active'} @$args);   # allow --active, even though it's not official
+        if (@$args and (grep {$_ eq '--active'} @$args)) { # allow --active, even though it's not official
+                @$args = grep {$_ ne '--active'} @$args;
+                $opt->{active} = 1;
+        }                        
+
+        # Prevent unknown options
+        my $msg = "Unknown option";
+        $msg   .= ($args and $#{$args} >=1) ? 's' : '';
+        $msg   .= ": ";
+        if (($args and @$args)) {
+                say STDERR $msg, join(', ',@$args);
+                die $self->usage->text;
+        }
 
         if ($opt->{name} and not $opt->{id}) {
                 my $host = model('TestrunDB')->resultset('Host')->search({name => $opt->{name}})->first;
