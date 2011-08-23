@@ -61,7 +61,7 @@ sub validate_args
         if (@$args and (grep {$_ eq '--active'} @$args)) { # allow --active, even though it's not official
                 @$args = grep {$_ ne '--active'} @$args;
                 $opt->{active} = 1;
-        }                        
+        }
 
         # Prevent unknown options
         my $msg = "Unknown option";
@@ -158,19 +158,19 @@ execute Tapper testruns.
 sub update_grub
 {
         my ($self, $hostname) = @_;
-        
+
         my $default_grubfile = Tapper::Config->subconfig->{files}{default_grubfile} // '';
         if (not -e $default_grubfile) {
                 die "Default grubfile '$default_grubfile' does not exist\n";
         }
         my $filename    = Tapper::Config->subconfig->{paths}{grubpath}."/$hostname.lst";
-        
+
         # use File::Copy to be as system independend as possible
         File::Copy::copy($default_grubfile, $filename) or die "Can't update grub file for $hostname: $!\n";
 	return(0);
 }
 
-sub execute 
+sub execute
 {
         my ($self, $opt, $args) = @_;
         my $host;
@@ -180,7 +180,7 @@ sub execute
 
         if (defined($opt->{active})) {
                 $host->active($opt->{active});
-                $self->update_grub($host->name) if $opt->{active} == 0 and 
+                $self->update_grub($host->name) if $opt->{active} == 0 and
                   defined Tapper::Config->subconfig->{files}{default_grubfile};
         }
 
@@ -190,16 +190,16 @@ sub execute
         $host->comment($opt->{comment}) if defined($opt->{comment});
         $host->update;
 
-        my $output = sprintf("%s | %s | %s | %s", 
-                             $host->id, 
-                             $host->name, 
-                             $host->active ? 'active' : 'deactivated', 
+        my $output = sprintf("%s | %s | %s | %s",
+                             $host->id,
+                             $host->name,
+                             $host->active ? 'active' : 'deactivated',
                              $host->free   ? 'free'   : 'in use');
         if ($host->queuehosts->count) {
                 foreach my $queuehost ($host->queuehosts->all) {
                         $output.= sprintf(" | %s",$queuehost->queue->name);
                 }
-        } 
+        }
         say $output;
 }
 
