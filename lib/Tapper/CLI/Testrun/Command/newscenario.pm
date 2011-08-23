@@ -12,7 +12,7 @@ use Tapper::Cmd::Scenario;
 use Tapper::Cmd::Testrun;
 use Tapper::Cmd::Precondition;
 use Tapper::Cmd::Requested;
-
+use Tapper::Config;
 
 sub abstract {
         'Create a new scenario';
@@ -184,6 +184,7 @@ sub parse_interdep
                 say $sc_id;
         } else {
                 say "scenario $sc_id consists of testruns ",join ", ",@testrun_ids;
+                say Tapper::Config->subconfig->{base_url} // 'http://localhost/tapper', "/testrunlist/", join (",",@testrun_ids);
         }
 
 }
