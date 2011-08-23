@@ -184,7 +184,7 @@ sub parse_interdep
                 say $sc_id;
         } else {
                 say "scenario $sc_id consists of testruns ",join ", ",@testrun_ids;
-                say Tapper::Config->subconfig->{base_url} // 'http://localhost/tapper', "/testrunlist/", join (",",@testrun_ids);
+                say Tapper::Config->subconfig->{base_url} // 'http://localhost/tapper', "/testruns/idlist/", join (",",@testrun_ids);
         }
 
 }
