@@ -88,7 +88,7 @@ sub execute {
         my ($self, $opt, $args) = @_;
         my %options= (order_by => 'name');
         my %search;
-        $search{active} = 1 unless $opt->{all};
+        $search{active} = 1 unless $opt->{all} or $opt->{name};
         $search{free}   = 1 if $opt->{free};
         $search{name}   = $opt->{name}  if $opt->{name};
         if ($opt->{queue}) {
