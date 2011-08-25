@@ -15,6 +15,7 @@ sub abstract {
 
 my $options = { "verbose"  => { text => "show all available information; without only show names", short => 'v' },
                 "active"   => { text => "list active hosts", type => 'withno'},
+                "all"      => { text => "list all hosts, even deleted ones"},
                 "minprio"  => { text => "INT; queues with at least this priority level", type => 'string'},
                 "maxprio"  => { text => "INT; queues with at most this priority level", type => 'string'},
                 "name"     => { text => "show only queue with this name, implies verbose, can be given more than once", type => 'manystring' }
@@ -79,6 +80,7 @@ sub execute {
         my ($self, $opt, $args) = @_;
         my %options= (order_by => 'name');
         my %search;
+        $search{is_deleted} = {-in => [ 0, undef ] } unless $opt->{all};
         if ($opt->{minprio} and $opt->{maxprio}) {
                 $search{"-and"} = [ priority => {'>=' => $opt->{minprio}}, priority => {'<=' => $opt->{maxprio}}];
         } else {
