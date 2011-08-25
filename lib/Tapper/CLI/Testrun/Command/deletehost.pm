@@ -16,6 +16,7 @@ sub opt_spec {
                 [ "verbose|v",  "some more informational output" ],
                 [ "really",   "really execute the command"     ],
                 [ "id=s@",    "delete particular host",    ],
+                [ "name=s@",  "Select host to delete by name" ],
                );
 }
 
@@ -51,12 +52,23 @@ sub validate_args {
 sub execute {
         my ($self, $opt, $args) = @_;
 
+ NAME:
+        foreach my $name (@{$opt->{name}}) {
+                my $host = model('TestrunDB')->resultset('Host')->search({name => $name})->first;
+                push @{$opt->{id}}, $host->id;
+        }
+
  ID:
         foreach my $id (@{$opt->{id}}){
                 my $host = model('TestrunDB')->resultset('Host')->find($id);
-                next ID if not $host;
+                if (not $host) {
+                        warn "No host with $id";
+                        next ID;
+                }
                 my $name = $host->name;
-                $host->delete();
+                $host->active(0);
+                $host->is_deleted(1);
+                $host->update();
                 say "Deleted host $name with id $id" if $opt->{verbose};
         }
 }
