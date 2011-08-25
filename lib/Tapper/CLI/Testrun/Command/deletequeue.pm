@@ -57,6 +57,16 @@ sub validate_args
         my ($self, $opt, $args) = @_;
 
         die $self->usage->text unless %$opt ;
+
+        # Prevent unknown options
+        my $msg = "Unknown option";
+        $msg   .= ($args and $#{$args} >=1) ? 's' : '';
+        $msg   .= ": ";
+        if (($args and @$args)) {
+                say STDERR $msg, join(', ',@$args);
+                die $self->usage->text;
+        }
+
         
         die "Missing argument --name" unless  $opt->{name};
         die "Really? Then add --really to the options.\n" unless $opt->{really};
