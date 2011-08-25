@@ -15,7 +15,8 @@ sub abstract {
 
 my $options = { "verbose"  => { text => "show all available information; without only show names", short => 'v' },
                 "queue"    => { text => "list hosts bound to this queue", type=> 'manystring'},
-                "all"      => { text => "list active and nonactive hosts"},
+                "all"      => { text => "list all hosts, even deleted ones"},
+                "active"   => { text => "list only active hosts"},
                 "free"     => { text => "list free hosts" },
                 "name"     => { text => "find host by name, implies verbose", type => 'string'},
               };
@@ -88,7 +89,8 @@ sub execute {
         my ($self, $opt, $args) = @_;
         my %options= (order_by => 'name');
         my %search;
-        $search{active} = 1 unless $opt->{all} or $opt->{name};
+        $search{active}     = 1 if $opt->{active};
+        $search{is_deleted} = {-in => [ 0, undef ] } unless $opt->{all};
         $search{free}   = 1 if $opt->{free};
         $search{name}   = $opt->{name}  if $opt->{name};
         if ($opt->{queue}) {
@@ -143,7 +145,7 @@ sub print_hosts_verbose
                 my $output = sprintf("%5d | %${name_length}s | %11s | %10s | %${comment_length}s | ", 
                                      $host->id, 
                                      $host->name, 
-                                     $host->active ? 'active' : 'deactivated', 
+                                     $host->is_deleted ? 'deleted' : ( $host->active ? 'active' : 'deactivated' ), 
                                      $host->free   ? 'free'   : "$testrun_id",
                                      $host->comment,
                                     );
