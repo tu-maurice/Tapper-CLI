@@ -92,7 +92,10 @@ sub execute {
         $search{active}     = 1 if $opt->{active};
         $search{is_deleted} = {-in => [ 0, undef ] } unless $opt->{all};
         $search{free}   = 1 if $opt->{free};
-        $search{name}   = $opt->{name}  if $opt->{name};
+        
+        # ignore all options if host is requested by name
+        %search = (name   => $opt->{name}) if $opt->{name};
+        
         if ($opt->{queue}) {
                 my @queue_ids       = map {$_->id} model('TestrunDB')->resultset('Queue')->search({name => {-in => [ @{$opt->{queue}} ]}});
                 $search{queue_id}   = { -in => [ @queue_ids ]};
