@@ -89,7 +89,8 @@ sub execute {
         }
 
         if ($opt->{name}) {
-                $search{"name"} = { '-in' => $opt->{name}};
+                # ignore all options if queue is requested by name
+                %search = (name => { '-in' => $opt->{name}});
                 $opt->{verbose} = 1;
         }
 
