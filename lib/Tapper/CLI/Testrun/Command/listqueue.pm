@@ -116,7 +116,7 @@ sub print_queues_verbose
                                      $queue->id, 
                                      $queue->name, 
                                      $queue->priority,
-                                     $queue->active ? 'yes' : 'no');
+                                     $queue->is_deleted ? 'deleted' : ( $queue->active ? 'yes' : 'no'));
                 if ($queue->queuehosts->count) {
                         my @hosts = map {$_->host->name} $queue->queuehosts->all;
                         $output  .= "Bound hosts: ";
