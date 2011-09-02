@@ -9,7 +9,6 @@ use parent 'App::Cmd::Command';
 
 use Tapper::Model 'model';
 use Tapper::Config;
-use File::Copy;
 
 
 sub abstract {
@@ -158,16 +157,12 @@ execute Tapper testruns.
 sub update_grub
 {
         my ($self, $hostname) = @_;
-
-        my $default_grubfile = Tapper::Config->subconfig->{files}{default_grubfile} // '';
-        if (not -e $default_grubfile) {
-                die "Default grubfile '$default_grubfile' does not exist\n";
-        }
-        my $filename    = Tapper::Config->subconfig->{paths}{grubpath}."/$hostname.lst";
-
-        # use File::Copy to be as system independend as possible
-        File::Copy::copy($default_grubfile, $filename) or die "Can't update grub file for $hostname: $!\n";
-	return(0);
+        my $message = model('TestrunDB')->resultset('Message')->new({type => 'action',
+                                                                     message => {action => 'updategrub',
+                                                                                 host   => $hostname,
+                                                                                }});
+        $message->insert;
+        return 0;
 }
 
 sub execute
@@ -180,8 +175,8 @@ sub execute
 
         if (defined($opt->{active})) {
                 $host->active($opt->{active});
-                $self->update_grub($host->name) if $opt->{active} == 0 and
-                  defined Tapper::Config->subconfig->{files}{default_grubfile};
+                $self->update_grub($host->name)
+                  if $opt->{active} == 0;
         }
 
         $host->name($opt->{name}) if $opt->{name};
