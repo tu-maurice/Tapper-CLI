@@ -23,7 +23,6 @@ requires 'parent'   => 0;
 requires 'App::Cmd' => '0.301';
 requires 'DBIx::Class::TimeStamp'    => 0;
 requires 'File::Slurp'               => 0;
-requires 'File::Copy'                => 0;
 requires 'IO::Socket'                => 0;
 requires 'Template'                  => 0;
 requires 'Tapper::Model'             => "3.000010";
