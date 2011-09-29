@@ -160,7 +160,12 @@ sub execute
         die "Plan not created" unless defined $plan_id;
 
         if ($opt->{verbose}) {
-                say "Plan $plan_id created from ",$opt->{file}," with path = $path";
+                my $url = Tapper::Config->subconfig->{base_url} || 'http://tapper/tapper';
+                say "Plan created";
+                say "  id:   $plan_id";
+                say "  url:  $url/testplan/id/$plan_id";
+                say "  path: $path";
+                say "  file: ".$opt->{file};
         } else {
                 say $plan_id;
         }
