@@ -19,6 +19,7 @@ sub abstract {
 
 my $options = { "verbose" => { text => "some more informational output",                     short => 'v' },
                 "dryrun"  => { text => "Just print evaluated testplan without submit to DB", short => 'n' },
+                "guide"   => { text => "Just print self-documentation",                      short => 'g' },
                 "D"       => { text => "Define a key=value pair used for macro expansion",   type => 'keyvalue' },
                 "file"    => { text => "String; use (macro) testplan file",                  type => 'string'   },
                 "path"    => { text => "String; put this path into db instead of file path", type => 'string'   },
@@ -152,6 +153,14 @@ sub execute
         my $plan = slurp($opt->{file});
 
         $plan = $self->apply_macro($plan, $opt->{d}, $opt->{include});
+
+        if ($opt->{guide}) {
+                my $guide = $plan;
+                my @guide = grep { m/^###/ } split (qr/\n/, $plan);
+                say "Self-documentation:";
+                say map { my $l = $_; $l =~ s/^###/ /; "$l\n" } @guide;
+                return 0;
+        }
         
         if ($opt->{dryrun}) {
                 say $plan;
