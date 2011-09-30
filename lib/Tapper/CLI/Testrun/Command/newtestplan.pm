@@ -18,6 +18,7 @@ sub abstract {
 
 
 my $options = { "verbose" => { text => "some more informational output",                     short => 'v' },
+                "dryrun"  => { text => "Just print evaluated testplan without submit to DB", short => 'n' },
                 "D"       => { text => "Define a key=value pair used for macro expansion",   type => 'keyvalue' },
                 "file"    => { text => "String; use (macro) testplan file",                  type => 'string'   },
                 "path"    => { text => "String; put this path into db instead of file path", type => 'string'   },
@@ -49,7 +50,7 @@ sub opt_spec {
 
 sub usage_desc
 {
-        "tapper-testrun newtestplan --file=s [ -Dkey=value ] [ --path=s ] [ --name=s ] [ --include=s ]*";
+        "tapper-testrun newtestplan --file=s  [ -n ] [ -v ] [ -Dkey=value ] [ --path=s ] [ --name=s ] [ --include=s ]*";
 }
 
 
@@ -149,8 +150,14 @@ sub execute
 
         use File::Slurp 'slurp';
         my $plan = slurp($opt->{file});
+
         $plan = $self->apply_macro($plan, $opt->{d}, $opt->{include});
         
+        if ($opt->{dryrun}) {
+                say $plan;
+                return 0;
+        }
+
         my $cmd = Tapper::Cmd::Testplan->new();
         my $path = $opt->{path};
         $path = $self->parse_path($opt->{file}) if not $path;
