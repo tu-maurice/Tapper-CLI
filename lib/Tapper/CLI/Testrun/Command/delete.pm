@@ -54,6 +54,10 @@ sub execute {
 
         my $cmd = Tapper::Cmd::Testrun->new();
         foreach my $id (@{$opt->{id}}){
+                if (not $opt->{really}) {
+                        say "Skip delete testrun $id. Use --really.";
+                        next;
+                }
                 my $error = $cmd->del($id);
                 if ($error) {
                         say STDERR "Can not delete testrun $id: $error";
