@@ -11,6 +11,7 @@ cover_db
 MANIFEST.bak
 MANIFEST
 META.yml
+MYMETA*
 t/tapper_schema_reportsdb_test.sqlite
 t/tapper_schema_testrundb_test.sqlite
 t/tapper_schema_testsdb_testdb.sqlite
