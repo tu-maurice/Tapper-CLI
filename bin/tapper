@@ -1,0 +1,17 @@
+use App::Rad;
+use Tapper::CLI::Notification;
+
+use strict;
+use warnings;
+use 5.010;
+
+
+sub setup
+{
+        my ($c) = @_;
+        Tapper::CLI::Notification::setup($c);
+}
+
+
+App::Rad->run();
+
