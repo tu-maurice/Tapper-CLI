@@ -101,8 +101,15 @@ sub execute {
         if ($opt->{verbose}) {
                 $self->print_queues_verbose($queues)
         } else {
+                my $max_length=-1;
+
                 foreach my $queue ($queues->all) {
-                        say sprintf("%10d | %s", $queue->id, $queue->name);
+                        $max_length = length $queue->name if length $queue->name > $max_length;
+                }
+                foreach my $queue ($queues->all) {
+                        printf("%10d | ", $queue->id, $queue->name, $queue->priority);
+                        print $queue->name, " "x($max_length - length($queue->name));
+                        say " | ",$queue->priority;
                 }
         }
 }
