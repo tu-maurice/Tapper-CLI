@@ -15,7 +15,7 @@ Tapper::CLI::Notification - Tapper - notification commands for the tapper CLI
 
 This module is part of the Tapper::CLI framework. It is supposed to be
 used together with App::Rad. All following functions expect their
-arguments as $c->options->{$arg}. 
+arguments as $c->options->{$arg}.
 
     use App::Rad;
     use Tapper::CLI::Notification;
@@ -50,7 +50,7 @@ sub newnotification
                 say STDERR "\t--help\t\tprint this help message and exit";
                 exit -1;
         }
-        
+
         my $cmd = Tapper::Cmd::Notification->new();
         my $user = $c->options->{user};
 
@@ -63,8 +63,9 @@ sub newnotification
                 }
                 push @ids, $cmd->add($subscription);
         }
-        my $msg = "The notification subscriptions were registered with the following ids:" if $c->options->{verbose};        
-        $msg   .= join ",", @ids;
+        my $msg;
+        $msg  = "The notification subscriptions were registered with the following ids:" if $c->options->{verbose};
+        $msg .= join ",", @ids;
         return $msg;
 }
 
@@ -72,7 +73,7 @@ sub newnotification
 
 Show all or a subset of notification subscriptions
 
-@optparam 
+@optparam
 
 =cut
 
@@ -115,12 +116,12 @@ sub updatenotification
                 say STDERR "\t--help\t\tprint this help message and exit";
                 exit -1;
         }
-        
+
         my $cmd = Tapper::Cmd::Notification->new();
 
         my $subscription =  YAML::XS::LoadFile($c->options->{file});
         my $id = $cmd->update($c->options->{id}, $subscription);
-        
+
         return "The notification subscription was updated:" if $c->options->{verbose};
         return $id;
 }
@@ -151,11 +152,11 @@ sub delnotification
                 say STDERR "\t--help\t\tprint this help message and exit";
                 exit -1;
         }
-        
+
         my $cmd = Tapper::Cmd::Notification->new();
 
         my $id = $cmd->del($c->options->{id});
-        
+
         return "The notification subscription was deleted." if $c->options->{verbose};
         return;
 }
