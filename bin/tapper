@@ -1,5 +1,7 @@
 use App::Rad;
 use Tapper::CLI::Notification;
+use Tapper::CLI::Schema;
+
 
 use strict;
 use warnings;
@@ -10,6 +12,7 @@ sub setup
 {
         my ($c) = @_;
         Tapper::CLI::Notification::setup($c);
+        Tapper::CLI::Schema::setup($c);
 }
 
 
