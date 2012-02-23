@@ -20,6 +20,7 @@ author_requires 'Module::Install::WriteAll';
 requires 'perl'     => '5.010';
 requires 'parent'   => 0;
 requires 'App::Cmd' => '0.301';
+requires 'App::Rad';
 requires 'DBIx::Class::TimeStamp'    => 0;
 requires 'File::Slurp'               => 0;
 requires 'IO::Socket'                => 0;
