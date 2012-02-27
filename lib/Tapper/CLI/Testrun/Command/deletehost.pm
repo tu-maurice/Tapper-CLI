@@ -49,6 +49,29 @@ sub validate_args {
         die $self->usage->text;
 }
 
+
+=head2 update_grub
+
+Install a default grub config for host so that it does no longer try to
+execute Tapper testruns.
+
+@return success - 0
+@return error   - die()
+
+=cut
+
+sub update_grub
+{
+        my ($self, $hostname) = @_;
+        my $message = model('TestrunDB')->resultset('Message')->new({type => 'action',
+                                                                     message => {action => 'updategrub',
+                                                                                 host   => $hostname,
+                                                                                }});
+        $message->insert;
+        return 0;
+}
+
+
 sub execute {
         my ($self, $opt, $args) = @_;
 
@@ -66,6 +89,7 @@ sub execute {
                         next ID;
                 }
                 my $name = $host->name;
+                $self->update_grub($host);
                 $host->active(0);
                 $host->is_deleted(1);
                 $host->update();
