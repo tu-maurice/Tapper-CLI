@@ -101,7 +101,7 @@ sub execute
         my ($self, $opt, $args) = @_;
 
         $self->free_host($opt);
-        say "Host $opt->{name} is free now";
+        say "Told master controller to free host $opt->{name}. It will act upon your request soon.";
 }
 
 
