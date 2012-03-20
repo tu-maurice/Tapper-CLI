@@ -1,5 +1,6 @@
 use App::Rad;
 use Tapper::CLI::Notification;
+use Tapper::CLI::Testplan;
 use Tapper::CLI::Schema;
 
 
@@ -13,6 +14,7 @@ sub setup
         my ($c) = @_;
         Tapper::CLI::Notification::setup($c);
         Tapper::CLI::Schema::setup($c);
+        Tapper::CLI::Testplan::setup($c);
 }
 
 
