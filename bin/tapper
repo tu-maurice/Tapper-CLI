@@ -1,3 +1,5 @@
+#! perl
+
 use App::Rad;
 use Tapper::CLI::Notification;
 use Tapper::CLI::Testplan;
