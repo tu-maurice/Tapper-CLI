@@ -59,7 +59,7 @@ sub notificationnew
         foreach my $subscription (@subscriptions) {
                 if ($user) {
                         $subscription->{user_login} = $user;
-                        delete $subscription->{user_login};
+                        delete $subscription->{user_id};
                 }
                 push @ids, $cmd->add($subscription);
         }
