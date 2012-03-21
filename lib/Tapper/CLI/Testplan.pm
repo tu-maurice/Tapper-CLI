@@ -40,7 +40,7 @@ sub testplansend
         $c->getopt( 'name|n=s@','verbose|v', 'help|?' );
 
         if ( $c->options->{help} ) {
-                say STDERR "Usage: $0 testplansend --name=path1 --name=path2  [ --verbose ]";
+                say STDERR "Usage: $0 testplansend [ --name=path ]*  [ --verbose ]";
                 say STDERR "\n  Optional arguments:";
                 say STDERR "\t--name\t\tPath name to request only this task to be reported. Slash(/) or dot(.) are allowed as seperators. Can be given multiple times.";
                 say STDERR "\t--verbose\tbe more chatty";
