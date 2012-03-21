@@ -24,7 +24,7 @@ arguments as $c->options->{$arg}.
 
 =head1 FUNCTIONS
 
-=head2 newnotification
+=head2 notificationnew
 
 Register new notification subscriptions.
 
@@ -35,13 +35,13 @@ Register new notification subscriptions.
 
 =cut
 
-sub newnotification
+sub notificationnew
 {
         my ($c) = @_;
         $c->getopt( 'file|f=s', 'user|u=s','verbose|v', 'help|?' );
 
         if (not %{$c->options} or $c->options->{help} ) {
-                say STDERR "Usage: $0 newnotification --file=filename [ --user=login ] [ --verbose ]";
+                say STDERR "Usage: $0 notificationnew --file=filename [ --user=login ] [ --verbose ]";
                 say STDERR "\n\  Required Arguments:";
                 say STDERR "\t--file\t\tname of file containing the notification subscriptions in YAML (required)";
                 say STDERR "\n  Optional arguments:";
@@ -69,7 +69,7 @@ sub newnotification
         return $msg;
 }
 
-=head2 listnotification
+=head2 notificationlist
 
 Show all or a subset of notification subscriptions
 
@@ -77,7 +77,7 @@ Show all or a subset of notification subscriptions
 
 =cut
 
-sub listnotification
+sub notificationlist
 {
         my ($c) = @_;
         my $cmd = Tapper::Cmd::Notification->new();
@@ -90,7 +90,7 @@ sub listnotification
         return;
 }
 
-=head2 updatenotification
+=head2 notificationupdate
 
 Update an existing notification subscription.
 
@@ -101,13 +101,13 @@ Update an existing notification subscription.
 
 =cut
 
-sub updatenotification
+sub notificationupdate
 {
         my ($c) = @_;
         $c->getopt( 'file|f=s', 'id|i=i','verbose|v', 'help|?' );
 
         if (not %{$c->options} or $c->options->{help} ) {
-                say STDERR "Usage: $0 updatenotification --file=filename --id=id [ --verbose ]";
+                say STDERR "Usage: $0 notificationupdate --file=filename --id=id [ --verbose ]";
                 say STDERR "\n\  Required Arguments:";
                 say STDERR "\t--file\t\tname of file containing the notification subscriptions in YAML";
                 say STDERR "\t--id\t\tid of the notification subscriptions";
@@ -126,7 +126,7 @@ sub updatenotification
         return $id;
 }
 
-=head2 delnotification
+=head2 notificationdel
 
 Delete an existing notification subscription.
 
@@ -137,13 +137,13 @@ Delete an existing notification subscription.
 
 =cut
 
-sub delnotification
+sub notificationdel
 {
         my ($c) = @_;
         $c->getopt( 'id|i=i','verbose|v', 'help|?' );
 
         if (not %{$c->options} or $c->options->{help} ) {
-                say STDERR "Usage: $0 newnotification --file=filename [ --user=login ] [ --verbose]";
+                say STDERR "Usage: $0 notificationnew --file=filename [ --user=login ] [ --verbose]";
                 say STDERR "\n\  Required Arguments:";
                 say STDERR "\t--file\t\tname of file containing the notification subscriptions in YAML (required)";
                 say STDERR "\t--file\t\tname of file containing the notification subscriptions in YAML (required)";
@@ -172,10 +172,10 @@ Initialize the notification functions for tapper CLI
 sub setup
 {
         my ($c) = @_;
-        $c->register('newnotification', \&newnotification, 'Register a new notification subscription');
-        $c->register('listnotification', \&listnotification, 'Show all notification subscriptions');
-        $c->register('updatenotification', \&updatenotification, 'Update an existing notification subscription');
-        $c->register('delnotification', \&delnotification, 'Delete an existing notification subscription');
+        $c->register('notificationnew', \&notificationnew, 'Register a new notification subscription');
+        $c->register('notificationlist', \&notificationlist, 'Show all notification subscriptions');
+        $c->register('notificationupdate', \&notificationupdate, 'Update an existing notification subscription');
+        $c->register('notificationdel', \&notificationdel, 'Delete an existing notification subscription');
         return;
 }
 
