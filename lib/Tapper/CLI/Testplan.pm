@@ -51,7 +51,7 @@ sub testplansend
 
         my @names;
         if ($c->options->{name}) {
-                @names = map {  s|\.|/|; {path => $_} } @{$c->options->{name}}; ## no critic
+                @names = map {  tr|.|/|; {path => $_} } @{$c->options->{name}}; ## no critic
         }
 
         my $reporter = Tapper::Testplan::Reporter->new();
