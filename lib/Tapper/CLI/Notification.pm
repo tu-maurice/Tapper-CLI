@@ -28,26 +28,26 @@ arguments as $c->options->{$arg}.
 
 Register new notification subscriptions.
 
-@param file - contains the new subscription in YAML, multiple can be given
-@optparam user - overwrite user information given in the file or set if none
-@optparam verbose - be more chatty
-@optparam help    - print out help message and die
+@param file     - contains the new subscription in YAML, multiple can be given
+@optparam user  - overwrite user information given in the file or set if none
+@optparam quiet - only return notification ids
+@optparam help  - print out help message and die
 
 =cut
 
 sub notificationnew
 {
         my ($c) = @_;
-        $c->getopt( 'file|f=s', 'user|u=s','verbose|v', 'help|?' );
+        $c->getopt( 'file|f=s', 'user|u=s','quiet|q', 'help|?' );
 
         if (not %{$c->options} or $c->options->{help} ) {
-                say STDERR "Usage: $0 notificationnew --file=filename [ --user=login ] [ --verbose ]";
+                say STDERR "Usage: $0 notification-new --file=filename [ --user=login ] [ --quiet ]";
                 say STDERR "\n\  Required Arguments:";
                 say STDERR "\t--file\t\tname of file containing the notification subscriptions in YAML (required)";
                 say STDERR "\n  Optional arguments:";
                 say STDERR "\t--user\t\tset this user for all notification subscriptions (even if a different one is set in YAML)";
-                say STDERR "\t--verbose\tbe more chatty";
-                say STDERR "\t--help\t\tprint this help message and exit";
+               say STDERR "\t--quiet\tOnly return notification ids";
+                 say STDERR "\t--help\t\tprint this help message and exit";
                 exit -1;
         }
 
@@ -64,7 +64,7 @@ sub notificationnew
                 push @ids, $cmd->add($subscription);
         }
         my $msg;
-        $msg  = "The notification subscriptions were registered with the following ids:" if $c->options->{verbose};
+        $msg  = "The notification subscriptions were registered with the following ids:" if not $c->options->{quiet};
         $msg .= join ",", @ids;
         return $msg;
 }
@@ -96,23 +96,23 @@ Update an existing notification subscription.
 
 @param file - name of the file containing the new data for subscription notification in YAML
 @param id   - id of the notification subscription to update
-@optparam verbose - be more chatty
-@optparam help    - print out help message and die
+@optparam quiet - only return ids of updated notification subscriptions
+@optparam help  - print out help message and die
 
 =cut
 
 sub notificationupdate
 {
         my ($c) = @_;
-        $c->getopt( 'file|f=s', 'id|i=i','verbose|v', 'help|?' );
+        $c->getopt( 'file|f=s', 'id|i=i','quiet|q', 'help|?' );
 
         if (not %{$c->options} or $c->options->{help} ) {
-                say STDERR "Usage: $0 notificationupdate --file=filename --id=id [ --verbose ]";
+                say STDERR "Usage: $0 notification-update --file=filename --id=id [ --quiet ]";
                 say STDERR "\n\  Required Arguments:";
                 say STDERR "\t--file\t\tname of file containing the notification subscriptions in YAML";
                 say STDERR "\t--id\t\tid of the notification subscriptions";
                 say STDERR "\n  Optional arguments:";
-                say STDERR "\t--verbose\tbe more chatty";
+                say STDERR "\t--quiet\tonly return ids of updated notification subscriptions";
                 say STDERR "\t--help\t\tprint this help message and exit";
                 exit -1;
         }
@@ -122,7 +122,7 @@ sub notificationupdate
         my $subscription =  YAML::XS::LoadFile($c->options->{file});
         my $id = $cmd->update($c->options->{id}, $subscription);
 
-        return "The notification subscription was updated:" if $c->options->{verbose};
+        return "The notification subscription was updated:" unless $c->options->{quiet};
         return $id;
 }
 
@@ -130,9 +130,9 @@ sub notificationupdate
 
 Delete an existing notification subscription.
 
-@param id   - id of the notification subscription to delete
-@optparam verbose - be more chatty
-@optparam help    - print out help message and die
+@param id       - id of the notification subscription to delete
+@optparam quiet - stay silent when deleting succeeded
+@optparam help  - print out help message and die
 
 
 =cut
@@ -140,15 +140,14 @@ Delete an existing notification subscription.
 sub notificationdel
 {
         my ($c) = @_;
-        $c->getopt( 'id|i=i','verbose|v', 'help|?' );
+        $c->getopt( 'id|i=i','quiet|q', 'help|?' );
 
         if (not %{$c->options} or $c->options->{help} ) {
-                say STDERR "Usage: $0 notificationnew --file=filename [ --user=login ] [ --verbose]";
+                say STDERR "Usage: $0 notification-del --id=id";
                 say STDERR "\n\  Required Arguments:";
-                say STDERR "\t--file\t\tname of file containing the notification subscriptions in YAML (required)";
-                say STDERR "\t--file\t\tname of file containing the notification subscriptions in YAML (required)";
+                say STDERR "\t--id\t\tDatabase ID of the notification subscription";
                 say STDERR "\n  Optional arguments:";
-                say STDERR "\t--verbose\tbe more chatty";
+                say STDERR "\t--quiet\tStay silent when deleting succeeded";
                 say STDERR "\t--help\t\tprint this help message and exit";
                 exit -1;
         }
@@ -157,7 +156,7 @@ sub notificationdel
 
         my $id = $cmd->del($c->options->{id});
 
-        return "The notification subscription was deleted." if $c->options->{verbose};
+        return "The notification subscription was deleted." unless $c->options->{quiet};
         return;
 }
 
@@ -172,10 +171,10 @@ Initialize the notification functions for tapper CLI
 sub setup
 {
         my ($c) = @_;
-        $c->register('notificationnew', \&notificationnew, 'Register a new notification subscription');
-        $c->register('notificationlist', \&notificationlist, 'Show all notification subscriptions');
-        $c->register('notificationupdate', \&notificationupdate, 'Update an existing notification subscription');
-        $c->register('notificationdel', \&notificationdel, 'Delete an existing notification subscription');
+        $c->register('notification-new', \&notificationnew, 'Register a new notification subscription');
+        $c->register('notification-list', \&notificationlist, 'Show all notification subscriptions');
+        $c->register('notification-update', \&notificationupdate, 'Update an existing notification subscription');
+        $c->register('notification-del', \&notificationdel, 'Delete an existing notification subscription');
         return;
 }
 

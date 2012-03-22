@@ -28,20 +28,20 @@ arguments as $c->options->{$arg}.
 
 Compress all uncompressed reportfile entries
 
-@optparam verbose - be more chatty
-@optparam help    - print out help message and die
+@optparam quiet - be more chatty
+@optparam help  - print out help message and die
 
 =cut
 
 sub zipfiles
 {
         my ($c) = @_;
-        $c->getopt( 'verbose|v', 'help|?' );
+        $c->getopt( 'quiet|q', 'help|?' );
 
         if ($c->options->{help} ) {
-                say STDERR "Usage: $0 zipfiles [ --verbose ]";
+                say STDERR "Usage: $0 schema-zipfiles [ --quiet ]";
                 say STDERR "\n  Optional arguments:";
-                say STDERR "\t--verbose\tGive file name of the updated file";
+                say STDERR "\t--quiet\tPrint a dot instead of the file name of the updated file";
                 say STDERR "\t--help\t\tprint this help message and exit";
                 exit -1;
         }
@@ -50,7 +50,7 @@ sub zipfiles
                 $file->set_filtered_column(filecontent => memBzip $file->filecontent);
                 $file->is_compressed(1);
                 $file->update();
-                print( $c->options->{verbose} ? $file->filename."\n" : '.' );
+                print( $c->options->{quiet} ? '.' : $file->filename."\n" );
         }
 }
 
@@ -66,7 +66,7 @@ Initialize the notification functions for tapper CLI
 sub setup
 {
         my ($c) = @_;
-        $c->register('zipfiles', \&zipfiles, 'Compress all uncompressed files uploaded to reports framework');
+        $c->register('schema-zipfiles', \&zipfiles, 'Compress all uncompressed files uploaded to reports framework');
         return;
 }
 

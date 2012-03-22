@@ -28,23 +28,23 @@ arguments as $c->options->{$arg}.
 Send testplan reports to Taskjuggler. If optional names are given only tasks
 that match at least one such name are reported.
 
-@optparam name    - full subtask path (bot dot and slash are allowed as separatot)
-@optparam verbose - be more chatty
-@optparam help    - print out help message and die
+@optparam name  - full subtask path (bot dot and slash are allowed as separatot)
+@optparam quiet - stay silent when testplan was sent
+@optparam help  - print out help message and die
 
 =cut
 
 sub testplansend
 {
         my ($c) = @_;
-        $c->getopt( 'name|n=s@','verbose|v', 'help|?' );
+        $c->getopt( 'name|n=s@','quiet|q', 'help|?' );
 
         if ( $c->options->{help} ) {
-                say STDERR "Usage: $0 testplansend [ --name=path ]*  [ --verbose ]";
+                say STDERR "Usage: $0 testplan-send [ --name=path ]*  [ --quiet ]";
                 say STDERR "\n  Optional arguments:";
                 say STDERR "\t--name\t\tPath name to request only this task to be reported. Slash(/) or dot(.) are allowed as seperators. Can be given multiple times.";
-                say STDERR "\t--verbose\tbe more chatty";
-                say STDERR "\t--help\t\tprint this help message and exit";
+                say STDERR "\t--quiet\tStay silent when testplan was sent";
+                say STDERR "\t--help\t\tPrint this help message and exit";
                 exit -1;
         }
 
@@ -56,7 +56,7 @@ sub testplansend
 
         my $reporter = Tapper::Testplan::Reporter->new();
         $reporter->run(@names);
-
+        return "Sending testplan finished" unless $c->options->{quiet};
         return;
 }
 
@@ -71,7 +71,7 @@ Initialize the testplan functions for tapper CLI
 sub setup
 {
         my ($c) = @_;
-        $c->register('testplansend', \&testplansend, 'Send testplan reports');
+        $c->register('testplan-send', \&testplansend, 'Send testplan reports');
         return;
 }
 
