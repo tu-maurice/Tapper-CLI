@@ -58,7 +58,7 @@ sub usernew
         my $id  = $cmd->add($data);
         if (not $c->options->{quiet}) {
                 my @users = $cmd->list({id => $id});
-                return YAML::XS::Dump($users[0]);
+                print YAML::XS::Dump($users[0]);
         }
         return;
 }
