@@ -14,11 +14,13 @@ construct_fixture( schema  => reportsdb_schema, fixture => 't/fixtures/reportsdb
 
 
 
-my $id = `$^X -Ilib bin/tapper notificationnew --file=t/files/notification.yml`;
+my $id = `$^X -Ilib bin/tapper notification-new --file=t/files/notification.yml -q`;
 chomp $id;
 like($id, qr"^\d+$", 'New notification substitution registered');
 
-my $list = `$^X -Ilib bin/tapper notificationlist`;
+BAIL_OUT("Subscription id is used for further tests so we can not continue without this id") if not $id =~ m/^\d+$/;
+
+my $list = `$^X -Ilib bin/tapper notification-list`;
 is($list, q{---
 comment: Testrun id 42 finished
 condition: testrun('id') == 42
@@ -28,11 +30,11 @@ persist: 1
 user_id: 1
 },'List of notifications after notificationnew');
 
-$id = `$^X -Ilib bin/tapper notificationupdate --file=t/files/notification_updated.yml --id=$id`;
+$id = `$^X -Ilib bin/tapper notification-update --file=t/files/notification_updated.yml --id=$id -q`;
 chomp $id;
 like($id, qr"^\d+$", 'New notification substitution registered');
 
-$list = `$^X -Ilib bin/tapper notificationlist`;
+$list = `$^X -Ilib bin/tapper notification-list`;
 is($list, q{---
 comment: Testrun id 43 finished
 condition: testrun('id') == 43
@@ -43,8 +45,8 @@ user_id: 1
 },'List of notifications after notificationupdate');
 
 
-$list = `$^X -Ilib bin/tapper notificationdel --id=$id`;
-$list = `$^X -Ilib bin/tapper notificationlist`;
+`$^X -Ilib bin/tapper notification-del --id=$id`;
+$list = `$^X -Ilib bin/tapper notification-list`;
 is($list, '','List of notifications after notificationdel');
 
 
