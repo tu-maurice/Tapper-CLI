@@ -46,7 +46,7 @@ sub notificationnew
                 say STDERR "\t--file\t\tname of file containing the notification subscriptions in YAML (required)";
                 say STDERR "\n  Optional arguments:";
                 say STDERR "\t--user\t\tset this user for all notification subscriptions (even if a different one is set in YAML)";
-               say STDERR "\t--quiet\tOnly return notification ids";
+               say STDERR "\t--quiet\t\tOnly return notification ids";
                  say STDERR "\t--help\t\tprint this help message and exit";
                 exit -1;
         }
@@ -112,7 +112,7 @@ sub notificationupdate
                 say STDERR "\t--file\t\tname of file containing the notification subscriptions in YAML";
                 say STDERR "\t--id\t\tid of the notification subscriptions";
                 say STDERR "\n  Optional arguments:";
-                say STDERR "\t--quiet\tonly return ids of updated notification subscriptions";
+                say STDERR "\t--quiet\t\tonly return ids of updated notification subscriptions";
                 say STDERR "\t--help\t\tprint this help message and exit";
                 exit -1;
         }
@@ -147,7 +147,7 @@ sub notificationdel
                 say STDERR "\n\  Required Arguments:";
                 say STDERR "\t--id\t\tDatabase ID of the notification subscription";
                 say STDERR "\n  Optional arguments:";
-                say STDERR "\t--quiet\tStay silent when deleting succeeded";
+                say STDERR "\t--quiet\t\tStay silent when deleting succeeded";
                 say STDERR "\t--help\t\tprint this help message and exit";
                 exit -1;
         }
