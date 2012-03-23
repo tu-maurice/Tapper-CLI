@@ -72,6 +72,9 @@ sub setup
 {
         my ($c) = @_;
         $c->register('testplan-send', \&testplansend, 'Send testplan reports');
+        if ($c->can('group_commands')) {
+                $c->group_commands('Testplan commands', 'testplan-send');
+        }
         return;
 }
 

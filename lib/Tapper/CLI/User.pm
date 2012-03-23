@@ -6,6 +6,7 @@ use strict;
 
 use YAML::XS;
 use Tapper::Cmd::User;
+use UNIVERSAL;
 
 =head1 NAME
 
@@ -175,6 +176,9 @@ sub setup
         $c->register('user-list', \&userlist, 'Show all users');
         $c->register('user-update', \&userupdate, 'Update an existing user');
         $c->register('user-del', \&userdel, 'Delete an existing user');
+        if ($c->can('group_commands')) {
+                $c->group_commands('User commands', 'user-new', 'user-list', 'user-update', 'user-del');
+        }
         return;
 }
 

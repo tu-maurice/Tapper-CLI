@@ -175,6 +175,9 @@ sub setup
         $c->register('notification-list', \&notificationlist, 'Show all notification subscriptions');
         $c->register('notification-update', \&notificationupdate, 'Update an existing notification subscription');
         $c->register('notification-del', \&notificationdel, 'Delete an existing notification subscription');
+        if ($c->can('group_commands')) {
+                $c->group_commands('Notification commands', 'notification-new', 'notification-list', 'notification-update', 'notification-del');
+        }
         return;
 }
 

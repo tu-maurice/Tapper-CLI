@@ -67,6 +67,9 @@ sub setup
 {
         my ($c) = @_;
         $c->register('schema-zipfiles', \&zipfiles, 'Compress all uncompressed files uploaded to reports framework');
+        if ($c->can('group_commands')) {
+                $c->group_commands('Schema commands', 'schema-zipfiles');
+        }
         return;
 }
 
