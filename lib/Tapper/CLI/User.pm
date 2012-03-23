@@ -104,6 +104,46 @@ sub usernew
         return;
 }
 
+=head2 contactadd
+
+Add contacts to an existing user.
+
+@param contact  - contact information in YAML or name of a file containing this information (can be given multiple times)
+@optparam login - login name for the user (default is $ENV{USER})
+@optparam quiet - stay silent when adding contacts succeeded
+@optparam help  - print out help message and die
+
+=cut
+
+sub contactadd
+{
+        my ($c) = @_;
+        $c->getopt( 'contact|c=s@', 'login|l=s', 'quiet|q', 'help|?' );
+
+        if ($c->options->{help} or not $c->options->{contact} ) {
+                say STDERR "Usage: $0 conact-add [ --login=login ] [ --contact=YAML | --contact=filename ]* [ --quiet ]";
+                say STDERR "\n  Optional arguments:";
+                say STDERR "\t--login\t\tlogin name for the user (default is $ENV{USER})";
+                say STDERR "\t--contact\tcontact information in YAML or name of a file containing this information (can be given multiple times)";
+                say STDERR "\t--quiet\t\tStay silent when adding user succeeded";
+                say STDERR "\t--help\t\tprint this help message and exit";
+                exit -1;
+        }
+
+        my @contacts = get_contacts($c->options->{contact});
+
+        my $data;
+        $data   = { login => $c->options->{login}, name => $c->options->{name} , contacts => \@contacts};
+
+        my $cmd = Tapper::Cmd::User->new();
+        my $id  = $cmd->add($data);
+        if (not $c->options->{quiet}) {
+                my @users = $cmd->list({id => $id});
+                print YAML::XS::Dump($users[0]);
+        }
+        return;
+}
+
 =head2 userlist
 
 Show all or a subset of user subscriptions
@@ -216,8 +256,9 @@ sub setup
         $c->register('user-list', \&userlist, 'Show all users');
         $c->register('user-update', \&userupdate, 'Update an existing user');
         $c->register('user-del', \&userdel, 'Delete an existing user');
+        $c->register('contact-add', \&contactadd, 'Add contact information to an existing user');
         if ($c->can('group_commands')) {
-                $c->group_commands('User commands', 'user-new', 'user-list', 'user-update', 'user-del');
+                $c->group_commands('User commands', 'user-new', 'user-list', 'user-update', 'user-del', 'contact-add');
         }
         return;
 }
