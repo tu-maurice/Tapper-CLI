@@ -4,6 +4,7 @@ use 5.010;
 use warnings;
 use strict;
 
+use Try::Tiny;
 use YAML::XS;
 use Tapper::Cmd::User;
 use UNIVERSAL;
@@ -24,6 +25,43 @@ arguments as $c->options->{$arg}.
     App::Rad->run();
 
 =head1 FUNCTIONS
+
+=head2 get_contacts
+
+Get contacts from YAML. Errors are printed out instead of returned. This
+seems to be ok for a CLI function.
+
+@param array ref - containing YAML strings or file names
+
+@return list of contacts that could be parsed
+
+=cut
+
+sub get_contacts
+{
+        my ($contacts) = @_;
+        my @contacts;
+        foreach my $contact (@{$contacts || []}) {
+                if ($contact !~ m/\n/ and -e $contact) {
+                        try {
+                                my @newcontacts = YAML::XS::LoadFile($contact);
+                                push @contacts, @newcontacts;
+                        } catch {
+                                say STDERR "Can not load file '$contact'. Will ignore it. Error message was: $_";
+                        }
+                } else {
+                        try{
+                                my @newcontacts = YAML::XS::Load($contact);
+                                push @contacts, @newcontacts;
+                        } catch {
+                                say STDERR "I can not load '$contact' as YAML and there is no file with that name. Will ignore it. Error message was: $_";
+                        }
+                }
+        }
+        return @contacts;
+}
+
+
 
 =head2 usernew
 
@@ -52,8 +90,10 @@ sub usernew
                 exit -1;
         }
 
+        my @contacts = get_contacts($c->options->{contact});
+
         my $data;
-        $data   = { login => $c->options->{login}, name => $c->options->{name} , contacts => $c->options->{contact}};
+        $data   = { login => $c->options->{login}, name => $c->options->{name} , contacts => \@contacts};
 
         my $cmd = Tapper::Cmd::User->new();
         my $id  = $cmd->add($data);
