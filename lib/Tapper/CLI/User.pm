@@ -136,7 +136,7 @@ sub contactadd
         $data   = { login => $c->options->{login}, name => $c->options->{name} , contacts => \@contacts};
 
         my $cmd = Tapper::Cmd::User->new();
-        my $id  = $cmd->add($data);
+        my $id  = $cmd->contact_add($data);
         if (not $c->options->{quiet}) {
                 my @users = $cmd->list({id => $id});
                 print YAML::XS::Dump($users[0]);
