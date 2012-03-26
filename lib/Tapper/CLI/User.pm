@@ -130,17 +130,19 @@ sub contactadd
                 exit -1;
         }
 
-        my @contacts = get_contacts($c->options->{contact});
-
-        my $data;
-        $data   = { login => $c->options->{login}, name => $c->options->{name} , contacts => \@contacts};
-
+        my $login = $c->options->{login} || $ENV{USER};
         my $cmd = Tapper::Cmd::User->new();
-        my $id  = $cmd->contact_add($data);
+
+        my @contacts = get_contacts($c->options->{contact});
+        foreach my $contact (@contacts) {
+                my $id  = $cmd->contact_add($login, $contact);
+        }
+
         if (not $c->options->{quiet}) {
-                my @users = $cmd->list({id => $id});
+                my @users = $cmd->list({login => $login});
                 print YAML::XS::Dump($users[0]);
         }
+
         return;
 }
 
