@@ -46,8 +46,8 @@ sub notificationnew
                 say STDERR "\t--file\t\tname of file containing the notification subscriptions in YAML (required)";
                 say STDERR "\n  Optional arguments:";
                 say STDERR "\t--user\t\tset this user for all notification subscriptions (even if a different one is set in YAML)";
-               say STDERR "\t--quiet\t\tOnly return notification ids";
-                 say STDERR "\t--help\t\tprint this help message and exit";
+                say STDERR "\t--quiet\t\tOnly return notification ids";
+                say STDERR "\t--help\t\tprint this help message and exit";
                 exit -1;
         }
 
