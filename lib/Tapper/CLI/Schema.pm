@@ -47,14 +47,16 @@ sub zipfiles
         }
         my $uncompressed_files  = model('ReportsDB')->resultset('ReportFile')->search({is_compressed => 0});
         while (my $file = $uncompressed_files->next) {
-                $file->set_filtered_column(filecontent => memBzip $file->filecontent);
-                $file->is_compressed(1);
-                $file->update();
-                print( $c->options->{quiet} ? '.' : $file->filename."\n" );
+                my $compressed;
+                eval { $compressed = memBzip( $file->filecontent) };
+                if (defined $compressed) {
+                        print( $c->options->{quiet} ? '.' : "COMPRESS ".$file->report_id.":".$file->id.":".$file->filename."\n" );
+                        $file->set_column(filecontent => $compressed);
+                        $file->is_compressed(1);
+                        $file->update();
+		}
         }
 }
-
-
 
 
 =head2 setup
