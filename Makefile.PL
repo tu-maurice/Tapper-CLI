@@ -29,6 +29,7 @@ requires 'Tapper::Model'             => "3.000011";
 requires 'Tapper::Config'            => "3.000010";
 requires 'Tapper::Schema'            => "3.000017";
 requires 'Tapper::Cmd'               => "3.000012";
+requires 'Tapper::Reports::DPath'    => "3.000011";
 requires 'Data::Dumper'              => 0;
 requires 'DateTime::Format::Natural' => 0;
 requires 'YAML::Syck'                => "1.17";

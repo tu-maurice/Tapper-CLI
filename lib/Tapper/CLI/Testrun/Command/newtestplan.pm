@@ -9,6 +9,7 @@ no warnings 'uninitialized';
 use parent 'App::Cmd::Command';
 use Cwd;
 
+use Tapper::Reports::DPath::TT;
 use Tapper::Cmd::Testplan;
 use Tapper::Config;
 
@@ -196,7 +197,6 @@ Process macros and substitute using Template::Toolkit.
 @param hashref - containing substitutions
 @optparam string - path to more include files
 
-
 @return success - text with applied macros
 @return error   - die with error string
 
@@ -206,20 +206,14 @@ sub apply_macro
 {
         my ($self, $macro, $substitutes, $includes) = @_;
 
-        use Template;
-
         my @include_paths = (Tapper::Config->subconfig->{paths}{testplan_path});
         push @include_paths, @{$includes || [] };
         my $include_path_list = join ":", @include_paths;
 
-        my $tt = Template->new({
-                               INCLUDE_PATH =>  $include_path_list,
-                               });
-        my $ttapplied;
-        
-        $tt->process(\$macro, $substitutes, \$ttapplied) || die $tt->error();
-        return $ttapplied;
+        my $tt = Tapper::Reports::DPath::TT->new(include_path => $include_path_list,
+                                                 substitutes  => $substitutes,
+                                                );
+        return $tt->render_template($macro);
 }
-
 
 1;
