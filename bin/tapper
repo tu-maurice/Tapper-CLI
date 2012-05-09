@@ -1,4 +1,6 @@
-#! perl
+#! /usr/bin/perl
+# PODNAME: tapper
+# ABSTRACT: cmdline frontend to Tapper management - the future Platzhirsch
 
 use App::Rad;
 use Tapper::CLI::Notification;

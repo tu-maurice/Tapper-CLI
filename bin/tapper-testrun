@@ -1,4 +1,6 @@
-#! perl
+#! /usr/bin/perl
+# PODNAME: tapper-testrun
+# ABSTRACT: cmdline frontend to Tapper management - the current Platzhirsch
 
 use Tapper::CLI::Testrun;
 Tapper::CLI::Testrun->run;

@@ -1,4 +1,6 @@
-#! perl
+#! /usr/bin/perl
+# PODNAME: tapper-db-deploy
+# ABSTRACT: cmdline frontend to Tapper database deployment
 
 use Tapper::CLI::DbDeploy;
 Tapper::CLI::DbDeploy->run;
