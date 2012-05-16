@@ -67,7 +67,7 @@ sub validate_args
                 die $self->usage->text;
         }
 
-        
+
         die "Missing argument --name" unless  $opt->{name};
         die "Really? Then add --really to the options.\n" unless $opt->{really};
 
@@ -88,7 +88,7 @@ sub delete_queue
         say "Deleted queue ".$queue->name;
 }
 
-sub execute 
+sub execute
 {
         my ($self, $opt, $args) = @_;
 

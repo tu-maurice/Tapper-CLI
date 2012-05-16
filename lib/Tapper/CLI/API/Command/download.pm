@@ -58,7 +58,7 @@ sub validate_args
         die $self->usage->text;
 }
 
-sub execute 
+sub execute
 {
         my ($self, $opt, $args) = @_;
 

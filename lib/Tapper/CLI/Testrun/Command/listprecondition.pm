@@ -21,7 +21,7 @@ my $options = { "verbose"     => { text => "Show all information of precondition
                 "testrun"     => { text => "assigned to given testrun id", needed => 1, type => 'multiint' },
                 "id"          => { text => "list particular precondition", needed => 1, type => 'multiint', short => 'i'  },
               };
-                
+
 
 sub opt_spec {
         my @opt_spec;
@@ -64,13 +64,13 @@ sub validate_args {
         foreach my $key (keys %$options) {
                 push @allowed_opts, $key if  $options->{$key}->{needed};
         }
-        
+
         my $msg = "Unknown option";
         $msg   .= ($args and $#{$args} >=1) ? 's' : '';
         $msg   .= ": ";
         say STDERR $msg, join(', ',@$args) if ($args and @$args);
-        
-        
+
+
         my $allowed_opts_re = join '|', @allowed_opts;
 
         return 1 if grep /$allowed_opts_re/, keys %$opt;
@@ -90,11 +90,11 @@ Return all preconditions for a given testrun id.
 =cut
 
 sub testrun
-{ 
+{
         my ($self, $opt, $args) = @_;
         my @ids = @{ $opt->{testrun} };
         $self->print_colnames($opt, $args);
-        
+
         my $preconditions = model('TestrunDB')->resultset('TestrunPrecondition')->search({testrun_id => @ids}, { order_by => 'precondition_id' });
         while (my $precond = $preconditions->next) {
                 if ($opt->{verbose}) {
@@ -108,7 +108,7 @@ sub testrun
 
                 }
         }
-        
+
 
 }
 
@@ -163,5 +163,5 @@ sub _get_entry_by_id {
 1;
 
 # perl -Ilib bin/tapper-testrun listprecondition --all --colnames
-# perl -Ilib bin/tapper-testrun listprecondition --all --colnames --nonewlines 
+# perl -Ilib bin/tapper-testrun listprecondition --all --colnames --nonewlines
 # perl -Ilib bin/tapper-testrun listprecondition --all --colnames --nonewlines --quotevalues

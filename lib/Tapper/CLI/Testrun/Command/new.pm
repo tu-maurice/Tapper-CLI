@@ -138,7 +138,7 @@ sub validate_args
                 foreach my $host (@{$opt->{requested_host}}) {
                         my $host_result = model('TestrunDB')->resultset('Host')->search({name => $host});
                         die "Host '$host' does not exist\n" if not $host_result->count;
-                } 
+                }
         }
 
 

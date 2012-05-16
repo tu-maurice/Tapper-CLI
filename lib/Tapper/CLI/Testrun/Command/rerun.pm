@@ -52,7 +52,7 @@ sub validate_args
         return 1;
 }
 
-sub execute 
+sub execute
 {
         my ($self, $opt, $args) = @_;
 

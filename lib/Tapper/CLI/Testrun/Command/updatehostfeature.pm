@@ -72,7 +72,7 @@ sub update_hostfeature
         }
 
         my $hostfeature;
-        
+
         $hostfeature = model('TestrunDB')->resultset('HostFeature')->search({ host_id => $host->id,
                                                                               entry   => $opt->{entry}}
                                                                            )->first;
@@ -100,7 +100,7 @@ sub update_hostfeature
         }
 }
 
-sub execute 
+sub execute
 {
         my ($self, $opt, $args) = @_;
 

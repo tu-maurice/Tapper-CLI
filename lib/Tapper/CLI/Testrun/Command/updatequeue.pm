@@ -67,7 +67,7 @@ sub update_queue
 
 
         my $queue = model('TestrunDB')->resultset('Queue')->search({name => $opt->{name}})->first;
-        
+
         my $cmd = Tapper::Cmd::Queue->new();
         my $new_opts = {};
 
@@ -85,7 +85,7 @@ sub update_queue
         }
 }
 
-sub execute 
+sub execute
 {
         my ($self, $opt, $args) = @_;
 

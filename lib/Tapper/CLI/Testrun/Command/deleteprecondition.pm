@@ -48,7 +48,7 @@ sub validate_args {
                 say STDERR "Really? Then add --really to the options.";
                 die $self->usage->text;
         }
-        return 0; 
+        return 0;
 }
 
 sub execute {

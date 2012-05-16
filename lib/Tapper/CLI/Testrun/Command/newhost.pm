@@ -79,7 +79,7 @@ sub new_host
                     active => $opt->{active},
                     free   => 1,
                    };
-        
+
         my $newhost = model('TestrunDB')->resultset('Host')->new($host);
         $newhost->insert();
         die "Can't create new host" if not $newhost;
@@ -102,7 +102,7 @@ sub new_host
         say $newhost->id;
 }
 
-sub execute 
+sub execute
 {
         my ($self, $opt, $args) = @_;
 

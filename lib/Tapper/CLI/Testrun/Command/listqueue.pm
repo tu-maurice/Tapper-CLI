@@ -20,7 +20,7 @@ my $options = { "verbose"  => { text => "show all available information; without
                 "maxprio"  => { text => "INT; queues with at most this priority level", type => 'string'},
                 "name"     => { text => "show only queue with this name, implies verbose, can be given more than once", type => 'manystring' }
               };
-                
+
 
 
 sub opt_spec {
@@ -60,7 +60,7 @@ sub _extract_bare_option_names {
 sub validate_args {
         my ($self, $opt, $args) = @_;
 
-        
+
         my $msg = "Unknown option";
         $msg   .= ($args and $#{$args} >=1) ? 's' : '';
         $msg   .= ": ";
@@ -120,8 +120,8 @@ sub print_queues_verbose
         my ($self, $queues) = @_;
         foreach my $queue ($queues->all) {
                 my $output = sprintf("Id: %s\nName: %s\nPriority: %s\nActive: %s\n",
-                                     $queue->id, 
-                                     $queue->name, 
+                                     $queue->id,
+                                     $queue->name,
                                      $queue->priority,
                                      $queue->is_deleted ? 'deleted' : ( $queue->active ? 'yes' : 'no'));
                 if ($queue->queuehosts->count) {

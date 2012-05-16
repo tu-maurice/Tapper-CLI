@@ -20,7 +20,7 @@ my $options = { "verbose"  => { text => "show all available information; without
                 "free"     => { text => "list free hosts" },
                 "name"     => { text => "find host by name, implies verbose", type => 'string'},
               };
-                
+
 
 
 sub opt_spec {
@@ -60,7 +60,7 @@ sub _extract_bare_option_names {
 sub validate_args {
         my ($self, $opt, $args) = @_;
 
-        
+
         my $msg = "Unknown option";
         $msg   .= ($args and $#{$args} >=1) ? 's' : '';
         $msg   .= ": ";
@@ -92,10 +92,10 @@ sub execute {
         $search{active}     = 1 if $opt->{active};
         $search{is_deleted} = {-in => [ 0, undef ] } unless $opt->{all};
         $search{free}   = 1 if $opt->{free};
-        
+
         # ignore all options if host is requested by name
         %search = (name   => $opt->{name}) if $opt->{name};
-        
+
         if ($opt->{queue}) {
                 my @queue_ids       = map {$_->id} model('TestrunDB')->resultset('Queue')->search({name => {-in => [ @{$opt->{queue}} ]}});
                 $search{queue_id}   = { -in => [ @queue_ids ]};
@@ -132,7 +132,7 @@ sub print_hosts_verbose
                 }
         }
         my ($name_length, $comment_length, $queue_length) = ($max{name}, $max{comment}, $max{queue});
-        
+
         # use printf to get the wanted field width
         printf ("%5s | %${name_length}s | %11s | %10s | %${comment_length}s | Queues\n",'ID','Name','Active', 'Testrun ID', 'Comment');
         say "="x(5+$name_length+11+length('Testrun ID')+$comment_length+length('Queues')+5*length(' | '));
@@ -145,16 +145,16 @@ sub print_hosts_verbose
                         my $job_rs = model('TestrunDB')->resultset('TestrunScheduling')->search({host_id => $host->id, status => 'running'});
                         $testrun_id = $job_rs->first->testrun_id if $job_rs->count;
                 }
-                my $output = sprintf("%5d | %${name_length}s | %11s | %10s | %${comment_length}s | ", 
-                                     $host->id, 
-                                     $host->name, 
-                                     $host->is_deleted ? 'deleted' : ( $host->active ? 'active' : 'deactivated' ), 
+                my $output = sprintf("%5d | %${name_length}s | %11s | %10s | %${comment_length}s | ",
+                                     $host->id,
+                                     $host->name,
+                                     $host->is_deleted ? 'deleted' : ( $host->active ? 'active' : 'deactivated' ),
                                      $host->free   ? 'free'   : "$testrun_id",
                                      $host->comment,
                                     );
                 if ($host->queuehosts->count) {
                         $output .= join ", ", map {$_->queue->name} $host->queuehosts->all;
-                } 
+                }
                 say $output;
         }
 }

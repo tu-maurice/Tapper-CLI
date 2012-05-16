@@ -41,7 +41,7 @@ sub validate_args {
         $msg   .= ($args and $#{$args} >=1) ? 's' : '';
         $msg   .= ": ";
         say STDERR $msg, join(', ',@$args) if ($args and @$args);
-        
+
         my $allowed_opts_re = join '|', _extract_bare_option_names();
 
         return 1 if grep /$allowed_opts_re/, keys %$opt;

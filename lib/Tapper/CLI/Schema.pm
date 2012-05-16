@@ -54,7 +54,7 @@ sub zipfiles
                         $file->set_column(filecontent => $compressed);
                         $file->is_compressed(1);
                         $file->update();
-		}
+                }
         }
 }
 

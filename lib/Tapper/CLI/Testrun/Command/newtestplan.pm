@@ -93,7 +93,7 @@ sub parse_path
         my $basedir = Tapper::Config->subconfig->{paths}{testplan_path};
         # splitting filename at basedir returns an array with the empty
         # string before and the path after the basedir
-        my $path = (split $basedir, $filename)[1]; 
+        my $path = (split $basedir, $filename)[1];
         return $path;
 }
 
@@ -162,7 +162,7 @@ sub execute
                 say map { my $l = $_; $l =~ s/^###/ /; "$l\n" } @guide;
                 return 0;
         }
-        
+
         if ($opt->{dryrun}) {
                 say $plan;
                 return 0;
