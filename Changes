@@ -1,6 +1,8 @@
 Revision history for {{$dist->name}}
 
 {{$NEXT}}
+
+4.0.1     2012-05-16
         - introduce new App::Rad based primary frontend tool "tapper"
         - [FEAT] Render testplans using Tapper::Reports::DPath::TT
         - [FEAT] new CLI commands for notification commands
