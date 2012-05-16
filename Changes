@@ -1,7 +1,6 @@
 Revision history for {{$dist->name}}
 
 {{$NEXT}}
-        *** Tapper-CLI
         - introduce new App::Rad based primary frontend tool "tapper"
         - [FEAT] Render testplans using Tapper::Reports::DPath::TT
         - [FEAT] new CLI commands for notification commands
