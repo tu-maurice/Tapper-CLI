@@ -1,6 +1,18 @@
 Revision history for {{$dist->name}}
 
 {{$NEXT}}
+        *** Tapper-CLI
+        - introduce new App::Rad based primary frontend tool "tapper"
+        - [FEAT] Render testplans using Tapper::Reports::DPath::TT
+        - [FEAT] new CLI commands for notification commands
+        - [FEAT] new CLI commands for handling users
+        - [FEAT] new CLI commands for zipfiles
+        - [FEAT] new CLI commands for testplans
+        - [FEAT] newtestplan: new option --guide/-g for self-doc
+        - [FEAT] newtestplan: new option --dryrun/-n for just output
+        - [FEAT] change grub entry of deleted hosts to a passive/useful entry
+        - [FEAT] update grub using action daemon
+        - [FEAT] delete host by setting deleted flag
         - big Dist::Zilla roundhouse kick
 
 2011-03-30 Steffen Schwigon <steffen.schwigon@amd.com>
