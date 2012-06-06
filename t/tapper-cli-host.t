@@ -57,6 +57,7 @@ like($host_id, qr(No such queue: noexist), 'Error handling for nonexistent queue
 
 
 # --------------------------------------------------
+diag qx($^X -Ilib bin/tapper-testrun listhost -v);
 my $hosts = qx($^X -Ilib bin/tapper-testrun listhost --queue=KVM 2>&1);
 like($hosts, qr(11 *| *host2\n *12 *| *host3\n), 'Show hosts / queue');
 
