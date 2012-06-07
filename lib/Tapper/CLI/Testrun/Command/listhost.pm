@@ -148,7 +148,7 @@ sub print_hosts_verbose
         my ($name_length, $feature_length, $comment_length, $queue_length) = ($max{name}, $max{features}, $max{comment}, $max{queue});
 
         # use printf to get the wanted field width
-        printf ("%5s | %${name_length}s | %${feature_length}s | %11s | %10s | %${comment_length}s | Queues\n", 'ID', 'Name', 'Features', 'Active', 'Testrun ID', 'Comment');
+        printf ("%5s | %${name_length}s | %-${feature_length}s | %11s | %10s | %${comment_length}s | Queues\n", 'ID', 'Name', 'Features', 'Active', 'Testrun ID', 'Comment');
         say "="x(5+$name_length+$feature_length+11+length('Testrun ID')+$comment_length+length('Queues')+6*length(' | '));
 
 
@@ -160,7 +160,7 @@ sub print_hosts_verbose
                         $testrun_id = $job_rs->first->testrun_id if $job_rs->count;
                 }
                 my $features = host_feature_summary($host);
-                my $output = sprintf("%5d | %${name_length}s | %${feature_length}s | %11s | %10s | %${comment_length}s | ",
+                my $output = sprintf("%5d | %${name_length}s | %-${feature_length}s | %11s | %10s | %${comment_length}s | ",
                                      $host->id,
                                      $host->name,
                                      $features,
