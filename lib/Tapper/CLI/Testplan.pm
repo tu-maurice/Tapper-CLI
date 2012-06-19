@@ -37,21 +37,35 @@ that match at least one such name are reported.
 sub testplansend
 {
         my ($c) = @_;
-        $c->getopt( 'name|n=s@','quiet|q', 'help|?' );
+        $c->getopt( 'name|n=s@','file|f=s@','quiet|q', 'help|?' );
 
         if ( $c->options->{help} ) {
-                say STDERR "Usage: $0 testplan-send [ --name=path ]*  [ --quiet ]";
-                say STDERR "\n  Optional arguments:";
-                say STDERR "\t--name\t\tPath name to request only this task to be reported. Slash(/) or dot(.) are allowed as seperators. Can be given multiple times.";
-                say STDERR "\t--quiet\tStay silent when testplan was sent";
-                say STDERR "\t--help\t\tPrint this help message and exit";
+                say STDERR "Usage: $0 testplan-send [ --name=path ]* [ --file=filename ]  [ --quiet ]";
+                say STDERR "";
+                say STDERR "    --name       Path name to request only this task to be reported.";
+                say STDERR "                 Slash(/) or dot(.) are allowed as separators.";
+                say STDERR "                 Can be given multiple times.";
+                say STDERR "                 Can be combined with --file.";
+                say STDERR "    --file       File containing tasknames to be reported, one per line.";
+                say STDERR "                 Slash(/) or dot(.) are allowed as separators.";
+                say STDERR "                 Can be given multiple times.";
+                say STDERR "                 Can be combined with --name.";
+                say STDERR "    --quiet      Stay silent when testplan was sent.";
+                say STDERR "    --help       Print this help message and exit.";
                 exit -1;
         }
 
-
         my @names;
         if ($c->options->{name}) {
-                @names = map {  tr|.|/|; {path => $_} } @{$c->options->{name}}; ## no critic
+                push @names, map { tr|.|/|; { path => $_ } } @{$c->options->{name}}; ## no critic
+        }
+        if ($c->options->{file}) {
+                foreach my $file (@{$c->options->{file}}) {
+                        open my $FILE, "<", $file or die "Cannot open $file";
+                        my @tasknames = map { chomp ; $_ } <$FILE>;
+                        close $FILE;
+                        push @names, map { tr|.|/|; { path => $_ } } @tasknames; ## no critic
+                }
         }
 
         my $reporter = Tapper::Testplan::Reporter->new();
