@@ -5,6 +5,8 @@ use warnings;
 use strict;
 
 use Tapper::Testplan::Reporter;
+use Tapper::Model 'model';
+
 
 =head1 NAME
 
@@ -74,7 +76,77 @@ sub testplansend
         return;
 }
 
+=head2 testplanlist
 
+List testplans matching a given pattern.
+
+=cut
+
+sub testplanlist
+{
+        my ($c) = @_;
+        $c->getopt( 'name|n=s@','testrun|t=s@', 'active|a', 'quiet|q', 'help|?' );
+
+        if ( $c->options->{help} ) {
+                say STDERR "Usage: $0 testplan-list [ --name=path ]* [ --testrun=id ]*  [ --quiet ]";
+                say STDERR "";
+                say STDERR "    --name       Path name of testplans to list.";
+                say STDERR "                 Only slashes(/) are allowed as separators.";
+                say STDERR "                 Can be a regular expression. Make sure your shell does not break it.";
+                say STDERR "                 Can be given multiple times";
+                say STDERR "    --testrun    Show testplan containing this testrun id";
+                say STDERR "                 Can be given multiple times";
+                say STDERR "    --id         Show testplan of given id";
+                say STDERR "                 Can be given multiple times.";
+                say STDERR "    --active     Only show testplan with testruns that are not finished yet.";
+                say STDERR "    --quiet      Only show testplan ids, suppress path, name and testrun ids.";
+                say STDERR "    --help       Print this help message and exit.";
+                exit -1;
+        }
+        my @ids;
+        my @testplan_info;
+
+        if (@{$c->options->{testrun} || []}) {
+                my $testruns = model('TestrunDB')->resultset('Testrun')->search({id => $c->options->{testrun}});
+                while (my $testrun = $testruns->next) {
+                        push @ids, $testrun->testplan_id if $testrun->testplan_id;
+                }
+        }
+
+        if (@{$c->options->{name} || []}) {
+                my $regex = join("|", map { "($_)" } @{$c->options->{name}});
+                my $instances = model('TestrunDB')->resultset('TestplanInstance');
+                while (my $instance = $instances->next) {
+                        push @ids, $instance->id if $instance->path and $instance->path =~ /$regex/;
+                }
+        }
+
+        if ($c->options->{active}) {
+                my @local_ids = @ids;
+                my $instances = model('TestrunDB')->resultset('TestplanInstance')->search({id => \@local_ids});
+                @ids = ();
+                while (my $instance = $instances->next) {
+                        if ($instance->testruns and grep {$_->testrun_scheduling->status ne 'finished'} $instance->testruns->all) {
+                                push @ids, $instance->id;
+                        }
+                }
+        }
+
+        if ($c->options->{quiet}) {
+                return join ("\n",@ids);
+        }
+
+        my $instances = model('TestrunDB')->resultset('TestplanInstance')->search({id => \@ids});
+        while (my $instance = $instances->next) {
+                my $line = $instance->id;
+                $line   .= " - ";
+                $line   .= $instance->path." - ";
+                $line   .= "testruns: ";
+                $line   .= join ", ", map {$_->id} $instance->testruns->all;
+                push @testplan_info, $line;
+        }
+        return join "\n", @testplan_info;
+}
 
 =head2 setup
 
@@ -86,8 +158,9 @@ sub setup
 {
         my ($c) = @_;
         $c->register('testplan-send', \&testplansend, 'Send testplan reports');
+        $c->register('testplan-list', \&testplanlist, 'List testplans matching a given pattern');
         if ($c->can('group_commands')) {
-                $c->group_commands('Testplan commands', 'testplan-send');
+                $c->group_commands('Testplan commands', 'testplan-send', 'testplan-list');
         }
         return;
 }
