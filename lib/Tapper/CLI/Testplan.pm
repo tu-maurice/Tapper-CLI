@@ -111,13 +111,16 @@ sub testplanlist
                 while (my $testrun = $testruns->next) {
                         push @ids, $testrun->testplan_id if $testrun->testplan_id;
                 }
-        }
-
-        if (@{$c->options->{name} || []}) {
+        } elsif ( @{$c->options->{name} || []}) {
                 my $regex = join("|", map { "($_)" } @{$c->options->{name}});
                 my $instances = model('TestrunDB')->resultset('TestplanInstance');
                 while (my $instance = $instances->next) {
                         push @ids, $instance->id if $instance->path and $instance->path =~ /$regex/;
+                }
+        } else {
+                my $instances = model('TestrunDB')->resultset('TestplanInstance');
+                while (my $instance = $instances->next) {
+                        push @ids, $instance->id;
                 }
         }
 
