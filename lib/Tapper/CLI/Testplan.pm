@@ -143,7 +143,7 @@ sub testplanlist
         while (my $instance = $instances->next) {
                 my $line = $instance->id;
                 $line   .= " - ";
-                $line   .= $instance->path." - ";
+                $line   .= ($instance->path ? $instance->path : '' )." - ";
                 $line   .= "testruns: ";
                 $line   .= join ", ", map {$_->id} $instance->testruns->all;
                 push @testplan_info, $line;
