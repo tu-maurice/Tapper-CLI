@@ -5,6 +5,7 @@ use warnings;
 use strict;
 
 use Tapper::Testplan::Reporter;
+use Tapper::Testplan::Generator;
 use Tapper::Model 'model';
 
 
@@ -151,6 +152,49 @@ sub testplanlist
         return join "\n", @testplan_info;
 }
 
+=head2 testplan_tj_send
+
+Send all testplans reports choosen by Taskjuggler.
+
+=cut
+
+sub testplan_tj_send
+{
+        my ($c) = @_;
+        if ( $c->options->{help} ) {
+                say STDERR "Usage: $0 testplan-tj-send";
+                say STDERR "";
+                say STDERR "    --help       Print this help message and exit.";
+                exit -1;
+        }
+
+        my $reporter = Tapper::Testplan::Reporter->new();
+        $reporter->run;
+        return 0;
+}
+
+
+=head2 testplan_tj_generate
+
+Apply all testplans choosen by Taskjuggler.
+
+=cut
+
+sub testplan_tj_generate
+{
+        my ($c) = @_;
+        if ( $c->options->{help} ) {
+                say STDERR "Usage: $0 testplan-tj-generate";
+                say STDERR "";
+                say STDERR "    --help       Print this help message and exit.";
+                exit -1;
+        }
+        my $generator = Tapper::Testplan::Generator->new();
+        $generator->run;
+        return 0;
+}
+
+
 =head2 setup
 
 Initialize the testplan functions for tapper CLI
@@ -160,10 +204,12 @@ Initialize the testplan functions for tapper CLI
 sub setup
 {
         my ($c) = @_;
-        $c->register('testplan-send', \&testplansend, 'Send testplan reports');
+        $c->register('testplan-send', \&testplansend, 'Send choosen testplan reports');
         $c->register('testplan-list', \&testplanlist, 'List testplans matching a given pattern');
+        $c->register('testplan-tj-send', \&testplan_tj_send, 'Send all testplan reports that are due according to taskjuggler plan');
+        $c->register('testplan-tj-generate', \&testplan_tj_generate, 'Apply all testplans that are due according to taskjuggler plan');
         if ($c->can('group_commands')) {
-                $c->group_commands('Testplan commands', 'testplan-send', 'testplan-list');
+                $c->group_commands('Testplan commands', 'testplan-send', 'testplan-list', 'testplan-tj-send', 'testplan-tj-generate');
         }
         return;
 }
