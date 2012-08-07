@@ -173,8 +173,6 @@ sub listhost
                 exit -1;
         }
         my $hosts = select_hosts($c->options);
-        use DDP;
-        p $c->options;
 
         if ($c->options->{yaml}) {
                 print_hosts_yaml($hosts);
