@@ -143,9 +143,26 @@ Print given host with all available information in YAML.
 sub print_hosts_yaml
 {
         my ($hosts) = @_;
-        $hosts->result_class('DBIx::Class::ResultClass::HashRefInflator');
         while (my $host = $hosts->next ) {
-                say YAML::XS::Dump($host);
+                my %host_data = (name       => $host->name,
+                                 comment    => $host->comment,
+                                 free       => $host->free,
+                                 active     => $host->active,
+                                 is_deleted => $host->is_deleted,
+                                 );
+                my $job = $host->testrunschedulings->search({status => 'running'})->first; # this should always be only one
+                if ($job) {
+                        $host_data{running_testrun} = $job->testrun->id;
+                        $host_data{running_since}   = $job->testrun->starttime_testrun->iso8601;
+                }
+
+                my %features;
+                foreach my $feature ($host->features->all) {
+                        $features{$feature->entry} = $feature->value;
+                }
+                $host_data{features} = \%features;
+
+                print YAML::XS::Dump(\%host_data);
         }
         return;
 }
