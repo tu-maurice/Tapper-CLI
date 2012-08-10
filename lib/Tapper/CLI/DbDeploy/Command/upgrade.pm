@@ -26,7 +26,7 @@ sub opt_spec {
 }
 
 # aktuelle Version und Diff erzeugen zur gewünschten vorherigen
-# perl -Ilib -MTapper::Schema::ReportsDB -e 'Tapper::Schema::ReportsDB->connect("DBI:SQLite:foo")->create_ddl_dir([qw/MySQL SQLite/], undef, "upgrades/", "2.010012") or die'
+# perl -Ilib -MTapper::Schema::ReportsDB -e 'Tapper::Schema::ReportsDB->connect("DBI:SQLite:foo")->create_ddl_dir([qw/MySQL SQLite Pg/], undef, "upgrades/", "2.010012") or die'
 
 sub abstract {
         'Upgrade a database schema'

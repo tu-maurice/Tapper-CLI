@@ -79,7 +79,7 @@ sub run
         my $fromversion = $opt->{fromversion};
         my $upgradedir  = $opt->{upgradedir} || module_dir('Tapper::Schema');
         model($db)->upgrade_directory($upgradedir) if $upgradedir;
-        model($db)->create_ddl_dir([qw/MySQL SQLite/],
+        model($db)->create_ddl_dir([qw/MySQL SQLite Pg/],
                                    undef,
                                    ($upgradedir || model($db)->upgrade_directory),
                                    $fromversion
