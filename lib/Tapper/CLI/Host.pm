@@ -149,11 +149,17 @@ sub print_hosts_yaml
                                  free       => $host->free,
                                  active     => $host->active,
                                  is_deleted => $host->is_deleted,
+                                 host_id    => $host->id,
                                  );
                 my $job = $host->testrunschedulings->search({status => 'running'})->first; # this should always be only one
                 if ($job) {
                         $host_data{running_testrun} = $job->testrun->id;
                         $host_data{running_since}   = $job->testrun->starttime_testrun->iso8601;
+                }
+
+                if ($host->queuehosts->count > 0) {
+                        my @queues = map {$_->queue->name} $host->queuehosts->all;
+                        $host_data{queues} = \@queues;
                 }
 
                 my %features;
