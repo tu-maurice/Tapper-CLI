@@ -59,6 +59,39 @@ sub deny_host
         return;
 }
 
+=head2 allow_host
+
+Allow given hosts for testruns of given queue.
+
+=cut
+
+sub allow_host
+{
+        my ($c) = @_;
+        $c->getopt( 'host=s@','queue=s', 'help|?' );
+        if ( $c->options->{help} or not (@{$c->options->{host} ||  []} and $c->options->{queue} )) {
+                say STDERR "Required argument 'queue' not given!" unless $c->options->{queue};
+                say STDERR "At least one hostname has to be provided!" unless @{$c->options->{host} || []};
+                say STDERR "$0 queue-allow-host  --host=s@  --queue=s";
+                say STDERR "    --host         Allow this host for testruns of that queue";
+                say STDERR "    --queue        Allow host(s) for this queue";
+                exit -1;
+        }
+        my $queue_r = model('TestrunDB')->resultset('Queue')->search({name => $c->options->{queue}})->first;
+        die "No such queue: ".$c->options->{queue} if not $queue_r;
+        foreach my $job ($queue_r->testrunschedulings->search({status => 'schedule'})->all) {
+                foreach my $host (@{$c->options->{host}}) {
+                        my $feat_string = "hostname ne $host";
+                        foreach my $feature ($job->requested_features->search({feature => $feat_string})->all) {
+                                $feature->delete;
+                                say "Allowing $host for testrun ",$job->testrun->id;
+                        }
+                }
+
+        }
+        return;
+}
+
 
 =head2 setup
 
@@ -70,8 +103,10 @@ sub setup
 {
         my ($c) = @_;
         $c->register('queue-deny-host', \&deny_host, q(Don't use given hosts for testruns of this queue.));
+        $c->register('queue-allow-host', \&allow_host, q(Allow given hosts for testruns of this queue.));
         if ($c->can('group_commands')) {
                 $c->group_commands('Queue commands', 'queue-deny-host', );
+                $c->group_commands('Queue commands', 'queue-allow-host', );
         }
         return;
 }
