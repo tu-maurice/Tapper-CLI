@@ -8,6 +8,7 @@ use Tapper::CLI::Testplan;
 use Tapper::CLI::Schema;
 use Tapper::CLI::User;
 use Tapper::CLI::Host;
+use Tapper::CLI::Queue;
 
 
 use strict;
@@ -23,6 +24,7 @@ sub setup
         Tapper::CLI::Testplan::setup($c);
         Tapper::CLI::User::setup($c);
         Tapper::CLI::Host::setup($c);
+        Tapper::CLI::Queue::setup($c);
 }
 
 
