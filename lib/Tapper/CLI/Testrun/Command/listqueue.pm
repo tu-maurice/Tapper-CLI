@@ -130,6 +130,12 @@ sub print_queues_verbose
                         $output  .= join ", ",@hosts;
                         $output  .= "\n";
                 }
+                if ($queue->deniedhosts->count) {
+                        my @hosts = map {$_->host->name} $queue->deniedhosts->all;
+                        $output  .= "Denied hosts: ";
+                        $output  .= join ", ",@hosts;
+                        $output  .= "\n";
+                }
                 if ($queue->queued_testruns->count) {
                         my @ids   = map {$_->testrun_id} $queue->queued_testruns->all;
                         $output  .= "Queued testruns (ids): ";
