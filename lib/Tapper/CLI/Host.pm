@@ -211,6 +211,55 @@ sub listhost
 }
 
 
+=head2 host_deny
+
+Don't use given hosts for testruns of this queue.
+
+=cut
+
+sub host_deny
+{
+        my ($c) = @_;
+        $c->getopt( 'host=s@','queue=s@', ,'off','help|?' );
+        if ( $c->options->{help} or not (@{$c->options->{host} ||  []} and $c->options->{queue} )) {
+                say STDERR "At least one queuename has to be provided!" unless @{$c->options->{queue} || []};
+                say STDERR "At least one hostname has to be provided!" unless @{$c->options->{host} || []};
+                say STDERR "$0 host-deny  --host=s@  --queue=s@ --off";
+                say STDERR "    --host         Deny this host for testruns of all given queues";
+                say STDERR "    --queue        Deny this queue to put testruns on all given hosts";
+                say STDERR "    --off          Remove previously installed denial of host/queue combination";
+                exit -1;
+        }
+
+        my @queue_results; my @host_results;
+        foreach my $queue_name ( @{$c->options->{queue}}) {
+                my $queue_r = model('TestrunDB')->resultset('Queue')->search({name => $queue_name})->first;
+                die "No such queue: '$queue_name'" unless $queue_r;
+                push @queue_results, $queue_r;
+        }
+        foreach my $host_name ( @{$c->options->{host}}) {
+                my $host_r = model('TestrunDB')->resultset('Host')->search({name => $host_name})->first;
+                die "No such host: '$host_name'" unless $host_r;
+                push @host_results, $host_r;
+        }
+
+        foreach my $queue_r (@queue_results) {
+                foreach my $host_r (@host_results) {
+                        if ($c->options->{off}) {
+                                my $deny_r = model('TestrunDB')->resultset('DeniedHost')->search({queue_id => $queue_r->id,
+                                                                                                  host_id  => $host_r->id,
+                                                                                                 })->first;
+                                $deny_r->delete if $deny_r;
+                        } else {
+                                model('TestrunDB')->resultset('DeniedHost')->new({queue_id => $queue_r->id,
+                                                                                  host_id  => $host_r->id,
+                                                                                 })->insert;
+                        }
+                }
+        }
+        return;
+}
+
 =head2 setup
 
 Initialize the testplan functions for tapper CLI
@@ -220,9 +269,11 @@ Initialize the testplan functions for tapper CLI
 sub setup
 {
         my ($c) = @_;
-        $c->register('host-list', \&listhost, 'Show all hosts matching a given condition');
+        $c->register('host-list', \&listhost,  'Show all hosts matching a given condition');
+        $c->register('host-deny', \&host_deny, 'Setup or remove forbidden host/queue combinations');
         if ($c->can('group_commands')) {
                 $c->group_commands('Host commands', 'host-list', );
+                $c->group_commands('Host commands', 'host-deny', );
         }
         return;
 }

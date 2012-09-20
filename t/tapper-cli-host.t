@@ -101,8 +101,11 @@ is($host_result->is_deleted, 1, 'Delete host / Deleted flag set');
 is($host_result->active, 0, 'Delete host / Host no longer active');
 
 
-
-
+qx($^X -Ilib bin/tapper host-deny --host=dickstone --queue=AdHoc);
+my $queue_result = model('TestrunDB')->resultset('Queue')->find({name => 'AdHoc'});
+is($queue_result->deniedhosts->first->host->name, 'dickstone', 'Dickstone denied from queue AdHoc');
+qx($^X -Ilib bin/tapper host-deny --host=dickstone --queue=AdHoc --off);
+is($queue_result->deniedhosts->count, 0, 'Dickstone denial from queue AdHoc removed');
 
 
 done_testing();
