@@ -45,16 +45,12 @@ sub deny_host
         }
         my $queue_r = model('TestrunDB')->resultset('Queue')->search({name => $c->options->{queue}})->first;
         die "No such queue: ".$c->options->{queue} if not $queue_r;
-        foreach my $job ($queue_r->testrunschedulings->search({status => 'schedule'})->all) {
-                foreach my $host (@{$c->options->{host}}) {
-                        my $feat = model('TestrunDB')->resultset('TestrunRequestedFeature')->new({
-                                                                                                  testrun_id => $job->testrun->id,
-                                                                                                  feature => "hostname ne $host",
-                                                                                                 });
-                        $feat->insert;
-                        say "preventing testrun ",$job->testrun->id," from using $host";
-                }
-
+        foreach my $host (@{$c->options->{host}}) {
+                my $host_r = model('TestrunDB')->resultset('Host')->search({name => $host})->first;
+                die "Host '$host' not found in the database" unless $host_r;
+                model('TestrunDB')->resultset('DeniedHost')->new({queue_id => $queue_r->id,
+                                                                  host_id  => $host_r->id,
+                                                                 })->insert;
         }
         return;
 }
@@ -79,15 +75,13 @@ sub allow_host
         }
         my $queue_r = model('TestrunDB')->resultset('Queue')->search({name => $c->options->{queue}})->first;
         die "No such queue: ".$c->options->{queue} if not $queue_r;
-        foreach my $job ($queue_r->testrunschedulings->search({status => 'schedule'})->all) {
-                foreach my $host (@{$c->options->{host}}) {
-                        my $feat_string = "hostname ne $host";
-                        foreach my $feature ($job->requested_features->search({feature => $feat_string})->all) {
-                                $feature->delete;
-                                say "Allowing $host for testrun ",$job->testrun->id;
-                        }
-                }
-
+        foreach my $host (@{$c->options->{host}}) {
+                my $host_r = model('TestrunDB')->resultset('Host')->search({name => $host})->first;
+                die "Host '$host' not found in the database" unless $host_r;
+                my $denyhost_r = model('TestrunDB')->resultset('DeniedHost')->search({queue_id => $queue_r->id,
+                                                                                      host_id  => $host_r->id,
+                                                                                     })->first;
+                $denyhost_r->delete if $denyhost_r;
         }
         return;
 }
