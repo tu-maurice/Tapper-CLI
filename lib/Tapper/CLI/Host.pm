@@ -260,6 +260,56 @@ sub host_deny
         return;
 }
 
+=head2 host_bind
+
+Bind given hosts to given queues.
+
+=cut
+
+sub host_bind
+{
+        my ($c) = @_;
+        $c->getopt( 'host=s@','queue=s@', ,'off','help|?' );
+        if ( $c->options->{help} or not (@{$c->options->{host} ||  []} and $c->options->{queue} )) {
+                say STDERR "At least one queuename has to be provided!" unless @{$c->options->{queue} || []};
+                say STDERR "At least one hostname has to be provided!" unless @{$c->options->{host} || []};
+                say STDERR "$0 host-bind  --host=s@  --queue=s@ --off";
+                say STDERR "    --host         Bind this hosts to all given queues (can be given multiple times)";
+                say STDERR "    --queue        Bind all given hosts to this queue (can be given multiple times)";
+                say STDERR "    --off          Remove previously installed host/queue bindings";
+                exit -1;
+        }
+
+        my @queue_results; my @host_results;
+        foreach my $queue_name ( @{$c->options->{queue}}) {
+                my $queue_r = model('TestrunDB')->resultset('Queue')->search({name => $queue_name})->first;
+                die "No such queue: '$queue_name'" unless $queue_r;
+                push @queue_results, $queue_r;
+        }
+        foreach my $host_name ( @{$c->options->{host}}) {
+                my $host_r = model('TestrunDB')->resultset('Host')->search({name => $host_name})->first;
+                die "No such host: '$host_name'" unless $host_r;
+                push @host_results, $host_r;
+        }
+
+        foreach my $queue_r (@queue_results) {
+                foreach my $host_r (@host_results) {
+                        if ($c->options->{off}) {
+                                my $bind_r = model('TestrunDB')->resultset('QueueHost')->search({queue_id => $queue_r->id,
+                                                                                                host_id  => $host_r->id,
+                                                                                               })->first;
+                                $bind_r->delete if $bind_r;
+                        } else {
+                                model('TestrunDB')->resultset('QueueHost')->new({queue_id => $queue_r->id,
+                                                                                  host_id  => $host_r->id,
+                                                                                 })->insert;
+                        }
+                }
+        }
+        return;
+}
+
+
 =head2 setup
 
 Initialize the testplan functions for tapper CLI
@@ -271,8 +321,10 @@ sub setup
         my ($c) = @_;
         $c->register('host-list', \&listhost,  'Show all hosts matching a given condition');
         $c->register('host-deny', \&host_deny, 'Setup or remove forbidden host/queue combinations');
+        $c->register('host-bind', \&host_bind, 'Setup or remove host/queue bindings');
         if ($c->can('group_commands')) {
                 $c->group_commands('Host commands', 'host-list', );
+                $c->group_commands('Host commands', 'host-bind', );
                 $c->group_commands('Host commands', 'host-deny', );
         }
         return;

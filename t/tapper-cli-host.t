@@ -107,5 +107,10 @@ is($queue_result->deniedhosts->first->host->name, 'dickstone', 'Dickstone denied
 qx($^X -Ilib bin/tapper host-deny --host=dickstone --queue=AdHoc --off);
 is($queue_result->deniedhosts->count, 0, 'Dickstone denial from queue AdHoc removed');
 
+qx($^X -Ilib bin/tapper host-bind --host=dickstone --queue=AdHoc);
+$queue_result = model('TestrunDB')->resultset('Queue')->find({name => 'AdHoc'});
+is($queue_result->queuehosts->first->host->name, 'dickstone', 'Dickstone bound to queue AdHoc');
+qx($^X -Ilib bin/tapper host-bind --host=dickstone --queue=AdHoc --off);
+is($queue_result->deniedhosts->count, 0, 'Dickstone binding to queue AdHoc removed');
 
 done_testing();
