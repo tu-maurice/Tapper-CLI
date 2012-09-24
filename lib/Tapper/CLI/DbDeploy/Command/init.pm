@@ -90,6 +90,8 @@ sub init_db
 {
         my ($self, $db) = @_;
 
+        local $| =1;
+
         my $dsn  = Tapper::Config->subconfig->{database}{$db}{dsn};
         my $user = Tapper::Config->subconfig->{database}{$db}{username};
         my $pw   = Tapper::Config->subconfig->{database}{$db}{password};
