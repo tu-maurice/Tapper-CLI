@@ -323,9 +323,7 @@ sub setup
         $c->register('host-deny', \&host_deny, 'Setup or remove forbidden host/queue combinations');
         $c->register('host-bind', \&host_bind, 'Setup or remove host/queue bindings');
         if ($c->can('group_commands')) {
-                $c->group_commands('Host commands', 'host-list', );
-                $c->group_commands('Host commands', 'host-bind', );
-                $c->group_commands('Host commands', 'host-deny', );
+                $c->group_commands('Host commands', 'host-list', 'host-bind', 'host-deny', );
         }
         return;
 }
