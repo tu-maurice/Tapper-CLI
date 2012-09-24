@@ -56,7 +56,7 @@ sub host_feature_summary
 
 sub print_hosts_verbose
 {
-        my ($hosts) = @_;
+        my ($hosts, $verbosity_level) = @_;
         my %max = (
                    name    => 4,
                    features => 10,
@@ -77,7 +77,12 @@ sub print_hosts_verbose
         my ($name_length, $feature_length, $comment_length, $queue_length) = ($max{name}, $max{features}, $max{comment}, $max{queue});
 
         # use printf to get the wanted field width
-        printf ("%5s | %${name_length}s | %-${feature_length}s | %11s | %10s | %${comment_length}s | Queues\n", 'ID', 'Name', 'Features', 'Active', 'Testrun ID', 'Comment');
+        if ($verbosity_level > 1) {
+                printf ("%5s | %${name_length}s | %-${feature_length}s | %11s | %10s | %${comment_length}s | Queues\n", 'ID', 'Name', 'Features', 'Active', 'Testrun ID', 'Comment');
+        } else {
+                printf ("%5s | %${name_length}s | %-${feature_length}s | %11s | %10s | Queues\n", 'ID', 'Name', 'Features', 'Active', 'Testrun ID', );
+                $comment_length = 0;
+        }
         say "="x(5+$name_length+$feature_length+11+length('Testrun ID')+$comment_length+length('Queues')+6*length(' | '));
 
 
@@ -89,14 +94,17 @@ sub print_hosts_verbose
                         $testrun_id = $job_rs->first->testrun_id if $job_rs->count;
                 }
                 my $features = host_feature_summary($host);
-                my $output = sprintf("%5d | %${name_length}s | %-${feature_length}s | %11s | %10s | %${comment_length}s | ",
+                my $output = sprintf("%5d | %${name_length}s | %-${feature_length}s | %11s | %10s | ",
                                      $host->id,
                                      $host->name,
                                      $features,
                                      $host->is_deleted ? 'deleted' : ( $host->active ? 'active' : 'deactivated' ),
                                      $host->free   ? 'free'   : "$testrun_id",
-                                     $host->comment,
                                     );
+                if ($verbosity_level > 1) {
+                        $output .= sprintf("%${comment_length}s |", $host->comment);
+
+                }
                 if ($host->queuehosts->count) {
                         $output .= join ", ", map {$_->queue->name} $host->queuehosts->all;
                 }
@@ -182,10 +190,10 @@ List hosts matching given criteria.
 sub listhost
 {
         my ($c) = @_;
-        $c->getopt( 'free', 'name=s@', 'active', 'queue=s@', 'all|a', 'verbose|v', 'yaml', 'help|?' );
+        $c->getopt( 'free', 'name=s@', 'active', 'queue=s@', 'all|a', 'verbose|v+', 'yaml', 'help|?' );
         if ( $c->options->{help} ) {
                 say STDERR "$0 host-list [ --verbose|v ] [ --free ] | [ --name=s ]  [ --active ] [ --queue=s@ ] [ --all|a] [ --yaml ]";
-                say STDERR "    --verbose      Show all available information; without only show names";
+                say STDERR "    --verbose      Increase verbosity level, without show only names, level one shows all but comments, level two shows all including comments";
                 say STDERR "    --free         List only free hosts";
                 say STDERR "    --name         Find host by name, implies verbose";
                 say STDERR "    --active       List only active hosts";
@@ -200,7 +208,7 @@ sub listhost
         if ($c->options->{yaml}) {
                 print_hosts_yaml($hosts);
         } elsif ($c->options->{verbose}) {
-                print_hosts_verbose($hosts);
+                print_hosts_verbose($hosts, $c->options->{verbose});
         } else {
                 foreach my $host ($hosts->all) {
                         say sprintf("%10d | %s", $host->id, $host->name);
