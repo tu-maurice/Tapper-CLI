@@ -58,10 +58,11 @@ sub print_hosts_verbose
 {
         my ($hosts, $verbosity_level) = @_;
         my %max = (
-                   name    => 4,
-                   features => 10,
-                   comment => 7,
-                   queue   => 0,
+                   name      => length('Name'),
+                   features  => length ('Features'),
+                   comment   => length('Comment'),
+                   bindqueue => length('Bound Queues'),
+                   denyqueue => length('Denied Queues'),
                   );
  HOST:
         foreach my $host ($hosts->all) {
@@ -69,21 +70,26 @@ sub print_hosts_verbose
                 $max{name}    = length($host->name) if length($host->name) > $max{name};
                 $max{features} = length($features) if length($features) > $max{features};
                 $max{comment} = length($host->comment) if length($host->comment) > $max{comment};
-                next HOST if not $host->queuehosts->count;
-                foreach my $queuehost ($host->queuehosts->all) {
-                        $max{queue} = length($queuehost->queue->name) if length($queuehost->queue->name) > $max{queue};
-                }
+
+                my $tmp_length = length(join ", ", map {$_->queue->name} $host->queuehosts->all);
+                $max{bindqueue} = $tmp_length if $tmp_length > $max{bindqueue} ;
+
+                $tmp_length = length(join ", ", map {$_->queue->name} $host->denied_from_queue->all);
+                $max{denyqueue} = $tmp_length if $tmp_length > $max{bindqueue} ;
         }
-        my ($name_length, $feature_length, $comment_length, $queue_length) = ($max{name}, $max{features}, $max{comment}, $max{queue});
+
+        my ($name_length, $feature_length, $comment_length, $bq_length, $dq_length) = ($max{name}, $max{features}, $max{comment}, $max{bindqueue}, $max{denyqueue});
 
         # use printf to get the wanted field width
         if ($verbosity_level > 1) {
-                printf ("%5s | %${name_length}s | %-${feature_length}s | %11s | %10s | %${comment_length}s | Queues\n", 'ID', 'Name', 'Features', 'Active', 'Testrun ID', 'Comment');
+                printf("%5s | %${name_length}s | %-${feature_length}s | %11s | %10s | %${comment_length}s | %-${bq_length}s | %-${dq_length}s\n",
+                        'ID', 'Name', 'Features', 'Active', 'Testrun ID', 'Comment', 'Bound Queues', 'Denied Queues');
         } else {
-                printf ("%5s | %${name_length}s | %-${feature_length}s | %11s | %10s | Queues\n", 'ID', 'Name', 'Features', 'Active', 'Testrun ID', );
+                printf("%5s | %${name_length}s | %-${feature_length}s | %11s | %10s | %${bq_length}s | %${dq_length}s\n",
+                        'ID', 'Name', 'Features', 'Active', 'Testrun ID', 'Bound Queues', 'Denied Queues');
                 $comment_length = 0;
         }
-        say "="x(5+$name_length+$feature_length+11+length('Testrun ID')+$comment_length+length('Queues')+6*length(' | '));
+        say "="x(5+$name_length+$feature_length+11+length('Testrun ID')+$comment_length+$bq_length+$dq_length+7*length(' | '));
 
 
         foreach my $host ($hosts->all) {
@@ -102,12 +108,13 @@ sub print_hosts_verbose
                                      $host->free   ? 'free'   : "$testrun_id",
                                     );
                 if ($verbosity_level > 1) {
-                        $output .= sprintf("%${comment_length}s |", $host->comment);
+                        $output .= sprintf("%${comment_length}s | ", $host->comment);
 
                 }
-                if ($host->queuehosts->count) {
-                        $output .= join ", ", map {$_->queue->name} $host->queuehosts->all;
-                }
+                $output .= sprintf("%-${bq_length}s | %-${dq_length}s",
+                                   $host->queuehosts->count        ? join(", ", map {$_->queue->name} $host->queuehosts->all) : '',
+                                   $host->denied_from_queue->count ? join(", ", map {$_->queue->name} $host->denied_from_queue->all) : ''
+                                  );
                 say $output;
         }
 }
