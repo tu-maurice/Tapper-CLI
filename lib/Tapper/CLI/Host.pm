@@ -225,7 +225,6 @@ sub listhost
         return;
 }
 
-
 =head2 host_deny
 
 Don't use given hosts for testruns of this queue.
@@ -235,14 +234,15 @@ Don't use given hosts for testruns of this queue.
 sub host_deny
 {
         my ($c) = @_;
-        $c->getopt( 'host=s@','queue=s@', ,'off','help|?' );
+        $c->getopt( 'host=s@','queue=s@','really' ,'off','help|?' );
         if ( $c->options->{help} or not (@{$c->options->{host} ||  []} and $c->options->{queue} )) {
                 say STDERR "At least one queuename has to be provided!" unless @{$c->options->{queue} || []};
                 say STDERR "At least one hostname has to be provided!" unless @{$c->options->{host} || []};
-                say STDERR "$0 host-deny  --host=s@  --queue=s@ --off";
+                say STDERR "$0 host-deny  --host=s@  --queue=s@ [--off] [--really]";
                 say STDERR "    --host         Deny this host for testruns of all given queues";
                 say STDERR "    --queue        Deny this queue to put testruns on all given hosts";
                 say STDERR "    --off          Remove previously installed denial of host/queue combination";
+                say STDERR "    --really       Force denial of host/queue combination even if it does not make sense (e.g. because host is also bound to queue)";
                 exit -1;
         }
 
@@ -259,6 +259,7 @@ sub host_deny
         }
 
         foreach my $queue_r (@queue_results) {
+        HOST:
                 foreach my $host_r (@host_results) {
                         if ($c->options->{off}) {
                                 my $deny_r = model('TestrunDB')->resultset('DeniedHost')->search({queue_id => $queue_r->id,
@@ -266,6 +267,18 @@ sub host_deny
                                                                                                  })->first;
                                 $deny_r->delete if $deny_r;
                         } else {
+
+                                if ($host_r->queuehosts->search({queue_id => $queue_r->id})->first) {
+                                        my $msg = 'Host '.$host_r->name.' is bound to from queue '.$queue_r->name;
+                                        if ($c->options->{really}) {
+                                                say STDERR "SUCCESS: $msg. Will still deny it too, because you requested it.";
+                                        } else {
+                                                say STDERR "ERROR: $msg. This does not make sense. Will not deny it from the queue. You can override it with --really";
+                                                next HOST;
+                                        }
+                                }
+                                # don't deny twice
+                                next HOST if $host_r->denied_from_queue->search({queue_id => $queue_r->id})->first;
                                 model('TestrunDB')->resultset('DeniedHost')->new({queue_id => $queue_r->id,
                                                                                   host_id  => $host_r->id,
                                                                                  })->insert;
@@ -284,14 +297,15 @@ Bind given hosts to given queues.
 sub host_bind
 {
         my ($c) = @_;
-        $c->getopt( 'host=s@','queue=s@', ,'off','help|?' );
+        $c->getopt( 'host=s@','queue=s@','really' ,'off','help|?' );
         if ( $c->options->{help} or not (@{$c->options->{host} ||  []} and $c->options->{queue} )) {
                 say STDERR "At least one queuename has to be provided!" unless @{$c->options->{queue} || []};
                 say STDERR "At least one hostname has to be provided!" unless @{$c->options->{host} || []};
-                say STDERR "$0 host-bind  --host=s@  --queue=s@ --off";
+                say STDERR "$0 host-bind  --host=s@  --queue=s@ [--off] [--really]";
                 say STDERR "    --host         Bind this hosts to all given queues (can be given multiple times)";
                 say STDERR "    --queue        Bind all given hosts to this queue (can be given multiple times)";
                 say STDERR "    --off          Remove previously installed host/queue bindings";
+                say STDERR "    --really       Force binding host/queue combination even if it does not make sense (e.g. because host is also denied from queue)";
                 exit -1;
         }
 
@@ -315,6 +329,17 @@ sub host_bind
                                                                                                })->first;
                                 $bind_r->delete if $bind_r;
                         } else {
+                                if ($host_r->denied_from_queue->single({queue_id => $queue_r->id})) {
+                                        my $msg = 'Host '.$host_r->name.' is denied from from queue '.$queue_r->name;
+                                        if ($c->options->{really}) {
+                                                say STDERR "SUCCESS: $msg. Will still deny it too, because you requested it.";
+                                        } else {
+                                                say STDERR "ERROR: $msg. This does not make sense. Will not bind it to the queue. You can override it with --really";
+                                                next HOST;
+                                        }
+                                }
+                                # don't bind twice
+                                next HOST if $host_r->queuehosts->search({queue_id => $queue_r->id})->first;
                                 model('TestrunDB')->resultset('QueueHost')->new({queue_id => $queue_r->id,
                                                                                   host_id  => $host_r->id,
                                                                                  })->insert;
