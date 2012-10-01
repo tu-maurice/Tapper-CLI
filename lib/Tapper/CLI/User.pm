@@ -77,15 +77,17 @@ Create a new user.
 sub usernew
 {
         my ($c) = @_;
-        $c->getopt( 'contact|c=s@', 'login|l=s', 'name|n=s', 'quiet|q', 'help|?' );
+        $c->getopt( 'contact|c=s@', 'login|l=s', 'name|n=s', 'quiet|q', 'default|d','help|?' );
 
-        if ($c->options->{help} ) {
-                say STDERR "Usage: $0 user-new [ --login=login ] [ --name=name ] [ --contact='type:type\naddress:address' | --contact=filename ]*";
+        if ($c->options->{help}  or not %{$c->options}) {
+                die "Use --default if you want to use the defaults\n" if not %{$c->options};
+                say STDERR "Usage: $0 user-new [--default|d] [ --login=login ] [ --name=name ] [ --contact='type:type\\naddress:address' | --contact=filename ]*";
                 say STDERR "\n  Optional arguments:";
                 say STDERR "\t--login\t\tlogin name for the user (default is $ENV{USER})";
                 say STDERR "\t--name\t\treal name of the user (try to get from system if empty)";
                 say STDERR "\t--contact\t\tcontact information in YAML or name of a file containing this information (can be given multiple times)";
                 say STDERR "\t--quiet\tStay silent when adding user succeeded";
+                say STDERR "\t--default\tUse default values for all parameters";
                 say STDERR "\t--help\t\tprint this help message and exit";
                 exit -1;
         }
