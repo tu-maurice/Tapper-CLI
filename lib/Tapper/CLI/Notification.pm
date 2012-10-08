@@ -38,7 +38,7 @@ Register new notification subscriptions.
 sub notificationnew
 {
         my ($c) = @_;
-        $c->getopt( 'file|f=s', 'user|u=s','quiet|q', 'help|?' );
+        $c->getopt( 'file|f=s', 'user|u=s','quiet|q', 'help|?', 'verbose|v' );
 
         if (not %{$c->options} or $c->options->{help} ) {
                 say STDERR "Usage: $0 notification-new --file=filename [ --user=login ] [ --quiet ]";
@@ -46,7 +46,8 @@ sub notificationnew
                 say STDERR "\t--file\t\tname of file containing the notification subscriptions in YAML (required)";
                 say STDERR "\n  Optional arguments:";
                 say STDERR "\t--user\t\tset this user for all notification subscriptions (even if a different one is set in YAML)";
-                say STDERR "\t--quiet\t\tOnly return notification ids";
+                say STDERR "\t--verbose\t\tBe chatty";
+                say STDERR "\t--quiet\t\tStay quiet when notification was added";
                 say STDERR "\t--help\t\tprint this help message and exit";
                 exit -1;
         }
@@ -64,8 +65,10 @@ sub notificationnew
                 push @ids, $cmd->add($subscription);
         }
         my $msg;
-        $msg  = "The notification subscriptions were registered with the following ids:" if not $c->options->{quiet};
-        $msg .= join ",", @ids;
+        if (not $c->options->{quiet}) {
+                $msg  = "The notification subscriptions were registered with the following ids:" if $c->options->{verbose};
+                $msg .= join ",", @ids;
+        }
         return $msg;
 }
 
