@@ -80,15 +80,14 @@ sub usernew
         $c->getopt( 'contact|c=s@', 'login|l=s', 'name|n=s', 'quiet|q', 'default|d','help|?' );
 
         if ($c->options->{help}  or not %{$c->options}) {
-                die "Use --default if you want to use the defaults\n" if not %{$c->options};
                 say STDERR "Usage: $0 user-new [--default|d] [ --login=login ] [ --name=name ] [ --contact='type:type\\naddress:address' | --contact=filename ]*";
                 say STDERR "\n  Optional arguments:";
-                say STDERR "\t--login\t\tlogin name for the user (default is $ENV{USER})";
-                say STDERR "\t--name\t\treal name of the user (try to get from system if empty)";
-                say STDERR "\t--contact\t\tcontact information in YAML or name of a file containing this information (can be given multiple times)";
-                say STDERR "\t--quiet\tStay silent when adding user succeeded";
-                say STDERR "\t--default\tUse default values for all parameters";
-                say STDERR "\t--help\t\tprint this help message and exit";
+                say STDERR "         --login           login name for the user (default is $ENV{USER})";
+                say STDERR "         --name            real name of the user (try to get from system if empty)";
+                say STDERR "         --contact         contact information in YAML or name of a file containing this information (can be given multiple times)";
+                say STDERR "         --quiet           Stay silent when adding user succeeded";
+                say STDERR "         --default         Use default values for all parameters";
+                say STDERR "         --help            print this help message and exit";
                 exit -1;
         }
 
@@ -125,10 +124,10 @@ sub contactadd
         if ($c->options->{help} or not $c->options->{contact} ) {
                 say STDERR "Usage: $0 conact-add [ --login=login ] [ --contact=YAML | --contact=filename ]* [ --quiet ]";
                 say STDERR "\n  Optional arguments:";
-                say STDERR "\t--login\t\tlogin name for the user (default is $ENV{USER})";
-                say STDERR "\t--contact\tcontact information in YAML or name of a file containing this information (can be given multiple times)";
-                say STDERR "\t--quiet\t\tStay silent when adding user succeeded";
-                say STDERR "\t--help\t\tprint this help message and exit";
+                say STDERR "         --login           login name for the user (default is $ENV{USER})";
+                say STDERR "         --contact         contact information in YAML or name of a file containing this information (can be given multiple times)";
+                say STDERR "         --quiet           Stay silent when adding user succeeded";
+                say STDERR "         --help            print this help message and exit";
                 exit -1;
         }
 
@@ -186,11 +185,11 @@ sub userupdate
         if (not %{$c->options} or $c->options->{help} ) {
                 say STDERR "Usage: $0 user-update --file=filename --id=id [ --quiet ]";
                 say STDERR "\n\  Required Arguments:";
-                say STDERR "\t--file\t\tname of file containing the user subscriptions in YAML";
-                say STDERR "\t--id\t\tid of the user subscriptions";
+                say STDERR "         --file            name of file containing the user subscriptions in YAML";
+                say STDERR "         --id              id of the user subscriptions";
                 say STDERR "\n  Optional arguments:";
-                say STDERR "\t--quiet\tstay silent when updating succeeded";
-                say STDERR "\t--help\t\tprint this help message and exit";
+                say STDERR "         --quiet           stay silent when updating succeeded";
+                say STDERR "         --help            print this help message and exit";
                 exit -1;
         }
 
@@ -222,11 +221,11 @@ sub userdel
         if (not %{$c->options} or $c->options->{help} ) {
                 say STDERR "Usage: $0 user-del --user=login | --id=i [ --quiet ]";
                 say STDERR "\n\  Required Arguments (one of):";
-                say STDERR "\t--login\t\tlogin name of the user to delete";
-                say STDERR "\t--id\t\tdatabase id of the user to delete. Note: This is not the UNIX id!";
+                say STDERR "         --login           login name of the user to delete";
+                say STDERR "         --id              database id of the user to delete. Note: This is not the UNIX id!";
                 say STDERR "\n  Optional arguments:";
-                say STDERR "\t--quiet\tStay silent when deleting succeeded";
-                say STDERR "\t--help\t\tprint this help message and exit";
+                say STDERR "         --quiet           Stay silent when deleting succeeded";
+                say STDERR "         --help            print this help message and exit";
                 exit -1;
         }
 
