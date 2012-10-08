@@ -106,7 +106,7 @@ sub new_precondition
 
 
         foreach my $id (@ids) {
-                my $precondition = model('TestrunDB')->resultset('Precondition')->search({id => $id})->first;
+                my $precondition = model('TestrunDB')->resultset('Precondition')->search({id => $id}, {rows => 1})->first;
                 print $opt->{verbose} ? $precondition->to_string : $id, "\n";
 
         }

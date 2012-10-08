@@ -77,7 +77,7 @@ sub execute {
 
  NAME:
         foreach my $name (@{$opt->{name}}) {
-                my $host = model('TestrunDB')->resultset('Host')->search({name => $name})->first;
+                my $host = model('TestrunDB')->resultset('Host')->search({name => $name}, {rows => 1})->first;
                 push @{$opt->{id}}, $host->id;
         }
 

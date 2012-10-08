@@ -101,7 +101,7 @@ sub update_precondition
 
         if ($opt->{verbose}) {
 
-                my $precondition = model('TestrunDB')->resultset('Precondition')->search({id => $id})->first;
+                my $precondition = model('TestrunDB')->resultset('Precondition')->search({id => $id}, {rows => 1})->first;
                 say $precondition->to_string;
         }  else {
                 say $id;

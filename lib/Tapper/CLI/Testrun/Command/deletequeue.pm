@@ -79,7 +79,7 @@ sub delete_queue
 {
         my ($self, $opt, $args) = @_;
 
-        my $queue = model('TestrunDB')->resultset('Queue')->search({name => $opt->{name}})->first;
+        my $queue = model('TestrunDB')->resultset('Queue')->search({name => $opt->{name}}, {rows => 1})->first;
         die "No such queue: ".$opt->{name} if not $queue;
 
         my $cmd = Tapper::Cmd::Queue->new();

@@ -97,7 +97,7 @@ sub print_hosts_verbose
                 my $testrun_id = 'unknown id';
                 if (not $host->free) {
                         my $job_rs = model('TestrunDB')->resultset('TestrunScheduling')->search({host_id => $host->id, status => 'running'});
-                        $testrun_id = $job_rs->first->testrun_id if $job_rs->count;
+                        $testrun_id = $job_rs->search({}, {rows => 1})->first->testrun_id if $job_rs->count;
                 }
                 my $features = host_feature_summary($host);
                 my $output = sprintf("%5d | %${name_length}s | %-${feature_length}s | %11s | %10s | ",
@@ -166,7 +166,7 @@ sub print_hosts_yaml
                                  is_deleted => $host->is_deleted,
                                  host_id    => $host->id,
                                  );
-                my $job = $host->testrunschedulings->search({status => 'running'})->first; # this should always be only one
+                my $job = $host->testrunschedulings->search({status => 'running'}, {rows => 1})->first; # this should always be only one
                 if ($job) {
                         $host_data{running_testrun} = $job->testrun->id;
                         $host_data{running_since}   = $job->testrun->starttime_testrun->iso8601;
@@ -248,12 +248,12 @@ sub host_deny
 
         my @queue_results; my @host_results;
         foreach my $queue_name ( @{$c->options->{queue}}) {
-                my $queue_r = model('TestrunDB')->resultset('Queue')->search({name => $queue_name})->first;
+                my $queue_r = model('TestrunDB')->resultset('Queue')->search({name => $queue_name}, {rows => 1})->first;
                 die "No such queue: '$queue_name'" unless $queue_r;
                 push @queue_results, $queue_r;
         }
         foreach my $host_name ( @{$c->options->{host}}) {
-                my $host_r = model('TestrunDB')->resultset('Host')->search({name => $host_name})->first;
+                my $host_r = model('TestrunDB')->resultset('Host')->search({name => $host_name}, {rows => 1})->first;
                 die "No such host: '$host_name'" unless $host_r;
                 push @host_results, $host_r;
         }
@@ -263,12 +263,13 @@ sub host_deny
                 foreach my $host_r (@host_results) {
                         if ($c->options->{off}) {
                                 my $deny_r = model('TestrunDB')->resultset('DeniedHost')->search({queue_id => $queue_r->id,
-                                                                                                  host_id  => $host_r->id,
-                                                                                                 })->first;
+                                                                                                  host_id  => $host_r->id, },
+                                                                                                 {rows => 1}
+                                                                                                )->first;
                                 $deny_r->delete if $deny_r;
                         } else {
 
-                                if ($host_r->queuehosts->search({queue_id => $queue_r->id})->first) {
+                                if ($host_r->queuehosts->search({queue_id => $queue_r->id}, {rows => 1})->first) {
                                         my $msg = 'Host '.$host_r->name.' is bound to from queue '.$queue_r->name;
                                         if ($c->options->{really}) {
                                                 say STDERR "SUCCESS: $msg. Will still deny it too, because you requested it.";
@@ -278,7 +279,7 @@ sub host_deny
                                         }
                                 }
                                 # don't deny twice
-                                next HOST if $host_r->denied_from_queue->search({queue_id => $queue_r->id})->first;
+                                next HOST if $host_r->denied_from_queue->search({queue_id => $queue_r->id}, {rows => 1})->first;
                                 model('TestrunDB')->resultset('DeniedHost')->new({queue_id => $queue_r->id,
                                                                                   host_id  => $host_r->id,
                                                                                  })->insert;
@@ -311,12 +312,12 @@ sub host_bind
 
         my @queue_results; my @host_results;
         foreach my $queue_name ( @{$c->options->{queue}}) {
-                my $queue_r = model('TestrunDB')->resultset('Queue')->search({name => $queue_name})->first;
+                my $queue_r = model('TestrunDB')->resultset('Queue')->search({name => $queue_name}, {rows => 1})->first;
                 die "No such queue: '$queue_name'" unless $queue_r;
                 push @queue_results, $queue_r;
         }
         foreach my $host_name ( @{$c->options->{host}}) {
-                my $host_r = model('TestrunDB')->resultset('Host')->search({name => $host_name})->first;
+                my $host_r = model('TestrunDB')->resultset('Host')->search({name => $host_name}, {rows => 1})->first;
                 die "No such host: '$host_name'" unless $host_r;
                 push @host_results, $host_r;
         }
@@ -325,8 +326,9 @@ sub host_bind
                 foreach my $host_r (@host_results) {
                         if ($c->options->{off}) {
                                 my $bind_r = model('TestrunDB')->resultset('QueueHost')->search({queue_id => $queue_r->id,
-                                                                                                host_id  => $host_r->id,
-                                                                                               })->first;
+                                                                                                 host_id  => $host_r->id },
+                                                                                                {rows => 1}
+                                                                                               )->first;
                                 $bind_r->delete if $bind_r;
                         } else {
                                 if ($host_r->denied_from_queue->single({queue_id => $queue_r->id})) {
@@ -339,7 +341,7 @@ sub host_bind
                                         }
                                 }
                                 # don't bind twice
-                                next HOST if $host_r->queuehosts->search({queue_id => $queue_r->id})->first;
+                                next HOST if $host_r->queuehosts->search({queue_id => $queue_r->id}, {rows => 1})->first;
                                 model('TestrunDB')->resultset('QueueHost')->new({queue_id => $queue_r->id,
                                                                                   host_id  => $host_r->id,
                                                                                  })->insert;

@@ -79,7 +79,7 @@ sub validate_args
 sub execute
 {
         my ($self, $opt, $args) = @_;
-        my $queue = model('TestrunDB')->resultset('Queue')->search({name => $opt->{oldname}})->first;
+        my $queue = model('TestrunDB')->resultset('Queue')->search({name => $opt->{oldname}}, {rows => 1})->first;
         die "No such queue: ".$opt->{oldname} if not $queue;
         $queue->name($opt->{newname});
         $queue->update;
