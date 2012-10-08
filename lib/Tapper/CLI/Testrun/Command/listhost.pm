@@ -157,7 +157,7 @@ sub print_hosts_verbose
                 my $testrun_id = 'unknown id';
                 if (not $host->free) {
                         my $job_rs = model('TestrunDB')->resultset('TestrunScheduling')->search({host_id => $host->id, status => 'running'});
-                        $testrun_id = $job_rs->first->testrun_id if $job_rs->count;
+                        $testrun_id = $job_rs->search({}, {rows => 1})->first->testrun_id if $job_rs->count;
                 }
                 my $features = host_feature_summary($host);
                 my $output = sprintf("%5d | %${name_length}s | %-${feature_length}s | %11s | %10s | %${comment_length}s | ",

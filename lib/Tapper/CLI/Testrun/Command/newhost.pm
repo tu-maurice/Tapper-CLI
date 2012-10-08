@@ -93,7 +93,7 @@ sub new_host
                         }
                         my $queue_host = model('TestrunDB')->resultset('QueueHost')->new({
                                                                                           host_id  => $newhost->id,
-                                                                                          queue_id => $queue_rs->first->id,
+                                                                                          queue_id => $queue_rs->search({}, {rows => 1})->first->id,
                                                                                          });
                         $queue_host->insert();
                 }
