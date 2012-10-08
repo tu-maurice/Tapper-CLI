@@ -47,7 +47,7 @@ sub notificationnew
                 say STDERR "\n  Optional arguments:";
                 say STDERR "\t--user\t\tset this user for all notification subscriptions (even if a different one is set in YAML)";
                 say STDERR "\t--verbose\t\tBe chatty";
-                say STDERR "\t--quiet\t\tStay quiet when notification was added";
+                say STDERR "\t--quiet\t\tStay silent when notification was added";
                 say STDERR "\t--help\t\tprint this help message and exit";
                 exit -1;
         }
