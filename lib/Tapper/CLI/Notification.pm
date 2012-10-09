@@ -43,12 +43,12 @@ sub notificationnew
         if (not %{$c->options} or $c->options->{help} ) {
                 say STDERR "Usage: $0 notification-new --file=filename [ --user=login ] [ --quiet ]";
                 say STDERR "\n\  Required Arguments:";
-                say STDERR "\t--file\t\tname of file containing the notification subscriptions in YAML (required)";
+                say STDERR "        --file             name of file containing the notification subscriptions in YAML (required)";
                 say STDERR "\n  Optional arguments:";
-                say STDERR "\t--user\t\tset this user for all notification subscriptions (even if a different one is set in YAML)";
-                say STDERR "\t--verbose\t\tBe chatty";
-                say STDERR "\t--quiet\t\tStay silent when notification was added";
-                say STDERR "\t--help\t\tprint this help message and exit";
+                say STDERR "        --user             set this user for all notification subscriptions (even if a different one is set in YAML)";
+                say STDERR "        --verbose          Be chatty";
+                say STDERR "        --quiet            Stay silent when notification was added";
+                say STDERR "        --help             print this help message and exit";
                 exit -1;
         }
 
@@ -112,11 +112,11 @@ sub notificationupdate
         if (not %{$c->options} or $c->options->{help} ) {
                 say STDERR "Usage: $0 notification-update --file=filename --id=id [ --quiet ]";
                 say STDERR "\n\  Required Arguments:";
-                say STDERR "\t--file\t\tname of file containing the notification subscriptions in YAML";
-                say STDERR "\t--id\t\tid of the notification subscriptions";
+                say STDERR "        --file             name of file containing the notification subscriptions in YAML";
+                say STDERR "        --id               id of the notification subscriptions";
                 say STDERR "\n  Optional arguments:";
-                say STDERR "\t--quiet\t\tonly return ids of updated notification subscriptions";
-                say STDERR "\t--help\t\tprint this help message and exit";
+                say STDERR "        --quiet            stay silent when notification was updated";
+                say STDERR "        --help             print this help message and exit";
                 exit -1;
         }
 
@@ -125,8 +125,10 @@ sub notificationupdate
         my $subscription =  YAML::XS::LoadFile($c->options->{file});
         my $id = $cmd->update($c->options->{id}, $subscription);
 
-        return "The notification subscription was updated:" unless $c->options->{quiet};
-        return $id;
+        if ( not $c->options->{quiet}) {
+                return $id;
+        }
+        return;
 }
 
 =head2 notificationdel
@@ -148,10 +150,10 @@ sub notificationdel
         if (not %{$c->options} or $c->options->{help} ) {
                 say STDERR "Usage: $0 notification-del --id=id";
                 say STDERR "\n\  Required Arguments:";
-                say STDERR "\t--id\t\tDatabase ID of the notification subscription";
+                say STDERR "        --id               Database ID of the notification subscription";
                 say STDERR "\n  Optional arguments:";
-                say STDERR "\t--quiet\t\tStay silent when deleting succeeded";
-                say STDERR "\t--help\t\tprint this help message and exit";
+                say STDERR "        --quiet            Stay silent when deleting succeeded";
+                say STDERR "        --help             print this help message and exit";
                 exit -1;
         }
 
