@@ -4,9 +4,7 @@ use 5.010;
 use warnings;
 use strict;
 
-use Tapper::Model 'model';
-use Tapper::Config;
-use Net::OpenSSH;
+use Tapper::Cmd::Cobbler;
 
 =head1 NAME
 
@@ -27,20 +25,6 @@ arguments as $c->options->{$arg}.
 
 =cut
 
-# get_mac_address
-#
-# Retrieve the mac address of a host from features available in DB.
-#
-# @param Tapper::Schema::TestrunDB::Result::Host - host object
-#
-# @return string - mac address
-
-sub get_mac_address
-{
-        my ($host) = @_;
-        my ($retval) = map{$_->value} grep{ $_->entry eq 'mac_address'} $host->features->all;
-        return $retval;
-}
 
 =head2 host_new
 
@@ -51,7 +35,7 @@ Add a new system to cobbler by copying from an existing one.
 sub host_new
 {
         my ($c) = @_;
-        $c->getopt( 'from', 'name=s', 'quiet|q', 'help|?' );
+        $c->getopt(  'name=s','from=s', 'mac=s', 'quiet|q', 'help|?' );
         if ( $c->options->{help} or not $c->options->{name}) {
                 say STDERR "Missing required parameter --name!" unless $c->options->{name};
                 say STDERR "$0 cobbler-host-new  --name=s [ --quiet|q ] [ --from=s ]";
@@ -59,31 +43,20 @@ sub host_new
                 say STDERR "        --name             Name of the new system";
                 say STDERR "\n  Optional arguments:";
                 say STDERR "        --from             Copy values of that system, default value is 'default'";
+                say STDERR "        --mac              Provide mac address (will try to fetch from database if empty)";
                 say STDERR "        --quit             Stay silent";
                 say STDERR "        --help             Print this help message and exit";
                 exit -1;
         }
         my $name    = $c->options->{name};
-        my $default = $c->options->{default} || 'default';
-        my $cfg     = Tapper::Config->subconfig;
-        my $cobbler_host = $cfg->{cobbler}->{host};
+        my %options;
+        $options{default} = $c->options->{default};
+        $options{mac}     = $c->options->{mac};
 
-        my $host    = model('TestrunDB')->resultset('Host')->find({name => $name});
-        die "Host '$name' does not exist in the database\n" if not $host;
 
-        my $mac = get_mac_address($host);
-        my $command = "cobbler system copy --name $default --newname $name --mac-address $mac";
-
-        my $output;
-        if ($cobbler_host) {
-                my $user = $cfg->{cobbler}->{user};
-                my $ssh = Net::OpenSSH->new("$user\@$cobbler_host");
-                $ssh->error and die "ssh  $user\@$cobbler_host failed: ".$ssh->error;
-                $output = $ssh->capture($command);
-        } else {
-                $output = qx( $command );
-        }
-        die $output if $output;
+        my $cmd = Tapper::Cmd::Cobbler->new();
+        my $output = $cmd->host_new($name, \%options);
+        return $output if $output;
 
         if (not $c->options->{quiet}) {
                 return "Added host $name to cobbler";
@@ -112,23 +85,9 @@ sub host_del
                 exit -1;
         }
         my $name    = $c->options->{name};
-        my $cfg     = Tapper::Config->subconfig;
-        my $cobbler_host = $cfg->{cobbler}->{host};
 
-        my $host    = model('TestrunDB')->resultset('Host')->find({name => $name});
-        die "Host '$name' does not exist in the database\n" if not $host;
-
-        my $command = "cobbler system remove --name $name";
-
-        my $output;
-        if ($cobbler_host) {
-                my $user = $cfg->{cobbler}->{user};
-                my $ssh = Net::OpenSSH->new("$user\@$cobbler_host");
-                $ssh->error and die "ssh  $user\@$cobbler_host failed: ".$ssh->error;
-                $output = $ssh->capture($command);
-        } else {
-                $output = qx( $command );
-        }
+        my $cmd = Tapper::Cmd::Cobbler->new();
+        my $output = $cmd->host_del($name);
         die $output if $output;
 
         if (not $c->options->{quiet}) {
