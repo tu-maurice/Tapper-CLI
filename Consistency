@@ -8,3 +8,6 @@ that all commands need to honor.
 ** does not apply to all -list command (obviously)
 ** if a command can work with defaults it still requires --default or -d 
    to fulfill the "no empty parameter list" requirement
+* help messages SHOULD distinguish between required arguments and
+  optional arguments
+
