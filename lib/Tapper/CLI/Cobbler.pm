@@ -80,7 +80,7 @@ sub host_del
                 say STDERR "\n\  Required Arguments:";
                 say STDERR "        --name             Name of the new system";
                 say STDERR "\n  Optional arguments:";
-                say STDERR "        --quit             Stay silent";
+                say STDERR "        --quiet            Stay silent";
                 say STDERR "        --help             Print this help message and exit";
                 exit -1;
         }
