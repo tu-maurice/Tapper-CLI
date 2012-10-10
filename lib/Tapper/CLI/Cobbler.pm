@@ -97,6 +97,31 @@ sub host_del
 }
 
 
+=head2 host_list
+
+Show all hosts known to cobbler, optionally all matching a given criteria.
+
+=cut
+
+sub host_list
+{
+        my ($c) = @_;
+        $c->getopt( 'name=s', 'status', 'help|?' );
+        if ( $c->options->{help}) {
+                say STDERR "\n  Optional arguments:";
+                say STDERR "        --name             Show system with that name";
+                say STDERR "        --status           Show system with that status (one of development,testing,acceptance,production)";
+                say STDERR "        --help             Print this help message and exit";
+                exit -1;
+        }
+
+        my $cmd = Tapper::Cmd::Cobbler->new();
+        my @output = $cmd->host_list();
+        print join "\n",@output;
+        return;
+}
+
+
 =head2 setup
 
 Initialize the testplan functions for tapper CLI
@@ -106,10 +131,11 @@ Initialize the testplan functions for tapper CLI
 sub setup
 {
         my ($c) = @_;
-        $c->register('cobbler-host-new', \&host_new,  'Add a new host to cobbler by copying from existing one');
-        $c->register('cobbler-host-del', \&host_del,  'Remove an existing host from cobbler');
+        $c->register('cobbler-host-new', \&host_new,    'Add a new host to cobbler by copying from existing one');
+        $c->register('cobbler-host-del', \&host_del,    'Remove an existing host from cobbler');
+        $c->register('cobbler-host-list', \&host_list,  'Show host known to cobbler');
         if ($c->can('group_commands')) {
-                $c->group_commands('Cobbler commands', 'cobbler-host-new', 'cobbler-host-del' );
+                $c->group_commands('Cobbler commands', 'cobbler-host-new', 'cobbler-host-del', 'cobbler-host-list' );
         }
         return;
 }
