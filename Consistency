@@ -10,4 +10,9 @@ that all commands need to honor.
    to fulfill the "no empty parameter list" requirement
 * help messages SHOULD distinguish between required arguments and
   optional arguments
-
+* All command SHOULD prevent unknown options
+** The code for this should be imported and not duplicated as it is now
+* CLI manipulates testruns, preconditions, hosts, queues, scenarios and
+  testplans. For each of these elements a "new", "update" and "delete" should
+  exist. The actual work should be done in associated Tapper::Cmd modules to make
+  it reusable for WebGUI.
