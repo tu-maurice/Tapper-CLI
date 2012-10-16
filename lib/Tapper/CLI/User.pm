@@ -80,7 +80,7 @@ sub usernew
         $c->getopt( 'contact|c=s@', 'login|l=s', 'name|n=s', 'quiet|q', 'default|d','help|?' );
 
         if ($c->options->{help}  or not %{$c->options}) {
-                say STDERR "Usage: $0 user-new [--default|d] [ --login=login ] [ --name=name ] [ --contact='type:type\\naddress:address' | --contact=filename ]*";
+                say STDERR "Usage: $0 user-add [--default|d] [ --login=login ] [ --name=name ] [ --contact='type:type\\naddress:address' | --contact=filename ]*";
                 say STDERR "\n  Optional arguments:";
                 say STDERR "         --login           login name for the user (default is $ENV{USER})";
                 say STDERR "         --name            real name of the user (try to get from system if empty)";
@@ -255,13 +255,14 @@ Initialize the user functions for tapper CLI
 sub setup
 {
         my ($c) = @_;
-        $c->register('user-new', \&usernew, 'Register a new user');
+        $c->register('user-add', \&usernew, 'Register a new user');
+        $c->register('user-new', \&usernew, 'Alias for user-add');
         $c->register('user-list', \&userlist, 'Show all users');
         $c->register('user-update', \&userupdate, 'Update an existing user');
         $c->register('user-del', \&userdel, 'Delete an existing user');
         $c->register('contact-add', \&contactadd, 'Add contact information to an existing user');
         if ($c->can('group_commands')) {
-                $c->group_commands('User commands', 'user-new', 'user-list', 'user-update', 'user-del', 'contact-add');
+                $c->group_commands('User commands', 'user-add', 'user-new', 'user-list', 'user-update', 'user-del', 'contact-add');
         }
         return;
 }

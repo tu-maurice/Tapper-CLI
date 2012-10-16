@@ -41,7 +41,7 @@ sub notificationnew
         $c->getopt( 'file|f=s', 'user|u=s','quiet|q', 'help|?', 'verbose|v' );
 
         if (not %{$c->options} or $c->options->{help} ) {
-                say STDERR "Usage: $0 notification-new --file=filename [ --user=login ] [ --quiet ]";
+                say STDERR "Usage: $0 notification-add --file=filename [ --user=login ] [ --quiet ]";
                 say STDERR "\n\  Required Arguments:";
                 say STDERR "        --file             name of file containing the notification subscriptions in YAML (required)";
                 say STDERR "\n  Optional arguments:";
@@ -176,12 +176,13 @@ Initialize the notification functions for tapper CLI
 sub setup
 {
         my ($c) = @_;
-        $c->register('notification-new', \&notificationnew, 'Register a new notification subscription');
+        $c->register('notification-add', \&notificationnew, 'Register a new notification subscription');
+        $c->register('notification-new', \&notificationnew, 'Alias for notification-add');
         $c->register('notification-list', \&notificationlist, 'Show all notification subscriptions');
         $c->register('notification-update', \&notificationupdate, 'Update an existing notification subscription');
         $c->register('notification-del', \&notificationdel, 'Delete an existing notification subscription');
         if ($c->can('group_commands')) {
-                $c->group_commands('Notification commands', 'notification-new', 'notification-list', 'notification-update', 'notification-del');
+                $c->group_commands('Notification commands', 'notification-add', 'notification-new', 'notification-list', 'notification-update', 'notification-del');
         }
         return;
 }

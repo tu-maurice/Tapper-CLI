@@ -38,7 +38,7 @@ sub host_new
         $c->getopt(  'name=s','from=s', 'mac=s', 'quiet|q', 'help|?' );
         if ( $c->options->{help} or not $c->options->{name}) {
                 say STDERR "Missing required parameter --name!" unless $c->options->{name};
-                say STDERR "$0 cobbler-host-new  --name=s [ --quiet|q ] [ --from=s ]";
+                say STDERR "$0 cobbler-host-add  --name=s [ --quiet|q ] [ --from=s ]";
                 say STDERR "\n\  Required Arguments:";
                 say STDERR "        --name             Name of the new system";
                 say STDERR "\n  Optional arguments:";
@@ -131,11 +131,12 @@ Initialize the testplan functions for tapper CLI
 sub setup
 {
         my ($c) = @_;
-        $c->register('cobbler-host-new', \&host_new,    'Add a new host to cobbler by copying from existing one');
+        $c->register('cobbler-host-add', \&host_new,    'Add a new host to cobbler by copying from existing one');
+        $c->register('cobbler-host-new', \&host_new,    'Alias for cobbler-host-add');
         $c->register('cobbler-host-del', \&host_del,    'Remove an existing host from cobbler');
         $c->register('cobbler-host-list', \&host_list,  'Show host known to cobbler');
         if ($c->can('group_commands')) {
-                $c->group_commands('Cobbler commands', 'cobbler-host-new', 'cobbler-host-del', 'cobbler-host-list' );
+                $c->group_commands('Cobbler commands', 'cobbler-host-add', 'cobbler-host-new', 'cobbler-host-del', 'cobbler-host-list' );
         }
         return;
 }
