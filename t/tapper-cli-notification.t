@@ -13,7 +13,8 @@ use Test::Deep;
 construct_fixture( schema  => reportsdb_schema, fixture => 't/fixtures/reportsdb/report.yml' );
 # -----------------------------------------------------------------------------------------------------------------
 
-my $id = `$^X -Ilib bin/tapper notification-new --file=t/files/notification.yml --user=sschwigo -q`;
+my $id = `$^X -Ilib bin/tapper notification-new --file=t/files/notification.yml --user=sschwigo`;
+diag $id;
 chomp $id;
 like($id, qr/^\d+$/, 'New notification substitution registered');
 
@@ -30,9 +31,9 @@ cmp_deeply(Load($list), {
                         },
            'List of notifications after notification-new');
 
-$id = `$^X -Ilib bin/tapper notification-update --file=t/files/notification_updated.yml --id=$id -q`;
+$id = `$^X -Ilib bin/tapper notification-update --file=t/files/notification_updated.yml --id=$id`;
 chomp $id;
-like($id, qr/^\d+$/, 'New notification substitution registered');
+like($id, qr/^\d+$/, 'Notification update');
 
 $list = `$^X -Ilib bin/tapper notification-list`;
 cmp_deeply(Load($list), { comment => "Testrun id 43 finished",

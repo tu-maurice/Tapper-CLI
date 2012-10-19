@@ -59,7 +59,7 @@ sub notificationnew
         my @subscriptions =  YAML::XS::LoadFile($c->options->{file});
         foreach my $subscription (@subscriptions) {
                 if ($user) {
-                        $subscription->{owner} = $user;
+                        $subscription->{owner_login} = $user;
                         delete $subscription->{owner_id};
                 }
                 push @ids, $cmd->add($subscription);
