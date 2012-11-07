@@ -1,3 +1,5 @@
+# -*- mode: org -*-
+
 User experience is improved when all commands of a tool behave
 similar. To ensure this kind of consistency, this file lists guidelines
 that all commands need to honor.
