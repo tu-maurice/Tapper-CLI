@@ -1,6 +1,7 @@
 Revision history for {{$dist->name}}
 
 {{$NEXT}}
+        - [RFK] 'tapper-testrun newtestplan' is now 'tapper testplan-new'
         - dzil pluginbundle TAPPER
 
 4.1.1     2012-11-19
