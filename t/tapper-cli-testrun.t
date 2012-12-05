@@ -179,6 +179,17 @@ ok($testrun->id, 'inserted testrun / id');
 ok(defined($testrun->testrun_scheduling->prioqueue_seq), 'inserted testrun is in priority queue');
 
 
+# --------------------------------------------------
+#         Notify
+# --------------------------------------------------
+$testrun_id = `$^X -Ilib bin/tapper-testrun new --topic=Software --notify --precondition=1`;
+chomp $testrun_id;
+$testrun = model('TestrunDB')->resultset('Testrun')->find($testrun_id);
+ok($testrun->id, 'inserted testrun / id');
+my $notify = model('ReportsDB')->resultset('Notification')->first;
+is($notify->filter, "testrun('id') == $testrun_id", 'Notification with filter');
+
+
 
 
 done_testing();
