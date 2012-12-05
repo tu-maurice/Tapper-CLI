@@ -46,8 +46,9 @@ my $options = { "verbose"           => { text => "some more informational output
                                                 "multiple requested features are AND evaluated, i.e. each must fit; ".
                                                 "not evaluated if a matching requested host is found already", type => 'manystring' },
                 "priority"          => { text => "Boolean; This is a very important testrun that should bypass scheduling and not wait for others", type => 'withno' },
-
+                "notify"            => { text => "STRING, create a notification for when the testrun is finished, possibly with filter for 'fail' or 'success'", type => 'optstring' },
                 };
+
 
 sub opt_spec {
         my @opt_spec;
@@ -57,6 +58,7 @@ sub opt_spec {
 
                 given($options->{$key}->{type}){
                         when ("string")        {$pushkey .="=s";}
+                        when ("optstring")     {$pushkey .=":s";}
                         when ("withno")        {$pushkey .="!";}
                         when ("manystring")    {$pushkey .="=s@";}
                         when ("optmanystring") {$pushkey .=":s@";}
@@ -254,8 +256,9 @@ sub new_runtest
                        shortname      => $opt->{shortname}           || '',
                        topic          => $opt->{topic}               || 'Misc',
                       };
-        my @ids;
+        $testrun->{notify} = ($opt->{notify} || 'all') if exists $opt->{notify};
 
+        my @ids;
         @ids = $self->create_macro_preconditions($opt, $args) if $opt->{macroprecond};
         push @ids, @{$opt->{precondition}} if $opt->{precondition};
 
@@ -286,6 +289,7 @@ sub new_runtest
                         push @ids, $self->add_feature($testrun_id, $feature);
                 }
         }
+
         $testrun_search->testrun_scheduling->status('schedule');
         $testrun_search->testrun_scheduling->update;
 
