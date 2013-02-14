@@ -213,7 +213,7 @@ sub testplannew
         if ( $opt->{help} or not $opt->{file}) {
                 say STDERR "Usage: $0 testplan-new --file=s  [ -dry-run|n ] [ -v ] [ -Dkey=value ] [ --path=s ] [ --name=s ] [ --include=s ]*";
                 say STDERR "";
-                say STDERR "    --D          Define a key=value pair used for macro expansion";
+                say STDERR "    -D           Define a key=value pair used for macro expansion";
                 say STDERR "    --dryrun     Just print evaluated testplan without submit to DB";
                 say STDERR "    --file       Use (macro) testplan file";
                 say STDERR "    --guide      Just print self-documentation";
