@@ -14,7 +14,7 @@ construct_fixture( schema  => testrundb_schema, fixture => 't/fixtures/testrundb
 # -----------------------------------------------------------------------------------------------------------------
 
 my $retval;
-my $host_id = `$^X -Ilib bin/tapper-testrun newhost  --name="host1"`;
+my $host_id = `$^X -Ilib bin/tapper host-new  --name="host1"`;
 chomp $host_id;
 
 my $host_result = model('TestrunDB')->resultset('Host')->find($host_id);
@@ -24,7 +24,7 @@ is($host_result->name, 'host1', 'inserted host without option / name');
 
 # --------------------------------------------------
 
-$host_id = `$^X -Ilib bin/tapper-testrun newhost  --name="host2" --active --queue=KVM`;
+$host_id = `$^X -Ilib bin/tapper host-new  --name="host2" --active --queue=KVM`;
 chomp $host_id;
 
 $host_result = model('TestrunDB')->resultset('Host')->find($host_id);
@@ -35,7 +35,7 @@ ok($host_result->free, 'inserted host with active and existing queue / free');
 
 # --------------------------------------------------
 
-$host_id = `$^X -Ilib bin/tapper-testrun newhost  --name="host3" --queue=Xen --queue=KVM`;
+$host_id = `$^X -Ilib bin/tapper host-new  --name="host3" --queue=Xen --queue=KVM`;
 chomp $host_id;
 
 $host_result = model('TestrunDB')->resultset('Host')->find($host_id);
@@ -52,7 +52,7 @@ else {
 }
 
 # --------------------------------------------------
-$host_id = qx($^X -Ilib bin/tapper-testrun newhost  --name="host4" --queue=noexist 2>&1);
+$host_id = qx($^X -Ilib bin/tapper host-new  --name="host4" --queue=noexist 2>&1);
 like($host_id, qr(No such queue: noexist), 'Error handling for nonexistent queue');
 
 

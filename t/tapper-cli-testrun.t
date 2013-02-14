@@ -150,7 +150,7 @@ is($testrun->testrun_scheduling->auto_rerun, '1', 'Auto_rerun new testrun');
 
 # --------------------------------------------------
 
-my $host_id = `$^X -Ilib bin/tapper-testrun newhost --name=fritz --active`;
+my $host_id = `$^X -Ilib bin/tapper host-new --name=fritz --active`;
 chomp $host_id;
 
 my $host = model('TestrunDB')->resultset('Host')->find($host_id);
@@ -182,13 +182,15 @@ ok(defined($testrun->testrun_scheduling->prioqueue_seq), 'inserted testrun is in
 # --------------------------------------------------
 #         Notify
 # --------------------------------------------------
-$testrun_id = `$^X -Ilib bin/tapper-testrun new --topic=Software --notify --precondition=1`;
-chomp $testrun_id;
-$testrun = model('TestrunDB')->resultset('Testrun')->find($testrun_id);
-ok($testrun->id, 'inserted testrun / id');
-my $notify = model('ReportsDB')->resultset('Notification')->first;
-is($notify->filter, "testrun('id') == $testrun_id", 'Notification with filter');
-
+SKIP: {
+        skip "Notifications are bot fully supported at the moment", 2;
+        $testrun_id = `$^X -Ilib bin/tapper-testrun new --topic=Software --notify --precondition=1`;
+        chomp $testrun_id;
+        $testrun = model('TestrunDB')->resultset('Testrun')->find($testrun_id);
+        ok($testrun->id, 'inserted testrun / id');
+        my $notify = model('ReportsDB')->resultset('Notification')->first;
+        is($notify->filter, "testrun('id') == $testrun_id", 'Notification with filter');
+}
 
 
 

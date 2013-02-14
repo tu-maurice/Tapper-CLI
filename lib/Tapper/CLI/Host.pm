@@ -15,7 +15,7 @@ Tapper::CLI::Host - Tapper - host related commands for the tapper CLI
 
 This module is part of the Tapper::CLI framework. It is supposed to be
 used together with App::Rad. All following functions expect their
-arguments as $c->options->{$arg}.
+arguments as $c->options->{$arg} unless otherwise stated.
 
     use App::Rad;
     use Tapper::CLI::Host;
@@ -352,6 +352,63 @@ sub host_bind
 }
 
 
+=head2 host_new
+
+Create a new host.
+
+=cut
+
+sub host_new
+{
+        my ($c) = @_;
+        $c->getopt( 'name=s', 'queue=s@', 'active', 'verbose|v', 'help|?' );
+        if ( $c->options->{help} or not $c->options->{name}) {
+                say STDERR "Host name missing!" unless $c->options->{name};
+                say STDERR "$0 host-new  --name=s [ --queue=s@ ] [--pool_count=s] [--verbose|-v] [--help|-?";
+                say STDERR "    --name         Name of the new host)";
+                say STDERR "    --queue        Bind host to this queue, can be given multiple times)";
+                say STDERR "    --active       Make host active; without it host will be initially deactivated)";
+                say STDERR "    --verbose      More verbose output)";
+                exit -1;
+        }
+
+        if ($c->options->{queue}) {
+                foreach my $queue (@{$c->options->{queue}}) {
+                        my $queue_rs = model('TestrunDB')->resultset('Queue')->search({name => $queue});
+                        if (not $queue_rs->count) {
+                                say STDERR "No such queue: $queue";
+                                my @queue_names = map {$_->name} model('TestrunDB')->resultset('Queue')->all;
+                                say STDERR "Existing queues: ",join ", ",@queue_names;
+                        }
+                }
+        }
+        my $host = {
+                    name       => $c->options->{name},
+                    active     => $c->options->{active},
+                    free       => 1,
+                   };
+
+        my $newhost = model('TestrunDB')->resultset('Host')->new($host);
+        $newhost->insert();
+        die "Can't create new host\n" if not $newhost; # actually, on this place DBIC should have died already
+
+        if ($c->options->{queue}) {
+                foreach my $queue (@{$c->options->{queue}}) {
+                        my $queue_rs   = model('TestrunDB')->resultset('Queue')->search({name => $queue});
+                        if (not $queue_rs->count) {
+                                $newhost->delete();
+                                say STDERR qq(Did not find queue "$queue");
+                        }
+                        my $queue_host = model('TestrunDB')->resultset('QueueHost')->new({
+                                                                                          host_id  => $newhost->id,
+                                                                                          queue_id => $queue_rs->search({}, {rows => 1})->first->id,
+                                                                                         });
+                        $queue_host->insert();
+                }
+        }
+        return $newhost->id;
+}
+
 =head2 setup
 
 Initialize the testplan functions for tapper CLI
@@ -364,8 +421,9 @@ sub setup
         $c->register('host-list', \&listhost,  'Show all hosts matching a given condition');
         $c->register('host-deny', \&host_deny, 'Setup or remove forbidden host/queue combinations');
         $c->register('host-bind', \&host_bind, 'Setup or remove host/queue bindings');
+        $c->register('host-new',  \&host_new,  'Create a new host by name');
         if ($c->can('group_commands')) {
-                $c->group_commands('Host commands', 'host-list', 'host-bind', 'host-deny', );
+                $c->group_commands('Host commands', 'host-new', 'host-list', 'host-bind', 'host-deny', );
         }
         return;
 }
