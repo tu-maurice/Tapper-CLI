@@ -57,12 +57,15 @@ sub host_feature_summary
 sub print_hosts_verbose
 {
         my ($hosts, $verbosity_level) = @_;
+
+        # calculate width of columns
         my %max = (
                    name      => length('Name'),
                    features  => length ('Features'),
                    comment   => length('Comment'),
                    bindqueue => length('Bound Queues'),
                    denyqueue => length('Denied Queues'),
+                   pool      => length('Pool count'),
                   );
  HOST:
         foreach my $host ($hosts->all) {
@@ -70,6 +73,8 @@ sub print_hosts_verbose
                 $max{name}    = length($host->name) if length($host->name) > $max{name};
                 $max{features} = length($features) if length($features) > $max{features};
                 $max{comment} = length($host->comment) if length($host->comment) > $max{comment};
+                $max{pool} = length($host->pool_count) if length($host->pool_count) > $max{pool};
+
 
                 my $tmp_length = length(join ", ", map {$_->queue->name} $host->queuehosts->all);
                 $max{bindqueue} = $tmp_length if $tmp_length > $max{bindqueue} ;
@@ -78,18 +83,19 @@ sub print_hosts_verbose
                 $max{denyqueue} = $tmp_length if $tmp_length > $max{bindqueue} ;
         }
 
-        my ($name_length, $feature_length, $comment_length, $bq_length, $dq_length) = ($max{name}, $max{features}, $max{comment}, $max{bindqueue}, $max{denyqueue});
+        my ($name_length, $feature_length, $comment_length, $bq_length, $dq_length, $pool_length) =
+          ($max{name}, $max{features}, $max{comment}, $max{bindqueue}, $max{denyqueue}, $max{pool});
 
         # use printf to get the wanted field width
         if ($verbosity_level > 1) {
-                printf("%5s | %${name_length}s | %-${feature_length}s | %11s | %10s | %${comment_length}s | %-${bq_length}s | %-${dq_length}s\n",
-                        'ID', 'Name', 'Features', 'Active', 'Testrun ID', 'Comment', 'Bound Queues', 'Denied Queues');
+                printf("%5s | %${name_length}s | %-${feature_length}s | %11s | %10s | %${comment_length}s | %-${bq_length}s | %-${dq_length}s | %-${pool_length}s\n",
+                        'ID', 'Name', 'Features', 'Active', 'Testrun ID', 'Comment', 'Bound Queues', 'Denied Queues', 'Pool Count');
         } else {
-                printf("%5s | %${name_length}s | %-${feature_length}s | %11s | %10s | %${bq_length}s | %${dq_length}s\n",
-                        'ID', 'Name', 'Features', 'Active', 'Testrun ID', 'Bound Queues', 'Denied Queues');
+                printf("%5s | %${name_length}s | %-${feature_length}s | %11s | %10s | %${bq_length}s | %${dq_length}s | %-${pool_length}s\n",
+                        'ID', 'Name', 'Features', 'Active', 'Testrun ID', 'Bound Queues', 'Denied Queues', 'Pool Count');
                 $comment_length = 0;
         }
-        say "="x(5+$name_length+$feature_length+11+length('Testrun ID')+$comment_length+$bq_length+$dq_length+7*length(' | '));
+        say "="x(5+$name_length+$feature_length+11+length('Testrun ID')+$comment_length+$bq_length+$dq_length+$pool_length+7*length(' | '));
 
 
         foreach my $host ($hosts->all) {
@@ -107,7 +113,7 @@ sub print_hosts_verbose
                                      $host->is_deleted ? 'deleted' : ( $host->active ? 'active' : 'deactivated' ),
                                      $host->free   ? 'free'   : "$testrun_id",
                                     );
-                if ($verbosity_level > 1) {
+                  if ($verbosity_level > 1) {
                         $output .= sprintf("%${comment_length}s | ", $host->comment);
 
                 }
@@ -115,6 +121,7 @@ sub print_hosts_verbose
                                    $host->queuehosts->count        ? join(", ", map {$_->queue->name} $host->queuehosts->all) : '',
                                    $host->denied_from_queue->count ? join(", ", map {$_->queue->name} $host->denied_from_queue->all) : ''
                                   );
+                $output .= sprintf(" | %-${pool_length}s", $host->is_pool ? $host->pool_count : '-');
                 say $output;
         }
 }
@@ -131,7 +138,8 @@ sub select_hosts
         my %search;
         $search{active}     = 1 if $opt->{active};
         $search{is_deleted} = {-in => [ 0, undef ] } unless $opt->{all};
-        $search{free}   = 1 if $opt->{free};
+        $search{free}       = 1 if $opt->{free};
+        $search{pool_count} = { not => undef } if $opt->{pool};
 
         # ignore all options if host is requested by name
         %search = (name   => $opt->{name}) if $opt->{name};
@@ -197,14 +205,15 @@ List hosts matching given criteria.
 sub listhost
 {
         my ($c) = @_;
-        $c->getopt( 'free', 'name=s@', 'active', 'queue=s@', 'all|a', 'verbose|v+', 'yaml', 'help|?' );
+        $c->getopt( 'free', 'name=s@', 'active', 'queue=s@', 'pool', 'all|a', 'verbose|v+', 'yaml', 'help|?' );
         if ( $c->options->{help} ) {
-                say STDERR "$0 host-list [ --verbose|v ] [ --free ] | [ --name=s ]  [ --active ] [ --queue=s@ ] [ --all|a] [ --yaml ]";
+                say STDERR "$0 host-list [ --verbose|v ] [ --free ] | [ --name=s ] [--pool] [ --active ] [ --queue=s@ ] [ --all|a] [ --yaml ]";
                 say STDERR "    --verbose      Increase verbosity level, without show only names, level one shows all but comments, level two shows all including comments";
                 say STDERR "    --free         List only free hosts";
                 say STDERR "    --name         Find host by name, implies verbose";
                 say STDERR "    --active       List only active hosts";
                 say STDERR "    --queue        List only hosts bound to this queue";
+                say STDERR "    --pool         List only pool hosts, even deleted ones";
                 say STDERR "    --all          List all hosts, even deleted ones";
                 say STDERR "    --help         Print this help message and exit";
                 say STDERR "    --yaml         Print information in YAML format, implies verbose";
@@ -361,7 +370,7 @@ Create a new host.
 sub host_new
 {
         my ($c) = @_;
-        $c->getopt( 'name=s', 'queue=s@', 'active', 'verbose|v', 'help|?' );
+        $c->getopt( 'name=s', 'queue=s@', 'active', 'pool_count=s', 'verbose|v', 'help|?' );
         if ( $c->options->{help} or not $c->options->{name}) {
                 say STDERR "Host name missing!" unless $c->options->{name};
                 say STDERR "$0 host-new  --name=s [ --queue=s@ ] [--pool_count=s] [--verbose|-v] [--help|-?";
@@ -386,6 +395,7 @@ sub host_new
                     name       => $c->options->{name},
                     active     => $c->options->{active},
                     free       => 1,
+                    pool_count => $c->options->{pool_count} ? $c->options->{pool_count} : undef, # need to turn 0 into undef, because 0 makes $host->is_pool true
                    };
 
         my $newhost = model('TestrunDB')->resultset('Host')->new($host);
