@@ -211,8 +211,15 @@ sub testplannew
         my $opt = $c->options;
 
         if ( $opt->{help} or not $opt->{file}) {
-                say STDERR "Usage: $0 testplan-new --file=s  [ -n ] [ -v ] [ -Dkey=value ] [ --path=s ] [ --name=s ] [ --include=s ]*";
+                say STDERR "Usage: $0 testplan-new --file=s  [ -dry-run|n ] [ -v ] [ -Dkey=value ] [ --path=s ] [ --name=s ] [ --include=s ]*";
                 say STDERR "";
+                say STDERR "    --D          Define a key=value pair used for macro expansion";
+                say STDERR "    --dryrun     Just print evaluated testplan without submit to DB";
+                say STDERR "    --file       Use (macro) testplan file";
+                say STDERR "    --guide      Just print self-documentation";
+                say STDERR "    --include    Add include directory (multiple allowed)";
+                say STDERR "    --name       Provide a name for this testplan instance";
+                say STDERR "    --path       Put this path into db instead of file path";
                 say STDERR "    --verbose    Show more progress output.";
                 say STDERR "    --quiet      Only show testplan ids, suppress path, name and testrun ids.";
                 say STDERR "    --help       Print this help message and exit.";
@@ -244,7 +251,7 @@ sub setup
         $c->register('testplan-tj-generate', \&testplan_tj_generate, 'Apply all testplans that are due according to taskjuggler plan');
         $c->register('testplan-new', \&testplannew, 'Create new testplan instance from file');
         if ($c->can('group_commands')) {
-                $c->group_commands('Testplan commands', 'testplan-send', 'testplan-list', 'testplan-tj-send', 'testplan-tj-generate');
+                $c->group_commands('Testplan commands', 'testplan-send', 'testplan-list', 'testplan-tj-send', 'testplan-tj-generate', 'testplan-new');
         }
         return;
 }
