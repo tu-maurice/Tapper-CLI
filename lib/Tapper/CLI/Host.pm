@@ -65,7 +65,7 @@ sub print_hosts_verbose
                    comment   => length('Comment'),
                    bindqueue => length('Bound Queues'),
                    denyqueue => length('Denied Queues'),
-                   pool      => length('Pool count'),
+                   pool      => length('Pool count (free/all)'),
                   );
  HOST:
         foreach my $host ($hosts->all) {
@@ -73,8 +73,6 @@ sub print_hosts_verbose
                 $max{name}    = length($host->name) if length($host->name) > $max{name};
                 $max{features} = length($features) if length($features) > $max{features};
                 $max{comment} = length($host->comment) if length($host->comment) > $max{comment};
-                $max{pool} = length($host->pool_count) if length($host->pool_count) > $max{pool};
-
 
                 my $tmp_length = length(join ", ", map {$_->queue->name} $host->queuehosts->all);
                 $max{bindqueue} = $tmp_length if $tmp_length > $max{bindqueue} ;
@@ -121,10 +119,12 @@ sub print_hosts_verbose
                                    $host->queuehosts->count        ? join(", ", map {$_->queue->name} $host->queuehosts->all) : '',
                                    $host->denied_from_queue->count ? join(", ", map {$_->queue->name} $host->denied_from_queue->all) : ''
                                   );
-                $output .= sprintf(" | %-${pool_length}s", $host->is_pool ? $host->pool_count : '-');
+                $output .= sprintf(" | %-${pool_length}s", $host->is_pool ? $host->pool_free."/".$host->pool_count : '-');
                 say $output;
         }
 }
+
+
 
 
 =head2 select_hosts
@@ -395,7 +395,7 @@ sub host_new
                     name       => $c->options->{name},
                     active     => $c->options->{active},
                     free       => 1,
-                    pool_count => $c->options->{pool_count} ? $c->options->{pool_count} : undef, # need to turn 0 into undef, because 0 makes $host->is_pool true
+                    pool_free  => $c->options->{pool_count} ? $c->options->{pool_count} : undef, # need to turn 0 into undef, because 0 makes $host->is_pool true
                    };
 
         my $newhost = model('TestrunDB')->resultset('Host')->new($host);
