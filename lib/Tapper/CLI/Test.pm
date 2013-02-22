@@ -74,7 +74,7 @@ sub testrun_update
         my ($c) = @_;
         $c->getopt( 'id=i@','status=s', 'auto-rerun!','help|?', 'verbose|v' );
         if ( $c->options->{help} or not $c->options->{id}) {
-                say STDERR "Please set at least one testrun id with --id!" unless @{$c->options->{id}};
+                say STDERR "Please set at least one testrun id with --id!" unless @{$c->options->{id} || []};
                 say STDERR "Please set an update action" unless ($c->options->{state} or defined $c->options->{"auto-rerun"});
                 say STDERR "$0 testrun-update --id=s@ --status=s --auto_rerun --no-auto-rerun --verbose|v [--help|?]";
                 say STDERR "    --id            Id of the testrun to update, can be given multiple times";
