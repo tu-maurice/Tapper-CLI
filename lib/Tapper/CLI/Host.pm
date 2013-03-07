@@ -65,7 +65,7 @@ sub print_hosts_verbose
                    comment   => length('Comment'),
                    bindqueue => length('Bound Queues'),
                    denyqueue => length('Denied Queues'),
-                   pool      => length('Pool count (free/all)'),
+                   pool      => length('Pool count (used/all)'),
                   );
  HOST:
         foreach my $host ($hosts->all) {
@@ -87,10 +87,10 @@ sub print_hosts_verbose
         # use printf to get the wanted field width
         if ($verbosity_level > 1) {
                 printf("%5s | %${name_length}s | %-${feature_length}s | %11s | %10s | %${comment_length}s | %-${bq_length}s | %-${dq_length}s | %-${pool_length}s\n",
-                        'ID', 'Name', 'Features', 'Active', 'Testrun ID', 'Comment', 'Bound Queues', 'Denied Queues', 'Pool Count');
+                        'ID', 'Name', 'Features', 'Active', 'Testrun ID', 'Comment', 'Bound Queues', 'Denied Queues', 'Pool Count (used/all)');
         } else {
                 printf("%5s | %${name_length}s | %-${feature_length}s | %11s | %10s | %${bq_length}s | %${dq_length}s | %-${pool_length}s\n",
-                        'ID', 'Name', 'Features', 'Active', 'Testrun ID', 'Bound Queues', 'Denied Queues', 'Pool Count');
+                        'ID', 'Name', 'Features', 'Active', 'Testrun ID', 'Bound Queues', 'Denied Queues', 'Pool Count (used/all)');
                 $comment_length = 0;
         }
         say "="x(5+$name_length+$feature_length+11+length('Testrun ID')+$comment_length+$bq_length+$dq_length+$pool_length+7*length(' | '));
@@ -119,7 +119,7 @@ sub print_hosts_verbose
                                    $host->queuehosts->count        ? join(", ", map {$_->queue->name} $host->queuehosts->all) : '',
                                    $host->denied_from_queue->count ? join(", ", map {$_->queue->name} $host->denied_from_queue->all) : ''
                                   );
-                $output .= sprintf(" | %-${pool_length}s", $host->is_pool ? $host->pool_free."/".$host->pool_count : '-');
+                $output .= sprintf(" | %-${pool_length}s", $host->is_pool ? ($host->pool_count-$host->pool_free)."/".$host->pool_count : '-');
                 say $output;
         }
 }
