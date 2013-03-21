@@ -113,4 +113,24 @@ is($queue_result->queuehosts->first->host->name, 'dickstone', 'Dickstone bound t
 qx($^X -Ilib bin/tapper host-bind --host=dickstone --queue=AdHoc --off);
 is($queue_result->deniedhosts->count, 0, 'Dickstone binding to queue AdHoc removed');
 
+$retval = qx($^X -Ilib bin/tapper host-update --name=host2 --pool_count 2);
+diag($retval) if $?;
+is($?, 0, 'Update host / return value');
+$host_result = model('TestrunDB')->resultset('Host')->find({name => 'host2'});
+is($host_result->pool_free, '2', 'Host2 is now a pool host with 2 elements');
+
+my $job = model('TestrunDB')->resultset('TestrunScheduling')->new({host_id => 11, # host_id 11 is host2
+                                                                   testrun_id => 3001,
+                                                                  })->insert;
+$job->mark_as_running();
+
+$retval = qx($^X -Ilib bin/tapper host-update --name=host2 --pool_count 3);
+diag($retval) if $?;
+is($?, 0, 'Update host / return value');
+
+$retval = qx($^X -Ilib bin/tapper host-list --name=host2 -v);
+diag($retval) if $?;
+is($?, 0, 'Update host / return value');
+like($retval, qr(1/3), 'Poolcount updated');
+
 done_testing();

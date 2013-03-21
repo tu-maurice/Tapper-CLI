@@ -419,6 +419,51 @@ sub host_new
         return $newhost->id;
 }
 
+=head2 host_update
+
+Update values of the host other than binding and denying queues.
+
+=cut
+
+sub host_update
+{
+        my ($c) = @_;
+        $c->getopt( 'name=s', 'id=i', 'active', 'pool_count=s', 'comment=s','verbose|v', 'help|?' );
+        if ( $c->options->{help} or not ($c->options->{name} or $c->options->{id})) {
+                say STDERR "Please provide name or id of a host!" unless ($c->options->{name} or $c->options->{id});
+                say STDERR "$0 host-update  --name=s | --id=i [--pool_count=s] [--active | --noactive] [--comment=s] [--verbose|-v] [--help|-?]";
+                say STDERR "    --name         Name of the host";
+                say STDERR "    --id           Id of the host; If both id and name are given you can change the name.";
+                say STDERR "    --active       Make host active; without it host will be initially deactivated";
+                say STDERR "    --pool_count   Update the sum pool count of a host. Empty string make host a nonpool host. This works only if host is deactivated";
+                say STDERR "    --active       Make host active";
+                say STDERR "    --noactive     Make host non-active";
+                say STDERR "    --comment      Update host comment";
+                say STDERR "    --verbose|v    More verbose output";
+                exit -1;
+        }
+
+        if ($c->options->{name} and not $c->options->{id}) {
+                my $host = model('TestrunDB')->resultset('Host')->search({name => $c->options->{name}}, {rows => 1})->first;
+                if (not  $host) {
+                        die "No such host: ", $c->options->{name}, "\n";
+                }
+                $c->options->{id} = $host->id;
+        }
+
+        my $host = model('TestrunDB')->resultset('Host')->find($c->options->{id});
+        if (not $host) {
+                die "No host with id ", $c->options->{id}, "\n";
+        }
+
+        $host->active($c->options->{active})         if defined($c->options->{active});
+        $host->name($c->options->{name})             if $c->options->{name};
+        $host->comment($c->options->{comment})       if defined($c->options->{comment});
+        $host->pool_count($c->options->{pool_count}) if defined($c->options->{pool_count});
+        $host->update;
+        return;
+}
+
 =head2 setup
 
 Initialize the testplan functions for tapper CLI
@@ -432,8 +477,9 @@ sub setup
         $c->register('host-deny', \&host_deny, 'Setup or remove forbidden host/queue combinations');
         $c->register('host-bind', \&host_bind, 'Setup or remove host/queue bindings');
         $c->register('host-new',  \&host_new,  'Create a new host by name');
+        $c->register('host-update',  \&host_update,  'Update an existing host');
         if ($c->can('group_commands')) {
-                $c->group_commands('Host commands', 'host-new', 'host-list', 'host-bind', 'host-deny', );
+                $c->group_commands('Host commands', 'host-new', 'host-list', 'host-update', 'host-bind', 'host-deny',  );
         }
         return;
 }
