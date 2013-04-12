@@ -171,7 +171,7 @@ sub testplanlist
                         push @ids, $instance->id;
                 }
         }
-        if ($verbose) {
+        if ($verbose or $c->options->{verbose}) {
                 my $instances = model('TestrunDB')->resultset('TestplanInstance')->search({id => \@ids});
                 while (my $instance = $instances->next) {
                         my $line = $instance->id;
