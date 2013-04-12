@@ -4,6 +4,9 @@ package Tapper::CLI::Testplan;
 use 5.010;
 use warnings;
 use strict;
+use Perl6::Junction qw/all/;
+use English '-no_match_vars';
+
 
 # TODO: Should Tapper::Testplan::* better be in Tapper::Cmd::Testplan?
 use Tapper::Testplan::Reporter;
@@ -89,70 +92,100 @@ List testplans matching a given pattern.
 sub testplanlist
 {
         my ($c) = @_;
-        $c->getopt( 'name|n=s@','testrun|t=s@', 'active|a', 'quiet|q', 'help|?' );
+        $c->getopt( 'name|n=s@','testrun|t=s@', 'id|i=i@','active|a', 'verbose|v', 'help|?' );
 
         if ( $c->options->{help} ) {
-                say STDERR "Usage: $0 testplan-list [ --name=path ]* [ --testrun=id ]*  [ --quiet ]";
+                say STDERR "Usage: $0 testplan-list [ --name=path|-n=path]* [ --testrun=id|-t=id ]* [ --id=number|-i=number ] [ --active|-a] [ --verbose|-v ]";
                 say STDERR "";
-                say STDERR "    --name       Path name of testplans to list.";
-                say STDERR "                 Only slashes(/) are allowed as separators.";
-                say STDERR "                 Can be a regular expression. Make sure your shell does not break it.";
-                say STDERR "                 Can be given multiple times";
-                say STDERR "    --testrun    Show testplan containing this testrun id";
-                say STDERR "                 Can be given multiple times";
-                say STDERR "    --id         Show testplan of given id";
-                say STDERR "                 Can be given multiple times.";
-                say STDERR "    --active     Only show testplan with testruns that are not finished yet.";
-                say STDERR "    --quiet      Only show testplan ids, suppress path, name and testrun ids.";
-                say STDERR "    --help       Print this help message and exit.";
+                say STDERR "    --name|-n         Path name of testplans to list.";
+                say STDERR "                      Only slashes(/) are allowed as separators.";
+                say STDERR "                      Can be a regular expression. Make sure your shell does not break it.";
+                say STDERR "                      Can be given multiple times";
+                say STDERR "    --testrun|-t      Show testplan containing this testrun id";
+                say STDERR "                      Can be given multiple times";
+                say STDERR "    --id|-i           Show testplan of given id";
+                say STDERR "                      Can be given multiple times. Implies -v";
+                say STDERR "    --active|-a       Only show testplan with testruns that are not finished yet.";
+                say STDERR "    --verbose|-v      Show testplan with id, name and associated testruns. Without only testplan id is shown.";
+                say STDERR "    --help            Print this help message and exit.";
                 exit -1;
         }
         my @ids;
         my @testplan_info;
+        my $filtered;
+        my $verbose;
 
+        # not guaranteed that we get empty options as undef or empty list
         if (@{$c->options->{testrun} || []}) {
                 my $testruns = model('TestrunDB')->resultset('Testrun')->search({id => $c->options->{testrun}});
                 while (my $testrun = $testruns->next) {
                         push @ids, $testrun->testplan_id if $testrun->testplan_id;
                 }
-        } elsif ( @{$c->options->{name} || []}) {
+                $filtered = 1;
+        }
+        if ( @{$c->options->{name} || []}) {
                 my $regex = join("|", map { "($_)" } @{$c->options->{name}});
                 my $instances = model('TestrunDB')->resultset('TestplanInstance');
                 while (my $instance = $instances->next) {
                         push @ids, $instance->id if $instance->path and $instance->path =~ /$regex/;
                 }
-        } else {
-                my $instances = model('TestrunDB')->resultset('TestplanInstance');
-                while (my $instance = $instances->next) {
-                        push @ids, $instance->id;
-                }
+                $filtered=1;
         }
+        if ( @{$c->options->{id} || []}) {
+                my $instances = model('TestrunDB')->resultset('TestplanInstance')->search({id => {'in' => $c->options->{id}}});
 
+                if ($instances->count != int @{$c->options->{id}}) {
+                        my @existing = map {$_->id} $instances->all;
+                        my @wrong = grep {all(@existing) != $_} @{$c->options->{id}};
+
+                        local $LIST_SEPARATOR=", "; # die without join, much more readable
+                        die "The following ids could not be found: @wrong\n";
+                }
+
+                push @ids, @{$c->options->{id}};
+                $filtered=1;
+        }
         if ($c->options->{active}) {
                 my @local_ids = @ids;
-                my $instances = model('TestrunDB')->resultset('TestplanInstance')->search({id => \@local_ids});
+                my $instances;
+
+                if (@local_ids) {
+                        $instances = model('TestrunDB')->resultset('TestplanInstance')->search({id => \@local_ids});
+                } else {
+                        $instances = model('TestrunDB')->resultset('TestplanInstance');
+                }
+
                 @ids = ();
                 while (my $instance = $instances->next) {
                         if ($instance->testruns and grep {$_->testrun_scheduling->status ne 'finished'} $instance->testruns->all) {
                                 push @ids, $instance->id;
                         }
                 }
+                $filtered=1;
         }
 
-        if ($c->options->{quiet}) {
-                return join ("\n",@ids);
+
+        if (not $filtered) {
+                my $instances = model('TestrunDB')->resultset('TestplanInstance');
+                while (my $instance = $instances->next) {
+                        push @ids, $instance->id;
+                }
+        }
+        if ($verbose) {
+                my $instances = model('TestrunDB')->resultset('TestplanInstance')->search({id => \@ids});
+                while (my $instance = $instances->next) {
+                        my $line = $instance->id;
+                        $line   .= " - ";
+                        $line   .= ($instance->path ? $instance->path : '' )." - ";
+                        $line   .= "testruns: ";
+                        $line   .= join ", ", map {$_->id} $instance->testruns->all;
+                        push @testplan_info, $line;
+                }
+                return join "\n", @testplan_info;
+        } else {
+                return join "\n", @ids;
         }
 
-        my $instances = model('TestrunDB')->resultset('TestplanInstance')->search({id => \@ids});
-        while (my $instance = $instances->next) {
-                my $line = $instance->id;
-                $line   .= " - ";
-                $line   .= ($instance->path ? $instance->path : '' )." - ";
-                $line   .= "testruns: ";
-                $line   .= join ", ", map {$_->id} $instance->testruns->all;
-                push @testplan_info, $line;
-        }
-        return join "\n", @testplan_info;
 }
 
 =head2 testplan_tj_send
