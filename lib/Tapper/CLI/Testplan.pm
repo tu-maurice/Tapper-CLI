@@ -92,47 +92,53 @@ List testplans matching a given pattern.
 sub testplanlist
 {
         my ($c) = @_;
-        $c->getopt( 'name|n=s@','testrun|t=s@', 'id|i=i@','active|a', 'verbose|v', 'help|?' );
+        $c->getopt( 'name|n=s@', 'path|p=s@', 'testrun|t=s@', 'id|i=i@','active|a','verbose|v', 'help|?' );
 
         if ( $c->options->{help} ) {
-                say STDERR "Usage: $0 testplan-list [ --name=path|-n=path]* [ --testrun=id|-t=id ]* [ --id=number|-i=number ] [ --active|-a] [ --verbose|-v ]";
+                say STDERR "Usage: $0 testplan-list [--path=path|-p=path]* [--name|-n=name]* [--testrun=id|-t=id]* [--id=number|-i=number] [--active|-a] [--verbose|-v]";
                 say STDERR "";
-                say STDERR "    --name|-n         Path name of testplans to list.";
+                say STDERR "    --path|-p         Path name of testplans to list.";
                 say STDERR "                      Only slashes(/) are allowed as separators.";
-                say STDERR "                      Can be a regular expression. Make sure your shell does not break it.";
+                say STDERR "                      Can be an SQL like condition (i.e. '\%name\%'). Make sure your shell does not break it.";
                 say STDERR "                      Can be given multiple times";
+                say STDERR "                      Will reduce number of testplans when given with --testrun or --name, can't go with --id";
+                say STDERR "    --name|-n         name of testplans to list.";
+                say STDERR "                      Can be an SQL like condition (i.e. '\%name\%'). Make sure your shell does not break it.";
+                say STDERR "                      Can be given multiple times";
+                say STDERR "                      Will reduce number of testplans when given with --testrun or --path, can't go with --id";
                 say STDERR "    --testrun|-t      Show testplan containing this testrun id";
                 say STDERR "                      Can be given multiple times";
+                say STDERR "                      Will reduce number of testplans when given with --name or --path, can't go with --id";
                 say STDERR "    --id|-i           Show testplan of given id";
                 say STDERR "                      Can be given multiple times. Implies -v";
+                say STDERR "                      Will override --testrun, --path and --name";
                 say STDERR "    --active|-a       Only show testplan with testruns that are not finished yet.";
+                say STDERR "                      Will reduce number of testplans when given with any other filter.";
                 say STDERR "    --verbose|-v      Show testplan with id, name and associated testruns. Without only testplan id is shown.";
                 say STDERR "    --help            Print this help message and exit.";
                 exit -1;
         }
         my @ids;
-        my @testplan_info;
         my $filtered;
-        my $verbose;
+        my $instances = model('TestrunDB')->resultset('TestplanInstance');
 
         # not guaranteed that we get empty options as undef or empty list
         if (@{$c->options->{testrun} || []}) {
                 my $testruns = model('TestrunDB')->resultset('Testrun')->search({id => $c->options->{testrun}});
-                while (my $testrun = $testruns->next) {
-                        push @ids, $testrun->testplan_id if $testrun->testplan_id;
+                if ($testruns->count == 0) {
+                        warn "No testruns with ids ",join ", ",@{$c->options->{testrun}}, " found. Ignoring --testrun!";
+                } else {
+                        $instances = $instances->search({id => [ map {$_->testplan_id} $testruns->all ]});
                 }
-                $filtered = 1;
         }
         if ( @{$c->options->{name} || []}) {
-                my $regex = join("|", map { "($_)" } @{$c->options->{name}});
-                my $instances = model('TestrunDB')->resultset('TestplanInstance');
-                while (my $instance = $instances->next) {
-                        push @ids, $instance->id if $instance->path and $instance->path =~ /$regex/;
-                }
-                $filtered=1;
+                $instances = $instances->search({name => { like => $c->options->{name} }});
+        }
+        if ( @{$c->options->{path} || []}) {
+                $instances = $instances->search({path => { like => $c->options->{path} }});
         }
         if ( @{$c->options->{id} || []}) {
-                my $instances = model('TestrunDB')->resultset('TestplanInstance')->search({id => {'in' => $c->options->{id}}});
+                $instances = model('TestrunDB')->resultset('TestplanInstance')->search({id => $c->options->{id}});
 
                 if ($instances->count != int @{$c->options->{id}}) {
                         my @existing = map {$_->id} $instances->all;
@@ -141,38 +147,22 @@ sub testplanlist
                         local $LIST_SEPARATOR=", "; # die without join, much more readable
                         die "The following ids could not be found: @wrong\n";
                 }
-
-                push @ids, @{$c->options->{id}};
-                $filtered=1;
+                $c->options->{verbose} = 1;
         }
+
+        # a join would be faster and maybe cleaner
         if ($c->options->{active}) {
-                my @local_ids = @ids;
-                my $instances;
-
-                if (@local_ids) {
-                        $instances = model('TestrunDB')->resultset('TestplanInstance')->search({id => \@local_ids});
-                } else {
-                        $instances = model('TestrunDB')->resultset('TestplanInstance');
-                }
-
-                @ids = ();
+                my @ids;
                 while (my $instance = $instances->next) {
                         if ($instance->testruns and grep {$_->testrun_scheduling->status ne 'finished'} $instance->testruns->all) {
                                 push @ids, $instance->id;
                         }
                 }
-                $filtered=1;
+                $instances = model('TestrunDB')->resultset('TestplanInstance')->search({id => [ @ids ]});
         }
 
-
-        if (not $filtered) {
-                my $instances = model('TestrunDB')->resultset('TestplanInstance');
-                while (my $instance = $instances->next) {
-                        push @ids, $instance->id;
-                }
-        }
-        if ($verbose or $c->options->{verbose}) {
-                my $instances = model('TestrunDB')->resultset('TestplanInstance')->search({id => \@ids});
+        if ($c->options->{verbose}) {
+                my @testplan_info;
                 while (my $instance = $instances->next) {
                         my $line = $instance->id;
                         $line   .= " - ";
@@ -183,7 +173,7 @@ sub testplanlist
                 }
                 return join "\n", @testplan_info;
         } else {
-                return join "\n", @ids;
+                return join "\n", map { $_->id} $instances->all;
         }
 
 }
