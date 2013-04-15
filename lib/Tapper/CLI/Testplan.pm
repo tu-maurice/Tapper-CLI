@@ -7,6 +7,9 @@ use strict;
 use Perl6::Junction qw/all/;
 use English '-no_match_vars';
 
+use JSON::XS;
+use YAML::XS;
+
 
 # TODO: Should Tapper::Testplan::* better be in Tapper::Cmd::Testplan?
 use Tapper::Testplan::Reporter;
@@ -91,11 +94,12 @@ List testplans matching a given pattern.
 
 sub testplanlist
 {
+
         my ($c) = @_;
-        $c->getopt( 'name|n=s@', 'path|p=s@', 'testrun|t=s@', 'id|i=i@','active|a','verbose|v', 'help|?' );
+        $c->getopt( 'name|n=s@', 'path|p=s@', 'testrun|t=s@', 'id|i=i@','active|a','verbose|v', 'format=s', 'help|?' );
 
         if ( $c->options->{help} ) {
-                say STDERR "Usage: $0 testplan-list [--path=path|-p=path]* [--name|-n=name]* [--testrun=id|-t=id]* [--id=number|-i=number] [--active|-a] [--verbose|-v]";
+                say STDERR "Usage: $0 testplan-list [--path=path|-p=path]* [--name|-n=name]* [--testrun=id|-t=id]* [--id=number|-i=number] [--active|-a] [ --format=JSON|YAML ] [--verbose|-v]";
                 say STDERR "";
                 say STDERR "    --path|-p         Path name of testplans to list.";
                 say STDERR "                      Only slashes(/) are allowed as separators.";
@@ -114,6 +118,7 @@ sub testplanlist
                 say STDERR "                      Will override --testrun, --path and --name";
                 say STDERR "    --active|-a       Only show testplan with testruns that are not finished yet.";
                 say STDERR "                      Will reduce number of testplans when given with any other filter.";
+                say STDERR "    --format          Give output in this format. Valid values are YAML, JSON. Case insensitive. Always verbose.";
                 say STDERR "    --verbose|-v      Show testplan with id, name and associated testruns. Without only testplan id is shown.";
                 say STDERR "    --help            Print this help message and exit.";
                 exit -1;
@@ -121,6 +126,7 @@ sub testplanlist
         my @ids;
         my $filtered;
         my $instances = model('TestrunDB')->resultset('TestplanInstance');
+        my $format    = $c->options->{format};
 
         # not guaranteed that we get empty options as undef or empty list
         if (@{$c->options->{testrun} || []}) {
@@ -160,20 +166,37 @@ sub testplanlist
                 }
                 $instances = model('TestrunDB')->resultset('TestplanInstance')->search({id => [ @ids ]});
         }
-
-        if ($c->options->{verbose}) {
-                my @testplan_info;
-                while (my $instance = $instances->next) {
-                        my $line = $instance->id;
-                        $line   .= " - ";
-                        $line   .= ($instance->path ? $instance->path : '' )." - ";
-                        $line   .= "testruns: ";
-                        $line   .= join ", ", map {$_->id} $instance->testruns->all;
-                        push @testplan_info, $line;
+        my %inst_data;
+        while (my $instance = $instances->next) {
+                $inst_data{$instance->id} =
+                {
+                 path     => $instance->path ? $instance->path : '',
+                 name     => $instance->path ? $instance->path : '',
+                 testruns => [ map { {id => $_->id, status => ''.$_->testrun_scheduling->status} } $instance->testruns ], # stringify enum object
                 }
-                return join "\n", @testplan_info;
+        }
+        if ($c->options->{format}) {
+                use Data::Dumper;
+                given(lc($c->options->{format})) {
+                        when ('yaml') { return YAML::XS::Dump(\%inst_data)}
+                        when ('json') { return encode_json(\%inst_data)}
+                        default       { die "unknown format: ",$c->options->{format}}
+                }
         } else {
-                return join "\n", map { $_->id} $instances->all;
+                if ($c->options->{verbose}) {
+                        my @testplan_info;
+                        foreach my $id (keys %inst_data) {
+                                my $line = join(" - ",
+                                                $id,
+                                                $inst_data{$id}->{path},
+                                                "testruns: ".join(", ", map{$_->{id}} @{$inst_data{$id}->{testruns}})
+                                               );
+                                push @testplan_info, $line;
+                        }
+                        return join "\n", @testplan_info;
+                } else {
+                        return join "\n", map { $_->id} $instances->all;
+                }
         }
 
 }
