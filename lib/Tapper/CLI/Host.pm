@@ -428,7 +428,7 @@ Update values of the host other than binding and denying queues.
 sub host_update
 {
         my ($c) = @_;
-        $c->getopt( 'name=s', 'id=i', 'active', 'pool_count=s', 'comment=s','verbose|v', 'help|?' );
+        $c->getopt( 'name=s', 'id=i', 'active!', 'pool_count=s', 'comment=s','verbose|v', 'help|?' );
         if ( $c->options->{help} or not ($c->options->{name} or $c->options->{id})) {
                 say STDERR "Please provide name or id of a host!" unless ($c->options->{name} or $c->options->{id});
                 say STDERR "$0 host-update  --name=s | --id=i [--pool_count=s] [--active | --noactive] [--comment=s] [--verbose|-v] [--help|-?]";
