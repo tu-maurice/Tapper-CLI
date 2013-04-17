@@ -7,6 +7,7 @@ use warnings;
 no warnings 'uninitialized';
 
 use parent 'App::Cmd::Command';
+use YAML::XS;
 
 use Tapper::Cmd::Scenario;
 use Tapper::Cmd::Testrun;
@@ -83,12 +84,13 @@ sub execute
 {
         my ($self, $opt, $args) = @_;
 
-        use File::Slurp 'slurp';
-        my $scenario = slurp($opt->{file});
+        my $scenario = do {local $/;
+                           open (my $, '<', $opt->{file}) or die "Can open file:$!\n";
+                           <$fh>
+                   };
         $scenario = $self->apply_macro($scenario, $opt->{d});
 
-        use YAML::Syck 'Load';
-        my $scenario_conf = Load($scenario);
+        my $scenario_conf = YAML::XS::Load($scenario);
         given ($scenario_conf->{scenario_type}) {
                 when ('interdep') {
                         $self->parse_interdep($scenario_conf->{description}, $opt);
