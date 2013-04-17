@@ -189,8 +189,8 @@ sub parse_interdep
                 my $precondition = Tapper::Cmd::Precondition->new();
                 my @ids = $precondition->add($testrun->{preconditions});
                 my $retval = $precondition->assign_preconditions($testrun_id, @ids);
-
         }
+
         if ($opt->{quiet}) {
                 say $sc_id;
         } else {
