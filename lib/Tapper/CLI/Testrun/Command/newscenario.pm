@@ -85,7 +85,7 @@ sub execute
         my ($self, $opt, $args) = @_;
 
         my $scenario = do {local $/;
-                           open (my $, '<', $opt->{file}) or die "Can open file:$!\n";
+                           open (my $fh, '<', $opt->{file}) or die "Can open file:$!\n";
                            <$fh>
                    };
         $scenario = $self->apply_macro($scenario, $opt->{d});
