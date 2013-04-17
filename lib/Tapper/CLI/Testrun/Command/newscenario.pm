@@ -93,7 +93,7 @@ sub execute
         my $scenario_conf = YAML::XS::Load($scenario);
         given ($scenario_conf->{scenario_type}) {
                 when ('interdep') {
-                        $self->parse_interdep($scenario_conf->{description}, $opt);
+                        $self->parse_interdep($scenario_conf, $opt);
                 }
                 default {
                         die "Unknown scenario type ", $scenario_conf->{scenario_type};
@@ -170,9 +170,18 @@ sub parse_interdep
 
         my $scenario = Tapper::Cmd::Scenario->new();
 
-        my $sc_id    = $scenario->add({type => 'interdep'});
+
+        # TODO:
+        # 1.) move into Tapper::Cmd
+        # 2.) make atomic
+        # 3.) check whether more than 2 testruns are local and prevent sync in this case
+
+        my $sc_id    = $scenario->add({type => 'interdep',
+                                       options => $conf->{scenario_options} || $conf->{options},
+                                      name => $conf->{scenario_name} || $conf->{name},
+                                      });
         my @testrun_ids;
-        foreach my $testrun (@$conf) {
+        foreach my $testrun (@{$conf->{description}}) {
                 my $tr = Tapper::Cmd::Testrun->new();
                 $testrun->{scenario_id} = $sc_id;
                 my $testrun_id = $tr->add($testrun);
