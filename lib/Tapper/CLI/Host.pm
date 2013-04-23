@@ -373,7 +373,7 @@ sub host_new
         $c->getopt( 'name=s', 'queue=s@', 'active', 'pool_count=s', 'verbose|v', 'help|?' );
         if ( $c->options->{help} or not $c->options->{name}) {
                 say STDERR "Host name missing!" unless $c->options->{name};
-                say STDERR "$0 host-new  --name=s [ --queue=s@ ] [--pool_count=s] [--verbose|-v] [--help|-?";
+                say STDERR "$0 host-new  --name=s [ --queue=s@ ] [--pool_count=s] [--verbose|-v] [--help|-?]";
                 say STDERR "    --name         Name of the new host)";
                 say STDERR "    --queue        Bind host to this queue, can be given multiple times)";
                 say STDERR "    --active       Make host active; without it host will be initially deactivated)";
