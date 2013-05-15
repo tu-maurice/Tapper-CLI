@@ -22,7 +22,7 @@ ok($queue->id, 'inserted queue / id');
 is($queue->name, "Affe", 'inserted queue / name');
 is($queue->priority, 4711, 'inserted queue / priority');
 
-`$^X -Ilib bin/tapper-testrun newhost  --name="host3" --queue=Xen --queue=KVM`;
+`$^X -Ilib bin/tapper host-new  --name="host3" --queue=Xen --queue=KVM`;
 is($?, 0, 'New host / return value');
 
 my $retval = `$^X -Ilib bin/tapper-testrun listqueue --maxprio=300 --minprio=200 -v `;

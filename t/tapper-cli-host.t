@@ -14,7 +14,7 @@ construct_fixture( schema  => testrundb_schema, fixture => 't/fixtures/testrundb
 # -----------------------------------------------------------------------------------------------------------------
 
 my $retval;
-my $host_id = `$^X -Ilib bin/tapper-testrun newhost  --name="host1"`;
+my $host_id = `$^X -Ilib bin/tapper host-new  --name="host1"`;
 chomp $host_id;
 
 my $host_result = model('TestrunDB')->resultset('Host')->find($host_id);
@@ -24,7 +24,7 @@ is($host_result->name, 'host1', 'inserted host without option / name');
 
 # --------------------------------------------------
 
-$host_id = `$^X -Ilib bin/tapper-testrun newhost  --name="host2" --active --queue=KVM`;
+$host_id = `$^X -Ilib bin/tapper host-new  --name="host2" --active --queue=KVM`;
 chomp $host_id;
 
 $host_result = model('TestrunDB')->resultset('Host')->find($host_id);
@@ -35,7 +35,7 @@ ok($host_result->free, 'inserted host with active and existing queue / free');
 
 # --------------------------------------------------
 
-$host_id = `$^X -Ilib bin/tapper-testrun newhost  --name="host3" --queue=Xen --queue=KVM`;
+$host_id = `$^X -Ilib bin/tapper host-new  --name="host3" --queue=Xen --queue=KVM`;
 chomp $host_id;
 
 $host_result = model('TestrunDB')->resultset('Host')->find($host_id);
@@ -52,7 +52,7 @@ else {
 }
 
 # --------------------------------------------------
-$host_id = qx($^X -Ilib bin/tapper-testrun newhost  --name="host4" --queue=noexist 2>&1);
+$host_id = qx($^X -Ilib bin/tapper host-new  --name="host4" --queue=noexist 2>&1);
 like($host_id, qr(No such queue: noexist), 'Error handling for nonexistent queue');
 
 
@@ -112,5 +112,25 @@ $queue_result = model('TestrunDB')->resultset('Queue')->find({name => 'AdHoc'});
 is($queue_result->queuehosts->first->host->name, 'dickstone', 'Dickstone bound to queue AdHoc');
 qx($^X -Ilib bin/tapper host-bind --host=dickstone --queue=AdHoc --off);
 is($queue_result->deniedhosts->count, 0, 'Dickstone binding to queue AdHoc removed');
+
+$retval = qx($^X -Ilib bin/tapper host-update --name=host2 --pool_count 2);
+diag($retval) if $?;
+is($?, 0, 'Update host / return value');
+$host_result = model('TestrunDB')->resultset('Host')->find({name => 'host2'});
+is($host_result->pool_free, '2', 'Host2 is now a pool host with 2 elements');
+
+my $job = model('TestrunDB')->resultset('TestrunScheduling')->new({host_id => 11, # host_id 11 is host2
+                                                                   testrun_id => 3001,
+                                                                  })->insert;
+$job->mark_as_running();
+
+$retval = qx($^X -Ilib bin/tapper host-update --name=host2 --pool_count 3);
+diag($retval) if $?;
+is($?, 0, 'Update host / return value');
+
+$retval = qx($^X -Ilib bin/tapper host-list --name=host2 -v);
+diag($retval) if $?;
+is($?, 0, 'Update host / return value');
+like($retval, qr(1/3), 'Poolcount updated');
 
 done_testing();

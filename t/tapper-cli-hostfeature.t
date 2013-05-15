@@ -14,7 +14,7 @@ construct_fixture( schema  => testrundb_schema, fixture => 't/fixtures/testrundb
 # -----------------------------------------------------------------------------------------------------------------
 
 my $retval;
-my $host_id = `$^X -Ilib bin/tapper-testrun newhost  --name="host1"`;
+my $host_id = `$^X -Ilib bin/tapper host-new  --name="host1"`;
 chomp $host_id;
 
 my $host_result = model('TestrunDB')->resultset('Host')->find($host_id);

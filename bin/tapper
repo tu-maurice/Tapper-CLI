@@ -6,9 +6,11 @@ use App::Rad;
 use Tapper::CLI::Notification;
 use Tapper::CLI::Testplan;
 use Tapper::CLI::Schema;
+use Tapper::CLI::Test;
 use Tapper::CLI::User;
 use Tapper::CLI::Host;
 use Tapper::CLI::Cobbler;
+use Tapper::CLI::Scenario;
 use Tapper::CLI::Init;
 
 use strict;
@@ -20,10 +22,12 @@ sub setup
         my ($c) = @_;
         Tapper::CLI::Notification::setup($c);
         Tapper::CLI::Schema::setup($c);
+        Tapper::CLI::Test::setup($c);
         Tapper::CLI::Testplan::setup($c);
         Tapper::CLI::User::setup($c);
         Tapper::CLI::Host::setup($c);
         Tapper::CLI::Cobbler::setup($c);
+        Tapper::CLI::Scenario::setup($c);
         Tapper::CLI::Init::setup($c);
 }
 
