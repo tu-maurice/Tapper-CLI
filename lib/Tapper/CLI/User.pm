@@ -122,7 +122,7 @@ sub contactadd
         $c->getopt( 'contact|c=s@', 'login|l=s', 'quiet|q', 'help|?' );
 
         if ($c->options->{help} or not $c->options->{contact} ) {
-                say STDERR "Usage: $0 conact-add [ --login=login ] [ --contact=YAML | --contact=filename ]* [ --quiet ]";
+                say STDERR "Usage: $0 contact-add [ --login=login ] [ --contact=YAML | --contact=filename ]* [ --quiet ]";
                 say STDERR "\n  Optional arguments:";
                 say STDERR "         --login           login name for the user (default is $ENV{USER})";
                 say STDERR "         --contact         contact information in YAML or name of a file containing this information (can be given multiple times)";
