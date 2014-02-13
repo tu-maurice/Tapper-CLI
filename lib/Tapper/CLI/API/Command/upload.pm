@@ -25,7 +25,7 @@ sub opt_spec {
                 [ "filename=s",      "STRING; alternate file name, especially when reading from STDIN", ],
                 [ "reportserver=s",  "STRING; use this host for upload", ],
                 [ "reportport=s",    "STRING; use this port for upload", ],
-                [ "contenttype=s",   "STRING; content-type, default 'plain', use 'application/octed-stream' for binaries", ],
+                [ "contenttype=s",   "STRING; content-type, default 'plain', use 'application/octet-stream' for binaries", ],
                );
 }
 
