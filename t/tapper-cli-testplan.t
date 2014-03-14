@@ -4,8 +4,6 @@ use strict;
 use warnings;
 
 use Test::More;
-use Tapper::CLI::Testrun;
-use Tapper::CLI::Testrun::Command::list;
 use Tapper::Schema::TestTools;
 use Tapper::Model 'model';
 use Test::Fixture::DBIC::Schema;

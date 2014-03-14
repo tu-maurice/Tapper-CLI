@@ -10,7 +10,7 @@ use YAML::Syck 'Load';
 use Test::Deep;
 
 # -----------------------------------------------------------------------------------------------------------------
-construct_fixture( schema  => reportsdb_schema, fixture => 't/fixtures/reportsdb/report.yml' );
+construct_fixture( schema  => testrundb_schema, fixture => 't/fixtures/reportsdb/report.yml' );
 # -----------------------------------------------------------------------------------------------------------------
 
 my $id = `$^X -Ilib bin/tapper notification-new --file=t/files/notification.yml --user=sschwigo`;

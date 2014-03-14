@@ -4,8 +4,6 @@ use 5.010;
 use strict;
 use warnings;
 
-use Tapper::Cmd::Init;
-
 =head1 NAME
 
 Tapper::CLI::Init - Tapper - set up a user-specific $HOME/.tapper/
@@ -53,6 +51,7 @@ sub init
                           ),
                       );
 
+        require Tapper::Cmd::Init;
         my $cmd = Tapper::Cmd::Init->new;
         $cmd->init(\%options);
         return;

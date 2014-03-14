@@ -52,9 +52,9 @@ sub validate_args {
                 say "Missing argument --db\n";
                 $ok = 0;
         }
-        elsif (not $opt->{db} =~ /^ReportsDB|TestrunDB$/)
+        elsif (not $opt->{db} = 'TestrunDB')
         {
-                say "Wrong DB name '".$opt->{db}."' (must be ReportsDB or TestrunDB)";
+                say "Wrong DB name '".$opt->{db}."' (must be TestrunDB)";
                 $ok = 0;
         }
         if (not $opt->{fromversion})
@@ -87,7 +87,7 @@ sub run
 }
 
 
-# perl -Ilib bin/tapper-db-deploy makeschemadiffs --db=ReportsDB
-# perl -Ilib bin/tapper-db-deploy makeschemadiffs --upgradedir=$HOME/local/projects/Tapper/src/Tapper-Schema/upgrades/ --db=ReportsDB --fromversion=2.010009
+# perl -Ilib bin/tapper-db-deploy makeschemadiffs --db=TestrunDB
+# perl -Ilib bin/tapper-db-deploy makeschemadiffs --upgradedir=$HOME/local/projects/Tapper/src/Tapper-Schema/upgrades/ --db=TestrunDB --fromversion=2.010009
 
 1;

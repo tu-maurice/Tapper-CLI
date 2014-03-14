@@ -5,7 +5,6 @@ use warnings;
 
 use Test::Deep;
 use Test::More;
-use Tapper::CLI::Testrun;
 use Tapper::Schema::TestTools;
 use Tapper::Model 'model';
 use Test::Fixture::DBIC::Schema;
@@ -14,7 +13,7 @@ use Test::Fixture::DBIC::Schema;
 construct_fixture( schema  => testrundb_schema, fixture => 't/fixtures/testrundb/testruns_with_scheduling.yml' );
 # -----------------------------------------------------------------------------------------------------------------
 
-my $queue_id = `$^X -Ilib bin/tapper-testrun newqueue  --name="Affe" --priority=4711`;
+my $queue_id = `$^X -Ilib bin/tapper queue-new --name="Affe" --priority=4711`;
 chomp $queue_id;
 
 my $queue = model('TestrunDB')->resultset('Queue')->find($queue_id);
@@ -25,47 +24,25 @@ is($queue->priority, 4711, 'inserted queue / priority');
 `$^X -Ilib bin/tapper host-new  --name="host3" --queue=Xen --queue=KVM`;
 is($?, 0, 'New host / return value');
 
-my $retval = `$^X -Ilib bin/tapper-testrun listqueue --maxprio=300 --minprio=200 -v `;
-is ($retval, "Id: 2\nName: KVM\nPriority: 200\nActive: no\nBound hosts: host3\n
-********************************************************************************
-Id: 1\nName: Xen\nPriority: 300\nActive: no\nBound hosts: host3\n
-********************************************************************************
-", 'List queues');
-$retval = `$^X -Ilib bin/tapper-testrun listqueue --maxprio=10 -v `;
-is($retval, "Id: 3\nName: Kernel\nPriority: 10\nActive: no\nQueued testruns (ids): 3001, 3002\n
-********************************************************************************
-", 'Queued testruns in listqueue');
+my $retval = `$^X -Ilib bin/tapper queue-list --maxprio=300 --minprio=200 -v `;
+like ($retval, qr/\s+Id: 2\s+Name: KVM\s+Priority: 200\s+Active: 0\s+Bound hosts: host3\s+Id: 1\s+Name: Xen\s+Priority: 300\s+Active: 0\s+Bound hosts: host3/, 'List queues');
 
-$retval = `$^X -Ilib bin/tapper-testrun listqueue --name=Xen --name=Kernel`;
-is($retval, 'Id: 3
-Name: Kernel
-Priority: 10
-Active: no
-Queued testruns (ids): 3001, 3002
+$retval = `$^X -Ilib bin/tapper queue-list --maxprio=10 -v `;
+like($retval, qr/\s+Id: 3\s+Name: Kernel\s+Priority: 10\s+Active: 0\s+Queued testruns \(ids\): 3001, 3002/, 'Queued testruns in listqueue');
 
-********************************************************************************
-Id: 1
-Name: Xen
-Priority: 300
-Active: no
-Bound hosts: host3
+$retval = `$^X -Ilib bin/tapper queue-list --name=Xen --name=Kernel -v`;
+like($retval, qr/\s+Id: 3\s+Name: Kernel\s+Priority: 10\s+Active: 0\s+Queued testruns \(ids\): 3001, 3002\s+Id: 1\s+Name: Xen\s+Priority: 300\s+Active: 0\s+Bound hosts: host3/, 'List queues by name');
 
-********************************************************************************
-', 'List queues by name');
+$retval = `$^X -Ilib bin/tapper queue-update --name=Xen -p500 -v`;
+like($retval, qr/\s+Id: 1\s+Name: Xen\s+Priority: 500\s+Active: 0\s+Bound hosts: host3/, 'Update queue priority');
 
+$retval = `$^X -Ilib bin/tapper queue-update --name=Xen --active=1 -v`;
+like($retval, qr/\s+Id: 1\s+Name: Xen\s+Priority: 500\s+Active: 1\s+Bound hosts: host3/, 'Update queue active flag');
 
-$retval = `$^X -Ilib bin/tapper-testrun updatequeue --name=Xen -p500 -v`;
-is($retval, "Xen | 500 | not active\n", 'Update queue priority');
+$retval = `$^X -Ilib bin/tapper queue-update --name=Xen --active=0 -v`;
+like($retval, qr/\s+Id: 1\s+Name: Xen\s+Priority: 500\s+Active: 0\s+Bound hosts: host3/, 'Update queue active flag');
 
-$retval = `$^X -Ilib bin/tapper-testrun updatequeue --name=Xen --active -v`;
-is($retval, "Xen | 500 | active\n", 'Update queue active flag');
-
-$retval = `$^X -Ilib bin/tapper-testrun updatequeue --name=Xen --noactive -v`;
-is($retval, "Xen | 500 | not active\n", 'Update queue active flag');
-
-
-$retval = `$^X -Ilib bin/tapper-testrun deletequeue --name=Xen --really`;
-is($retval, "Deleted queue Xen\n", 'Delete queue');
-
+$retval = `$^X -Ilib bin/tapper queue-delete --name=Xen --force -v`;
+like($retval, qr/info: Deleted queue Xen/, 'Delete queue');
 
 done_testing();

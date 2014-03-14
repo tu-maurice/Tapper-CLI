@@ -11,7 +11,6 @@ use Tapper::CLI::DbDeploy;
 use Tapper::Cmd::DbDeploy;
 use Data::Dumper;
 use Tapper::Schema::TestrunDB;
-use Tapper::Schema::ReportsDB;
 
 
 sub opt_spec {
@@ -49,9 +48,9 @@ sub validate_args {
                 say "Missing argument --db\n";
                 $ok = 0;
         }
-        elsif (not $opt->{db} =~ /^ReportsDB|TestrunDB$/)
+        elsif (not $opt->{db} = 'TestrunDB' )
         {
-                say "Wrong DB name '".$opt->{db}."' (must be ReportsDB or TestrunDB)";
+                say "Wrong DB name '".$opt->{db}."' (must be TestrunDB)";
                 $ok = 0;
         }
 
@@ -68,6 +67,6 @@ sub run
 }
 
 
-# perl -Ilib bin/tapper-db-deploy init --db=ReportsDB
+# perl -Ilib bin/tapper-db-deploy init --db=TestrunDB
 
 1;

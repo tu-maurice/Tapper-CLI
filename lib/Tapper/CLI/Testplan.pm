@@ -11,13 +11,6 @@ use JSON::XS;
 use YAML::XS;
 
 
-# TODO: Should Tapper::Testplan::* better be in Tapper::Cmd::Testplan?
-use Tapper::Testplan::Reporter;
-use Tapper::Testplan::Generator;
-use Tapper::Cmd::Testplan;
-use Tapper::Model 'model';
-
-
 =head1 NAME
 
 Tapper::CLI::Testplan - Tapper - testplan related commands for the tapper CLI
@@ -80,6 +73,7 @@ sub testplansend
                 }
         }
 
+        require Tapper::Testplan::Reporter;
         my $reporter = Tapper::Testplan::Reporter->new();
         $reporter->run(@names);
         return "Sending testplan finished" unless $c->options->{quiet};
@@ -128,37 +122,31 @@ sub testplanlist
         my $instances = model('TestrunDB')->resultset('TestplanInstance');
         my $format    = $c->options->{format};
 
-        # not guaranteed that we get empty options as undef or empty list
+        require Tapper::Model;
         if (@{$c->options->{testrun} || []}) {
-                my $testruns = model('TestrunDB')->resultset('Testrun')->search({id => $c->options->{testrun}});
-                if ($testruns->count == 0) {
-                        warn "No testruns with ids ",join ", ",@{$c->options->{testrun}}, " found. Ignoring --testrun!";
-                } else {
-                        $instances = $instances->search({id => [ map {$_->testplan_id} $testruns->all ]});
+                my $testruns = Tapper::Model::model('TestrunDB')->resultset('Testrun')->search({id => $c->options->{testrun}});
+                while (my $testrun = $testruns->next) {
+                        push @ids, $testrun->testplan_id if $testrun->testplan_id;
                 }
-        }
-        if ( @{$c->options->{name} || []}) {
-                $instances = $instances->search({name => { like => $c->options->{name} }});
-        }
-        if ( @{$c->options->{path} || []}) {
-                $instances = $instances->search({path => { like => $c->options->{path} }});
-        }
-        if ( @{$c->options->{id} || []}) {
-                $instances = model('TestrunDB')->resultset('TestplanInstance')->search({id => $c->options->{id}});
-
-                if ($instances->count != int @{$c->options->{id}}) {
-                        my @existing = map {$_->id} $instances->all;
-                        my @wrong = grep {all(@existing) != $_} @{$c->options->{id}};
-
-                        local $LIST_SEPARATOR=", "; # die without join, much more readable
-                        die "The following ids could not be found: @wrong\n";
+        } elsif ( @{$c->options->{name} || []}) {
+                my $regex = join("|", map { "($_)" } @{$c->options->{name}});
+                my $instances = Tapper::Model::model('TestrunDB')->resultset('TestplanInstance');
+                while (my $instance = $instances->next) {
+                        push @ids, $instance->id if $instance->path and $instance->path =~ /$regex/;
+                }
+        } else {
+                my $instances = Tapper::Model::model('TestrunDB')->resultset('TestplanInstance');
+                while (my $instance = $instances->next) {
+                        push @ids, $instance->id;
                 }
                 $c->options->{verbose} = 1;
         }
 
         # a join would be faster and maybe cleaner
         if ($c->options->{active}) {
-                my @ids;
+                my @local_ids = @ids;
+                my $instances = Tapper::Model::model('TestrunDB')->resultset('TestplanInstance')->search({id => \@local_ids});
+                @ids = ();
                 while (my $instance = $instances->next) {
                         if ($instance->testruns and grep {$_->testrun_scheduling->status ne 'finished'} $instance->testruns->all) {
                                 push @ids, $instance->id;
@@ -166,7 +154,12 @@ sub testplanlist
                 }
                 $instances = model('TestrunDB')->resultset('TestplanInstance')->search({id => [ @ids ]});
         }
-        my %inst_data;
+
+        if ($c->options->{quiet}) {
+                return join ("\n",@ids);
+        }
+
+        my $instances = Tapper::Model::model('TestrunDB')->resultset('TestplanInstance')->search({id => \@ids});
         while (my $instance = $instances->next) {
                 $inst_data{$instance->id} =
                 {
@@ -217,6 +210,7 @@ sub testplan_tj_send
                 exit -1;
         }
 
+        require Tapper::Testplan::Reporter;
         my $reporter = Tapper::Testplan::Reporter->new();
         $reporter->run;
         return 0;
@@ -238,6 +232,7 @@ sub testplan_tj_generate
                 say STDERR "    --help       Print this help message and exit.";
                 exit -1;
         }
+        require Tapper::Testplan::Generator;
         my $generator = Tapper::Testplan::Generator->new();
         $generator->run;
         return 0;
@@ -252,7 +247,7 @@ Create new testplan instance from file.
 sub testplannew
 {
         my ($c) = @_;
-        $c->getopt( 'include|I=s@', 'name=s', 'path=s', 'file=s', 'D=s%', 'dryrun|n', 'guide|g', 'quiet|q', 'verbose|v', 'help|?' );
+        $c->getopt( 'include|I=s@', 'name=s', 'path=s', 'file=s', 'D=s%', 'dryrun|n', 'guide|g', 'quiet|q', 'subst_json=s','verbose|v', 'help|?' );
 
         my $opt = $c->options;
 
@@ -266,6 +261,7 @@ sub testplannew
                 say STDERR "    --include    Add include directory (multiple allowed)";
                 say STDERR "    --name       Provide a name for this testplan instance";
                 say STDERR "    --path       Put this path into db instead of file path";
+                say STDERR "    --subst_json File name that contains macro expansion values in JSON formaxt";
                 say STDERR "    --verbose    Show more progress output.";
                 say STDERR "    --quiet      Only show testplan ids, suppress path, name and testrun ids.";
                 say STDERR "    --help       Print this help message and exit.";
@@ -276,9 +272,22 @@ sub testplannew
         die "Testplan file @{[ $opt->{file} ]} does not exist"  if not -e $opt->{file};
         die "Testplan file @{[ $opt->{file} ]} is not readable" if not -r $opt->{file};
 
+        require Tapper::Cmd::Testplan;
+        if ($opt->{subst_json}) {
+                use File::Slurp;
+                my $data = File::Slurp::read_file($opt->{subst_json});
+                $opt->{substitutes} = JSON::XS::decode_json($data);
+        } else {
+                        $opt->{substitutes} = $opt->{D};
+        }
         my $cmd = Tapper::Cmd::Testplan->new;
-        $cmd->testplannew($opt);
-        return;
+        if ($opt->{guide}) {
+                return $cmd->guide($opt->{file}, $opt->{substitutes}, $opt->{include});
+        }
+        if ($opt->{dryrun}) {
+                return  $cmd->apply_macro($opt->{file}, $opt->{substitutes}, $opt->{include});
+        }
+        return $cmd->testplannew($opt);
 }
 
 

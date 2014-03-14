@@ -5,8 +5,6 @@ use warnings;
 use strict;
 
 use Try::Tiny;
-use YAML::XS;
-use Tapper::Cmd::User;
 use UNIVERSAL;
 
 =head1 NAME
@@ -41,6 +39,9 @@ sub get_contacts
 {
         my ($contacts) = @_;
         my @contacts;
+
+        require YAML::XS;
+
         foreach my $contact (@{$contacts || []}) {
                 if ($contact !~ m/\n/ and -e $contact) {
                         try {
@@ -96,6 +97,9 @@ sub usernew
         my $data;
         $data   = { login => $c->options->{login}, name => $c->options->{name} , contacts => \@contacts};
 
+        require YAML::XS;
+        require Tapper::Cmd::User;
+
         my $cmd = Tapper::Cmd::User->new();
         my $id  = $cmd->add($data);
         if (not $c->options->{quiet}) {
@@ -132,6 +136,8 @@ sub contactadd
         }
 
         my $login = $c->options->{login} || $ENV{USER};
+
+        require Tapper::Cmd::User;
         my $cmd = Tapper::Cmd::User->new();
 
         my @contacts = get_contacts($c->options->{contact});
@@ -139,6 +145,7 @@ sub contactadd
                 my $id  = $cmd->contact_add($login, $contact);
         }
 
+        require YAML::XS;
         if (not $c->options->{quiet}) {
                 my @users = $cmd->list({login => $login});
                 print YAML::XS::Dump($users[0]);
@@ -158,6 +165,10 @@ Show all or a subset of user subscriptions
 sub userlist
 {
         my ($c) = @_;
+
+        require YAML::XS;
+        require Tapper::Cmd::User;
+
         my $cmd = Tapper::Cmd::User->new();
         my @users = $cmd->list();
         foreach my $user (@users) {
@@ -193,8 +204,10 @@ sub userupdate
                 exit -1;
         }
 
+        require Tapper::Cmd::User;
         my $cmd = Tapper::Cmd::User->new();
 
+        require YAML::XS;
         my $subscription =  YAML::XS::LoadFile($c->options->{file});
         my $id = $cmd->update($c->options->{id}, $subscription);
 
@@ -229,6 +242,7 @@ sub userdel
                 exit -1;
         }
 
+        require Tapper::Cmd::User;
         my $cmd = Tapper::Cmd::User->new();
 
         if ($c->options->{login}) {
