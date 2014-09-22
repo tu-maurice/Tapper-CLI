@@ -1,34 +1,41 @@
-#! /usr/bin/perl
+#!/usr/bin/env perl
+
 # PODNAME: tapper
 # ABSTRACT: Tapper - primary cmdline frontend - the future Platzhirsch
 
 use App::Rad;
-use Tapper::CLI::Notification;
-use Tapper::CLI::Testplan;
-use Tapper::CLI::Schema;
-use Tapper::CLI::Test;
-use Tapper::CLI::User;
-use Tapper::CLI::Host;
-use Tapper::CLI::Cobbler;
-use Tapper::CLI::Scenario;
-use Tapper::CLI::Init;
+use Module::Load;
 
 use strict;
 use warnings;
 use 5.010;
 
-sub setup
-{
-        my ($c) = @_;
-        Tapper::CLI::Notification::setup($c);
-        Tapper::CLI::Schema::setup($c);
-        Tapper::CLI::Test::setup($c);
-        Tapper::CLI::Testplan::setup($c);
-        Tapper::CLI::User::setup($c);
-        Tapper::CLI::Host::setup($c);
-        Tapper::CLI::Cobbler::setup($c);
-        Tapper::CLI::Scenario::setup($c);
-        Tapper::CLI::Init::setup($c);
+sub setup {
+
+    my ( $or_app_rad ) = @_;
+
+    for my $s_module (qw/
+        Tapper::CLI::Notification
+        Tapper::CLI::Schema
+        Tapper::CLI::Testplan
+        Tapper::CLI::User
+        Tapper::CLI::Host
+        Tapper::CLI::HostFeature
+        Tapper::CLI::Cobbler
+        Tapper::CLI::Init
+        Tapper::CLI::Testrun
+        Tapper::CLI::Precondition
+        Tapper::CLI::Queue
+        Tapper::CLI::Scenario
+    /) {
+        Module::Load::load( $s_module );
+        if ( my $fh_setup = $s_module->can('setup') ) {
+            $fh_setup->( $or_app_rad );
+        }
+    }
+
+    return 1;
+
 }
 
 App::Rad->run();

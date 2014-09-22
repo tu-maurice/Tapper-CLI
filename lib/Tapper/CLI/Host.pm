@@ -1,11 +1,10 @@
 package Tapper::CLI::Host;
 
 use 5.010;
+
 use warnings;
 use strict;
-
-use Tapper::Model 'model';
-use YAML::XS;
+use English qw/ -no_match_vars /;
 
 =head1 NAME
 
@@ -49,6 +48,421 @@ sub host_feature_summary
                    );
 }
 
+=head2 i_add_queues
+
+add relations between host and queues
+
+=cut
+
+sub i_add_queues {
+
+    my ( $or_host, $s_type, $ar_queues ) = @_;
+
+    require Tapper::Model;
+
+    my $i_success_counter = 0;
+    foreach my $s_queue ( @{$ar_queues} ) {
+        if (
+            my $or_queue =
+                Tapper::Model::model('TestrunDB')
+                    ->resultset('Queue')
+                    ->search({
+                        name => $s_queue,
+                    },{
+                        prefetch => [qw/ queuehosts deniedhosts /],
+                    })
+                    ->first
+        ) {
+            if ( $s_type eq 'bound' ) {
+                if ( grep { $_ == $or_host->id } $or_queue->deniedhosts->get_column('host_id')->all ) {
+                    die "error: you cannot add an bound-queue '$s_queue' for a already denied queue for host '" . $or_host->name . "'\n";
+                }
+                elsif ( grep { $_ == $or_host->id } $or_queue->queuehosts->get_column('host_id')->all ) {
+                    die "error: queue '$s_queue' already bound to host '" . $or_host->name . "'\n";
+                }
+                else {
+                    if (
+                        Tapper::Model::model('TestrunDB')
+                            ->resultset('QueueHost')
+                            ->new({
+                                host_id  => $or_host->id,
+                                queue_id => $or_queue->id,
+                            })
+                            ->insert()
+                    ) {
+                        $i_success_counter++;
+                    }
+                    else {
+                        die "error: cannot add queue '$s_queue'\n";
+                    }
+                }
+            }
+            elsif ( $s_type eq 'denied' ) {
+                if ( $or_queue->queuehosts->count ) {
+                    die "error: you cannot add an denied-queue '$s_queue' for a already bind queue for host '" . $or_host->name . "'\n";
+                }
+                elsif ( $or_queue->deniedhosts->count ) {
+                    die "error: queue '$s_queue' already denied for host '" . $or_host->name . "'\n";
+                }
+                else {
+                    if (
+                        Tapper::Model::model('TestrunDB')
+                            ->resultset('DeniedHost')
+                            ->new({
+                                host_id  => $or_host->id,
+                                queue_id => $or_queue->id,
+                            })
+                            ->insert()
+                    ) {
+                        $i_success_counter++;
+                    }
+                    else {
+                        die "error: cannot add queue '$s_queue'\n";
+                    }
+                }
+            }
+            else {
+                warn "unknown type '$s_type' for sub i_delete_queues";
+                die "error: internal processing error\n";
+            }
+        }
+        else {
+            die "error: did not find queue '$s_queue'\n";
+        }
+    }
+
+    return $i_success_counter;
+
+}
+
+=head2 i_delete_queues
+
+remove relations between host and queues
+
+=cut
+
+sub i_delete_queues {
+
+    my ( $or_host, $s_type, $ar_queues ) = @_;
+
+    my $s_relation_table;
+    if ( $s_type eq 'bound' ) {
+         $s_relation_table = 'QueueHost';
+    }
+    elsif ( $s_type eq 'denied' ) {
+        $s_relation_table = 'DeniedHost';
+    }
+    else {
+        die "error: unknown type '$s_type' for sub i_delete_queues\n";
+    }
+
+    require Tapper::Model;
+
+    my $i_success_counter = 0;
+    foreach my $s_queue ( @{$ar_queues} ) {
+        if ( $s_queue eq '' ) {
+            return
+                Tapper::Model::model('TestrunDB')
+                    ->resultset( $s_relation_table )
+                    ->search({host_id => $or_host->id})
+                    ->delete_all
+            ;
+        }
+        else {
+            if (
+                my $or_queue =
+                    Tapper::Model::model('TestrunDB')
+                        ->resultset('Queue')
+                        ->search({name => $s_queue}, {rows => 1})
+                        ->first
+            ) {
+                my $or_queue_host =
+                    Tapper::Model::model('TestrunDB')
+                        ->resultset( $s_relation_table )
+                        ->search({
+                            host_id  => $or_host->id,
+                            queue_id => $or_queue->id
+                        })
+                ;
+                if ( $or_queue_host->count ) {
+                    $i_success_counter += $or_queue_host->delete_all;
+                }
+                else {
+                    die "error: queue '$s_queue' isn't related with host '" . $or_host->name . "'\n";
+                }
+            }
+            else {
+                die "error: no such queue '$s_queue'\n";
+            }
+        }
+    }
+
+    return $i_success_counter;
+
+}
+
+=head2 b_b_update_grub
+
+Install a default grub config for host so that it does no longer try to
+execute Tapper testruns.
+
+@return success - inserted message object
+@return error   - die()
+
+=cut
+
+sub b_update_grub {
+
+    my ( $s_hostname ) = @_;
+
+    require Tapper::Model;
+    return
+        Tapper::Model::model('TestrunDB')
+            ->resultset('Message')
+            ->new({
+                type    => 'action',
+                message => {
+                    action => 'updategrub',
+                    host   => $s_hostname,
+                },
+            })
+            ->insert
+    ;
+
+}
+
+=head2 hr_get_hosts_by_options
+
+load host objects for given command line parameters
+
+=cut
+
+sub hr_get_hosts_by_options {
+
+    my ( $hr_options ) = @_;
+
+    require Tapper::Model;
+
+    my %h_host_ids = map { $_ => q## } @{$hr_options->{id}};
+    foreach my $s_name ( @{$hr_options->{name}} ) {
+        if (
+            my $or_host =
+                Tapper::Model::model('TestrunDB')
+                    ->resultset('Host')
+                    ->find({
+                        name        => $s_name,
+                        is_deleted  => 0,
+                    })
+        ) {
+            $h_host_ids{$or_host->id} = $or_host;
+        }
+        else {
+            die "error: Can't find host by name '$s_name'\n";
+        }
+    }
+
+    return \%h_host_ids;
+
+}
+
+=head2 ar_get_free_host_parameters
+
+get parameters for free host
+
+=cut
+
+sub ar_get_free_host_parameters {
+    return [
+        'id|i=i@'       , 'free particular hosts', 'Can be given multiple times.',
+        'name|n=s@'     , 'free by host name', 'Can be given multiple times.',
+        'comment|c=s'   , 'describe why the host is freed',
+        'verbose|v'     , 'print all output, without only print ids',
+        'help|?'        , 'Print this help message and exit.',
+    ];
+}
+
+=head2 b_free_host
+
+free host
+
+=cut
+
+sub b_free_host {
+
+    my ( $or_app_rad ) = @_;
+
+    my $ar_parameters = ar_get_free_host_parameters();
+    $or_app_rad->getopt( map { $_->[0] } @{$ar_parameters} );
+    my $hr_options = $or_app_rad->options;
+
+    if ( $hr_options->{help} ) {
+        say {*STDERR} "Usage: $PROGRAM_NAME host-free [options]";
+        require Tapper::CLI::Base;
+        Tapper::CLI::Base::b_print_help( $ar_parameters );
+        return;
+    }
+
+    if ( !$hr_options->{id} && !$hr_options->{name} ) {
+        die "error: missing parameter 'id' or 'name'\n";
+    }
+
+    my $hr_host_ids    = hr_get_hosts_by_options( $hr_options );
+    my @a_sorted_hosts = sort { $hr_host_ids->{$a} cmp $hr_host_ids->{$b} } keys %{$hr_host_ids};
+
+    foreach my $i_host_id ( @a_sorted_hosts ){
+
+        my $or_host = $hr_host_ids->{$i_host_id};
+
+        # host object isn't set by loop above. look for object by id.
+        if (! $or_host ) {
+            if (!
+                (
+                    $or_host =
+                        Tapper::Model::model('TestrunDB')
+                            ->resultset('Host')
+                            ->find( $i_host_id )
+                )
+            ) {
+                die "Can't find host by id '$i_host_id'\n";
+            }
+        }
+
+        if (
+            my @a_testrun_ids =
+                Tapper::Model::model('TestrunDB')
+                    ->resultset('TestrunScheduling')
+                    ->search({
+                        host_id => $i_host_id,
+                        status  => 'running',
+                    }, {
+                        select  => ['testrun_id'],
+                    })
+                    ->get_column('testrun_id')
+                    ->all
+        ) {
+            my $hr_msg = { 'state' => 'quit', };
+            if ( $hr_options->{comment} ) {
+               $hr_msg->{error} = $hr_options->{comment};
+            }
+            for my $i_testrun_id ( @a_testrun_ids ) {
+                if (!
+                    Tapper::Model::model('TestrunDB')
+                        ->resultset('Message')
+                        ->new({
+                            testrun_id => $i_testrun_id,
+                            message    => $i_host_id,
+                        })
+                        ->insert
+                ) {
+                    die "freeing host failed: $i_host_id\n";
+                }
+            }
+            if ( $hr_options->{verbose} ) {
+                say "info: freeing host successful: $i_host_id";
+            }
+        }
+        else {
+            say "info: host is already free: $i_host_id";
+        }
+
+    }
+
+    return;
+
+}
+
+=head2 ar_get_delete_parameters
+
+get "delete host" parameters
+
+=cut
+
+sub ar_get_delete_parameters {
+    return [
+        [ 'id|i=i@'   , 'delete particular hosts', 'Can be given multiple times.',  ],
+        [ 'name|n=s@' , 'delete by host name', 'Can be given multiple times.',      ],
+        [ 'force|f'   , 'really execute the command',                               ],
+        [ 'verbose|v' , 'print all output, without only print ids',                 ],
+        [ 'help|?'    , 'Print this help message and exit.',                        ],
+    ];
+}
+
+=head2 b_delete
+
+remove a host
+
+=cut
+
+sub b_delete {
+
+    my ( $or_app_rad ) = @_;
+
+    require Tapper::Model;
+
+    my $ar_parameters = ar_get_delete_parameters();
+    $or_app_rad->getopt( map { $_->[0] } @{$ar_parameters} );
+    my $hr_options = $or_app_rad->options;
+
+    if ( $hr_options->{help} ) {
+        say {*STDERR} "Usage: $PROGRAM_NAME host-delete [options]";
+        require Tapper::CLI::Base;
+        Tapper::CLI::Base::b_print_help( $ar_parameters );
+        return;
+    }
+
+    if ( !$hr_options->{id} && !$hr_options->{name} ) {
+        die "error: missing parameter 'id' or 'name'\n";
+    }
+
+    my $hr_host_ids = hr_get_hosts_by_options( $hr_options );
+
+    if (! $hr_options->{force} ) {
+        say {*STDERR} "info: Skip actual host-delete unless --force is used.";
+        return;
+    }
+
+    foreach my $i_host_id ( sort { $hr_host_ids->{$a} cmp $hr_host_ids->{$b} } keys %{$hr_host_ids} ){
+
+        my $or_host = $hr_host_ids->{$i_host_id};
+
+        # host object isn't set by loop above. look for object by id.
+        if (! $or_host ) {
+            if (!
+                (
+                    $or_host =
+                        Tapper::Model::model('TestrunDB')
+                            ->resultset('Host')
+                            ->find( $i_host_id )
+                )
+            ) {
+                die "Can't find host by id '$i_host_id'\n";
+            }
+        }
+
+        my $s_name = $or_host->name;
+        if (! b_update_grub( $s_name ) ) {
+            die "error: Can't update grub by id '$i_host_id'\n";
+        }
+
+        require DateTime;
+        $or_host->active( 0 );
+        $or_host->is_deleted( 1 );
+        $or_host->updated_at( DateTime->now->strftime('%F %T') );
+
+        if ( $or_host->update() ) {
+            if ( $hr_options->{verbose} ) {
+                say "info: Deleted host $s_name: $i_host_id";
+            }
+        }
+        else {
+            die "error: Can't update host by id '$i_host_id'\n";
+        }
+
+    }
+
+    return;
+
+}
 
 =head2 print_hosts_verbose
 
@@ -57,6 +471,8 @@ sub host_feature_summary
 sub print_hosts_verbose
 {
         my ($hosts, $verbosity_level) = @_;
+
+        $verbosity_level //= 0;
 
         # calculate width of columns
         my %max = (
@@ -67,8 +483,11 @@ sub print_hosts_verbose
                    denyqueue => length('Denied Queues'),
                    pool      => length('Pool count (used/all)'),
                   );
+
+        my @a_host = $hosts->isa('DBIx::Class::ResultSet') ? $hosts->all : $hosts;
+
  HOST:
-        foreach my $host ($hosts->all) {
+        foreach my $host ( @a_host ) {
                 my $features = host_feature_summary($host);
                 $max{name}    = length($host->name) if length($host->name) > $max{name};
                 $max{features} = length($features) if length($features) > $max{features};
@@ -95,12 +514,12 @@ sub print_hosts_verbose
         }
         say "="x(5+$name_length+$feature_length+11+length('Testrun ID')+$comment_length+$bq_length+$dq_length+$pool_length+7*length(' | '));
 
-
-        foreach my $host ($hosts->all) {
+        require Tapper::Model;
+        foreach my $host ( @a_host ) {
                 my ($name_length, $feature_length, $queue_length) = ($max{name}, $max{features}, $max{queue});
                 my $testrun_id = 'unknown id';
                 if (not $host->free) {
-                        my $job_rs = model('TestrunDB')->resultset('TestrunScheduling')->search({host_id => $host->id, status => 'running'});
+                        my $job_rs = Tapper::Model::model('TestrunDB')->resultset('TestrunScheduling')->search({host_id => $host->id, status => 'running'});
                         $testrun_id = $job_rs->search({}, {rows => 1})->first->testrun_id if $job_rs->count;
                 }
                 my $features = host_feature_summary($host);
@@ -144,14 +563,16 @@ sub select_hosts
         # ignore all options if host is requested by name
         %search = (name   => $opt->{name}) if $opt->{name};
 
+        require Tapper::Model;
+
         if ($opt->{queue}) {
-                my @queue_ids       = map {$_->id} model('TestrunDB')->resultset('Queue')->search({name => {-in => [ @{$opt->{queue}} ]}});
+                my @queue_ids       = map {$_->id} Tapper::Model::model('TestrunDB')->resultset('Queue')->search({name => {-in => [ @{$opt->{queue}} ]}});
                 $search{queue_id}   = { -in => [ @queue_ids ]};
                 $options{join}      = 'queuehosts';
                 $options{'+select'} = 'queuehosts.queue_id';
                 $options{'+as'}     = 'queue_id';
         }
-        my $hosts = model('TestrunDB')->resultset('Host')->search(\%search, \%options);
+        my $hosts = Tapper::Model::model('TestrunDB')->resultset('Host')->search(\%search, \%options);
         return $hosts;
 }
 
@@ -191,6 +612,7 @@ sub print_hosts_yaml
                 }
                 $host_data{features} = \%features;
 
+                require YAML::XS;
                 print YAML::XS::Dump(\%host_data);
         }
         return;
@@ -217,7 +639,7 @@ sub listhost
                 say STDERR "    --all          List all hosts, even deleted ones";
                 say STDERR "    --help         Print this help message and exit";
                 say STDERR "    --yaml         Print information in YAML format, implies verbose";
-                exit -1;
+                return;
         }
         my $hosts = select_hosts($c->options);
 
@@ -252,18 +674,20 @@ sub host_deny
                 say STDERR "    --queue        Deny this queue to put testruns on all given hosts";
                 say STDERR "    --off          Remove previously installed denial of host/queue combination";
                 say STDERR "    --really       Force denial of host/queue combination even if it does not make sense (e.g. because host is also bound to queue)";
-                exit -1;
+                return;
         }
+
+        require Tapper::Model;
 
         my @queue_results; my @host_results;
         foreach my $queue_name ( @{$c->options->{queue}}) {
-                my $queue_r = model('TestrunDB')->resultset('Queue')->search({name => $queue_name}, {rows => 1})->first;
-                die "No such queue: '$queue_name'" unless $queue_r;
+                my $queue_r = Tapper::Model::model('TestrunDB')->resultset('Queue')->search({name => $queue_name}, {rows => 1})->first;
+                die "No such queue: '$queue_name'\n" unless $queue_r;
                 push @queue_results, $queue_r;
         }
         foreach my $host_name ( @{$c->options->{host}}) {
-                my $host_r = model('TestrunDB')->resultset('Host')->search({name => $host_name}, {rows => 1})->first;
-                die "No such host: '$host_name'" unless $host_r;
+                my $host_r = Tapper::Model::model('TestrunDB')->resultset('Host')->search({name => $host_name}, {rows => 1})->first;
+                die "No such host: '$host_name'\n" unless $host_r;
                 push @host_results, $host_r;
         }
 
@@ -271,7 +695,7 @@ sub host_deny
         HOST:
                 foreach my $host_r (@host_results) {
                         if ($c->options->{off}) {
-                                my $deny_r = model('TestrunDB')->resultset('DeniedHost')->search({queue_id => $queue_r->id,
+                                my $deny_r = Tapper::Model::model('TestrunDB')->resultset('DeniedHost')->search({queue_id => $queue_r->id,
                                                                                                   host_id  => $host_r->id, },
                                                                                                  {rows => 1}
                                                                                                 )->first;
@@ -289,7 +713,7 @@ sub host_deny
                                 }
                                 # don't deny twice
                                 next HOST if $host_r->denied_from_queue->search({queue_id => $queue_r->id}, {rows => 1})->first;
-                                model('TestrunDB')->resultset('DeniedHost')->new({queue_id => $queue_r->id,
+                                Tapper::Model::model('TestrunDB')->resultset('DeniedHost')->new({queue_id => $queue_r->id,
                                                                                   host_id  => $host_r->id,
                                                                                  })->insert;
                         }
@@ -316,25 +740,27 @@ sub host_bind
                 say STDERR "    --queue        Bind all given hosts to this queue (can be given multiple times)";
                 say STDERR "    --off          Remove previously installed host/queue bindings";
                 say STDERR "    --really       Force binding host/queue combination even if it does not make sense (e.g. because host is also denied from queue)";
-                exit -1;
+                return;
         }
+
+        require Tapper::Model;
 
         my @queue_results; my @host_results;
         foreach my $queue_name ( @{$c->options->{queue}}) {
-                my $queue_r = model('TestrunDB')->resultset('Queue')->search({name => $queue_name}, {rows => 1})->first;
-                die "No such queue: '$queue_name'" unless $queue_r;
+                my $queue_r = Tapper::Model::model('TestrunDB')->resultset('Queue')->search({name => $queue_name}, {rows => 1})->first;
+                die "No such queue: '$queue_name'\n" unless $queue_r;
                 push @queue_results, $queue_r;
         }
         foreach my $host_name ( @{$c->options->{host}}) {
-                my $host_r = model('TestrunDB')->resultset('Host')->search({name => $host_name}, {rows => 1})->first;
-                die "No such host: '$host_name'" unless $host_r;
+                my $host_r = Tapper::Model::model('TestrunDB')->resultset('Host')->search({name => $host_name}, {rows => 1})->first;
+                die "No such host: '$host_name'\n" unless $host_r;
                 push @host_results, $host_r;
         }
 
         foreach my $queue_r (@queue_results) {
                 foreach my $host_r (@host_results) {
                         if ($c->options->{off}) {
-                                my $bind_r = model('TestrunDB')->resultset('QueueHost')->search({queue_id => $queue_r->id,
+                                my $bind_r = Tapper::Model::model('TestrunDB')->resultset('QueueHost')->search({queue_id => $queue_r->id,
                                                                                                  host_id  => $host_r->id },
                                                                                                 {rows => 1}
                                                                                                )->first;
@@ -351,7 +777,7 @@ sub host_bind
                                 }
                                 # don't bind twice
                                 next HOST if $host_r->queuehosts->search({queue_id => $queue_r->id}, {rows => 1})->first;
-                                model('TestrunDB')->resultset('QueueHost')->new({queue_id => $queue_r->id,
+                                Tapper::Model::model('TestrunDB')->resultset('QueueHost')->new({queue_id => $queue_r->id,
                                                                                   host_id  => $host_r->id,
                                                                                  })->insert;
                         }
@@ -378,15 +804,17 @@ sub host_new
                 say STDERR "    --queue        Bind host to this queue, can be given multiple times)";
                 say STDERR "    --active       Make host active; without it host will be initially deactivated)";
                 say STDERR "    --verbose      More verbose output)";
-                exit -1;
+                return;
         }
+
+        require Tapper::Model;
 
         if ($c->options->{queue}) {
                 foreach my $queue (@{$c->options->{queue}}) {
-                        my $queue_rs = model('TestrunDB')->resultset('Queue')->search({name => $queue});
+                        my $queue_rs = Tapper::Model::model('TestrunDB')->resultset('Queue')->search({name => $queue});
                         if (not $queue_rs->count) {
                                 say STDERR "No such queue: $queue";
-                                my @queue_names = map {$_->name} model('TestrunDB')->resultset('Queue')->all;
+                                my @queue_names = map {$_->name} Tapper::Model::model('TestrunDB')->resultset('Queue')->all;
                                 say STDERR "Existing queues: ",join ", ",@queue_names;
                         }
                 }
@@ -398,18 +826,18 @@ sub host_new
                     pool_free  => $c->options->{pool_count} ? $c->options->{pool_count} : undef, # need to turn 0 into undef, because 0 makes $host->is_pool true
                    };
 
-        my $newhost = model('TestrunDB')->resultset('Host')->new($host);
+        my $newhost = Tapper::Model::model('TestrunDB')->resultset('Host')->new($host);
         $newhost->insert();
         die "Can't create new host\n" if not $newhost; # actually, on this place DBIC should have died already
 
         if ($c->options->{queue}) {
                 foreach my $queue (@{$c->options->{queue}}) {
-                        my $queue_rs   = model('TestrunDB')->resultset('Queue')->search({name => $queue});
+                        my $queue_rs   = Tapper::Model::model('TestrunDB')->resultset('Queue')->search({name => $queue});
                         if (not $queue_rs->count) {
                                 $newhost->delete();
                                 say STDERR qq(Did not find queue "$queue");
                         }
-                        my $queue_host = model('TestrunDB')->resultset('QueueHost')->new({
+                        my $queue_host = Tapper::Model::model('TestrunDB')->resultset('QueueHost')->new({
                                                                                           host_id  => $newhost->id,
                                                                                           queue_id => $queue_rs->search({}, {rows => 1})->first->id,
                                                                                          });
@@ -419,49 +847,108 @@ sub host_new
         return $newhost->id;
 }
 
-=head2 host_update
+=head2 ar_get_host_update
 
-Update values of the host other than binding and denying queues.
+get "update host" parameters
 
 =cut
 
-sub host_update
-{
-        my ($c) = @_;
-        $c->getopt( 'name=s', 'id=i', 'active!', 'pool_count=s', 'comment=s','verbose|v', 'help|?' );
-        if ( $c->options->{help} or not ($c->options->{name} or $c->options->{id})) {
-                say STDERR "Please provide name or id of a host!" unless ($c->options->{name} or $c->options->{id});
-                say STDERR "$0 host-update  --name=s | --id=i [--pool_count=s] [--active | --noactive] [--comment=s] [--verbose|-v] [--help|-?]";
-                say STDERR "    --name         Name of the host";
-                say STDERR "    --id           Id of the host; If both id and name are given you can change the name.";
-                say STDERR "    --active       Make host active; without it host will be initially deactivated";
-                say STDERR "    --pool_count   Update the sum pool count of a host. Empty string make host a nonpool host. This works only if host is deactivated";
-                say STDERR "    --active       Make host active";
-                say STDERR "    --noactive     Make host non-active";
-                say STDERR "    --comment      Update host comment";
-                say STDERR "    --verbose|v    More verbose output";
-                exit -1;
-        }
+sub ar_get_host_update_parameters {
+    return [
+        [ 'id|i=i'              , 'change host with this id; required',                                                     ],
+        [ 'name|n=s'            , 'update name',                                                                            ],
+        [ 'comment|c:s'         , 'Set a new comment for the host',                                                         ],
+        [ 'addboundqueue=s@'    , 'Bind host to named queue without deleting other bindings (queue has to exists already)', ],
+        [ 'delboundqueue:s@'    , q#delete queue from this host's bindings, empty string means 'all bindings'#,             ],
+        [ 'adddeniedqueue=s@'   , 'mark host as denied for a specific queue',                                               ],
+        [ 'deldeniedqueue:s@'   , 'remove denied queue for host',                                                           ],
+        [ 'active|a=i'          , 'set active flag to this value, possible values 0 (inactive) and 1 (active)',              ],
+        [ 'verbose|v'           , 'some more informational output',                                                         ],
+        [ 'help|?'              , 'Print this help message and exit.',                                                      ],
+    ];
+}
 
-        if ($c->options->{name} and not $c->options->{id}) {
-                my $host = model('TestrunDB')->resultset('Host')->search({name => $c->options->{name}}, {rows => 1})->first;
-                if (not  $host) {
-                        die "No such host: ", $c->options->{name}, "\n";
-                }
-                $c->options->{id} = $host->id;
-        }
+=head2 b_host_update
 
-        my $host = model('TestrunDB')->resultset('Host')->find($c->options->{id});
-        if (not $host) {
-                die "No host with id ", $c->options->{id}, "\n";
-        }
+update host data
 
-        $host->active($c->options->{active})         if defined($c->options->{active});
-        $host->name($c->options->{name})             if $c->options->{name};
-        $host->comment($c->options->{comment})       if defined($c->options->{comment});
-        $host->pool_count($c->options->{pool_count}) if defined($c->options->{pool_count});
-        $host->update;
+=cut
+
+sub b_host_update {
+
+    my ( $or_app_rad ) = @_;
+
+    my $ar_parameters = ar_get_host_update_parameters();
+    $or_app_rad->getopt( map { $_->[0] } @{$ar_parameters} );
+    my $hr_options = $or_app_rad->options;
+
+    if ( $hr_options->{help} ) {
+        say {*STDERR} "Usage: $PROGRAM_NAME host-update [options]";
+        require Tapper::CLI::Base;
+        Tapper::CLI::Base::b_print_help( $ar_parameters );
         return;
+    }
+
+    if (! $hr_options->{id} ) {
+        die "error: missing required parameter 'id'\n";
+    }
+    if ( defined $hr_options->{active} && !grep { $hr_options->{active} == $_ } 0,1 ) {
+        die "error: parameter '$hr_options->{active}' is not valid for 'active'\n";
+    }
+
+    require Tapper::Model;
+    if ( my $or_host = Tapper::Model::model('TestrunDB')->resultset('Host')->find( $hr_options->{id} ) ) {
+
+        my $b_update = 0;
+        if ( defined $hr_options->{active} && $hr_options->{active} != $or_host->active ) {
+            $b_update = 1;
+            $or_host->active( $hr_options->{active} );
+            if ( $hr_options->{active} == 0 ) {
+                b_update_grub( $or_host->name );
+            }
+        }
+
+        if ( $hr_options->{name} && $hr_options->{name} ne $or_host->name ) {
+            $b_update = 1;
+            $or_host->name( $hr_options->{name} );
+        }
+        if ( defined $hr_options->{comment} && $hr_options->{comment} ne $or_host->comment ) {
+            $b_update = 1;
+            $or_host->comment( $hr_options->{comment} );
+        }
+        for my $s_type (qw/ bound denied /) {
+            if ( $hr_options->{"add${s_type}queue"} ) {
+                $b_update ||= i_add_queues( $or_host, $s_type, $hr_options->{"add${s_type}queue"} );
+            }
+            if ( defined $hr_options->{"del${s_type}queue"} ) {
+                $b_update ||= i_delete_queues( $or_host, $s_type, $hr_options->{"del${s_type}queue"} );
+            }
+        }
+
+        if ( $b_update ) {
+
+            require DateTime;
+            $or_host->updated_at( DateTime->now->strftime('%F %T') );
+
+            if (! $or_host->update ) {
+                die "error: cannot update host\n";
+            }
+
+        }
+        else {
+            say {*STDERR} "info: nothing to update";
+        }
+        if ( $hr_options->{verbose} ) {
+            print_hosts_verbose( $or_host );
+        }
+
+    }
+    else {
+        die "error: no such host = $hr_options->{id}\n";
+    }
+
+    return;
+
 }
 
 =head2 setup
@@ -473,13 +960,27 @@ Initialize the testplan functions for tapper CLI
 sub setup
 {
         my ($c) = @_;
-        $c->register('host-list', \&listhost,  'Show all hosts matching a given condition');
-        $c->register('host-deny', \&host_deny, 'Setup or remove forbidden host/queue combinations');
-        $c->register('host-bind', \&host_bind, 'Setup or remove host/queue bindings');
-        $c->register('host-new',  \&host_new,  'Create a new host by name');
-        $c->register('host-update',  \&host_update,  'Update an existing host');
+
+        $c->register('host-list'            , \&listhost                , 'Show all hosts matching a given condition');
+        $c->register('host-deny'            , \&host_deny               , 'Setup or remove forbidden host/queue combinations');
+        $c->register('host-bind'            , \&host_bind               , 'Setup or remove host/queue bindings');
+        $c->register('host-new'             , \&host_new                , 'Create a new host by name');
+        $c->register('host-update'          , \&b_host_update           , 'update host data');
+        $c->register('host-delete'          , \&b_delete                , 'Delete a host');
+
+        #TODO: full implementation remaining
+        # $c->register('host-free'    , \&b_free_host , 'Free host');
+
         if ($c->can('group_commands')) {
-                $c->group_commands('Host commands', 'host-new', 'host-list', 'host-update', 'host-bind', 'host-deny',  );
+                $c->group_commands(
+                    'Host commands',
+                        'host-list',
+                        'host-new',
+                        'host-update',
+                        'host-delete',
+                        'host-bind',
+                        'host-deny',
+                );
         }
         return;
 }

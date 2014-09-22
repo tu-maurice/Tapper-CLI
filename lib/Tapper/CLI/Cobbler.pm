@@ -1,10 +1,9 @@
 package Tapper::CLI::Cobbler;
 
 use 5.010;
-use warnings;
-use strict;
 
-use Tapper::Cmd::Cobbler;
+use strict;
+use warnings;
 
 =head1 NAME
 
@@ -53,7 +52,7 @@ sub host_new
         $options{default} = $c->options->{default};
         $options{mac}     = $c->options->{mac};
 
-
+        require Tapper::Cmd::Cobbler;
         my $cmd = Tapper::Cmd::Cobbler->new();
         my $output = $cmd->host_new($name, \%options);
         return $output if $output;
@@ -86,6 +85,7 @@ sub host_del
         }
         my $name    = $c->options->{name};
 
+        require Tapper::Cmd::Cobbler;
         my $cmd = Tapper::Cmd::Cobbler->new();
         my $output = $cmd->host_del($name);
         die $output if $output;
@@ -115,6 +115,7 @@ sub host_list
                 exit -1;
         }
 
+        require Tapper::Cmd::Cobbler;
         my $cmd = Tapper::Cmd::Cobbler->new();
         my @output = $cmd->host_list();
         print join "\n",@output;

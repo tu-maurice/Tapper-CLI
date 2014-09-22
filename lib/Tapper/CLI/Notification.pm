@@ -4,9 +4,6 @@ use 5.010;
 use warnings;
 use strict;
 
-use YAML::XS;
-use Tapper::Cmd::Notification;
-
 =head1 NAME
 
 Tapper::CLI::Notification - Tapper - notification commands for the tapper CLI
@@ -49,13 +46,15 @@ sub notificationnew
                 say STDERR "        --verbose          Be chatty";
                 say STDERR "        --quiet            Stay silent when notification was added";
                 say STDERR "        --help             print this help message and exit";
-                exit -1;
+                return;
         }
 
+        require Tapper::Cmd::Notification;
         my $cmd = Tapper::Cmd::Notification->new();
         my $user = $c->options->{user};
 
         my @ids;
+        require YAML::XS;
         my @subscriptions =  YAML::XS::LoadFile($c->options->{file});
         foreach my $subscription (@subscriptions) {
                 if ($user) {
@@ -83,6 +82,10 @@ Show all or a subset of notification subscriptions
 sub notificationlist
 {
         my ($c) = @_;
+
+        require YAML::XS;
+        require Tapper::Cmd::Notification;
+
         my $cmd = Tapper::Cmd::Notification->new();
         my $subscription_result = $cmd->list();
         while (my $this_subscription = $subscription_result->next) {
@@ -117,11 +120,13 @@ sub notificationupdate
                 say STDERR "\n  Optional arguments:";
                 say STDERR "        --quiet            stay silent when notification was updated";
                 say STDERR "        --help             print this help message and exit";
-                exit -1;
+                return;
         }
 
+        require Tapper::Cmd::Notification;
         my $cmd = Tapper::Cmd::Notification->new();
 
+        require YAML::XS;
         my $subscription =  YAML::XS::LoadFile($c->options->{file});
         my $id = $cmd->update($c->options->{id}, $subscription);
 
@@ -154,9 +159,10 @@ sub notificationdel
                 say STDERR "\n  Optional arguments:";
                 say STDERR "        --quiet            Stay silent when deleting succeeded";
                 say STDERR "        --help             print this help message and exit";
-                exit -1;
+                return;
         }
 
+        require Tapper::Cmd::Notification;
         my $cmd = Tapper::Cmd::Notification->new();
 
         my $id = $cmd->del($c->options->{id});
@@ -182,7 +188,14 @@ sub setup
         $c->register('notification-update', \&notificationupdate, 'Update an existing notification subscription');
         $c->register('notification-del', \&notificationdel, 'Delete an existing notification subscription');
         if ($c->can('group_commands')) {
-                $c->group_commands('Notification commands', 'notification-add', 'notification-new', 'notification-list', 'notification-update', 'notification-del');
+                $c->group_commands(
+                    'Notification commands',
+                        'notification-add',
+                        'notification-new',
+                        'notification-list',
+                        'notification-update',
+                        'notification-del',
+                );
         }
         return;
 }

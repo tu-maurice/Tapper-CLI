@@ -50,9 +50,9 @@ sub validate_args {
                 say "Missing argument --db\n";
                 $ok = 0;
         }
-        elsif (not $opt->{db} =~ /^ReportsDB|TestrunDB$/)
+        elsif (not $opt->{db} = 'TestrunDB')
         {
-                say "Wrong DB name '".$opt->{db}."' (must be ReportsDB or TestrunDB)";
+                say "Wrong DB name '".$opt->{db}."' (must be TestrunDB)";
                 $ok = 0;
         }
 
@@ -84,6 +84,6 @@ sub run
                                   );
 }
 
-# perl -Ilib bin/tapper-db-deploy saveschema --db=ReportsDB
+# perl -Ilib bin/tapper-db-deploy saveschema --db=TestrunDB
 
 1;

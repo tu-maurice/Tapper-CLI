@@ -4,9 +4,6 @@ use 5.010;
 use warnings;
 use strict;
 
-use Tapper::Model 'model';
-use Compress::Bzip2;
-
 =head1 NAME
 
 Tapper::CLI::Schema - Tapper - handle everything related to schema changes
@@ -45,7 +42,10 @@ sub zipfiles
                 say STDERR "\t--help\t\tprint this help message and exit";
                 exit -1;
         }
-        my $uncompressed_files  = model('ReportsDB')->resultset('ReportFile')->search({is_compressed => 0});
+
+        require Compress::Bzip2;
+        require Tapper::Model;
+        my $uncompressed_files  = Tapper::Model::model('TestrunDB')->resultset('ReportFile')->search({is_compressed => 0});
         while (my $file = $uncompressed_files->next) {
                 my $compressed;
                 eval { $compressed = memBzip( $file->filecontent) };
