@@ -80,7 +80,7 @@ sub execute {
         my ($self, $opt, $args) = @_;
         my %options= (order_by => 'name');
         my %search;
-        $search{is_deleted} = {-in => [ 0, undef ] } unless $opt->{all};
+        $search{is_deleted} = [ 0, undef ] unless $opt->{all};
         if ($opt->{minprio} and $opt->{maxprio}) {
                 $search{"-and"} = [ priority => {'>=' => $opt->{minprio}}, priority => {'<=' => $opt->{maxprio}}];
         } else {
