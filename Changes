@@ -1,6 +1,7 @@
 Revision history for {{$dist->name}}
 
 {{$NEXT}}
+        - RT#93985 - fix wrong SQL::Abstract usage [thanks to Tomohiro Hosaka]
 
 4.1.3     2012-11-26
         - fix tests for changed testplan subcommand
