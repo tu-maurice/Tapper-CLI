@@ -1,6 +1,7 @@
 Revision history for {{$dist->name}}
 
 {{$NEXT}}
+        - fix yet another wrong SQL::Abstract usage
 
 4.1.5     2015-11-27
         - re-upload with TAPPER user, same as 4.1.4
