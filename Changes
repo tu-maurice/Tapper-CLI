@@ -1,6 +1,7 @@
 Revision history for {{$dist->name}}
 
 {{$NEXT}}
+        - no warnings "experimental::smartmatch"
 
 4.1.6     2015-12-01
         - fix yet another wrong SQL::Abstract usage

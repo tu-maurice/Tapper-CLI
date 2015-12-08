@@ -5,6 +5,7 @@ use 5.010;
 use strict;
 use warnings;
 no warnings 'uninitialized';
+no warnings "experimental::smartmatch";
 
 use parent 'App::Cmd::Command';
 
