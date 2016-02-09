@@ -14,7 +14,6 @@ my @modules = (
                'Tapper::CLI::DbDeploy::Command::saveschema',
                'Tapper::CLI::DbDeploy::Command::upgrade',
                'Tapper::CLI::Testrun',
-               'Tapper::CLI::Testplan',
               );
 
 plan tests => int @modules;
