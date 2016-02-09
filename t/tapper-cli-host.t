@@ -111,6 +111,7 @@ is($queue_result->queuehosts->first->host->name, 'host3', 'host3 bound to queue 
 qx($^X -Ilib bin/tapper host-bind --host=host3 --queue=AdHoc --off);
 is($queue_result->deniedhosts->count, 0, 'host3 binding to queue AdHoc removed');
 
+TODO: { local $TODO = "host-update --pool_count not yet implemented";
 $retval = qx($^X -Ilib bin/tapper host-update --name=host2 --pool_count 2);
 diag($retval) if $?;
 is($?, 0, 'Update host / return value');
@@ -130,5 +131,6 @@ $retval = qx($^X -Ilib bin/tapper host-list --name=host2 -v);
 diag($retval) if $?;
 is($?, 0, 'Update host / return value');
 like($retval, qr(1/3), 'Poolcount updated');
+}
 
 done_testing();
