@@ -13,6 +13,7 @@ construct_fixture( schema  => testrundb_schema, fixture => 't/fixtures/testrundb
 # -----------------------------------------------------------------------------------------------------------------
 
 
+SKIP: { skip "testplan handling not yet implemented", 11;
 my $testplan_id = `$^X -Ilib bin/tapper testplan-new --file t/files/testplan/osrc/athlon/kernel.mpc  -It/files/testplan/`;
 chomp $testplan_id;
 like($testplan_id, qr/^\d+$/, 'Testplan id is actually an id');
@@ -49,5 +50,6 @@ is($output, '1 - osrc/athlon/kernel.mpc - testruns: 3003, 3004, 3005, 3006', 'Li
 $output = `$^X -Ilib bin/tapper testplan-list --path '%osrc%' -v`;
 chomp $output;
 is($output, '1 - osrc/athlon/kernel.mpc - testruns: 3003, 3004, 3005, 3006', 'Path with condition, verbose');
+}
 
 done_testing();
