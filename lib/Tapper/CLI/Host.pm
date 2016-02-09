@@ -556,7 +556,7 @@ sub select_hosts
         my %options= (order_by => 'name');
         my %search;
         $search{active}     = 1 if $opt->{active};
-        $search{is_deleted} = {-in => [ 0, undef ] } unless $opt->{all};
+        $search{is_deleted} = [ 0, undef ] unless $opt->{all};
         $search{free}       = 1 if $opt->{free};
         $search{pool_count} = { not => undef } if $opt->{pool};
 
