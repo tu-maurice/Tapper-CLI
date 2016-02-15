@@ -1,6 +1,7 @@
 Revision history for {{$dist->name}}
 
 {{$NEXT}}
+        - drop obsolete Tapper::Testplan usage
 
 4.1.3     2012-11-26
         - fix tests for changed testplan subcommand
