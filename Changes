@@ -1,6 +1,8 @@
 Revision history for {{$dist->name}}
 
 {{$NEXT}}
+        - ...but do not throw away the complete testplan frontend but
+          only the non-working parts in it
 
 5.0.0     2016-02-15
         - drop obsolete Tapper::Testplan usage
