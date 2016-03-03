@@ -17,6 +17,7 @@ sub setup {
     for my $s_module (qw/
         Tapper::CLI::Notification
         Tapper::CLI::Schema
+        Tapper::CLI::Testplan
         Tapper::CLI::User
         Tapper::CLI::Host
         Tapper::CLI::HostFeature
