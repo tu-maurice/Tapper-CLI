@@ -1,6 +1,8 @@
 Revision history for {{$dist->name}}
 
 {{$NEXT}}
+
+5.0.1     2016-03-03
         - ...but do not throw away the complete testplan frontend but
           only the non-working parts in it
 
