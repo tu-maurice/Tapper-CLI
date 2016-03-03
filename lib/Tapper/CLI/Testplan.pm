@@ -6,6 +6,7 @@ use warnings;
 use strict;
 use Perl6::Junction qw/all/;
 use English '-no_match_vars';
+no if $] >= 5.018, warnings => "experimental";
 
 use JSON::XS;
 use YAML::XS;
@@ -27,58 +28,6 @@ arguments as $c->options->{$arg}.
     App::Rad->run();
 
 =head1 FUNCTIONS
-
-=head2 testplansend
-
-Send testplan reports to Taskjuggler. If optional names are given only tasks
-that match at least one such name are reported.
-
-@optparam name  - full subtask path (bot dot and slash are allowed as separatot)
-@optparam quiet - stay silent when testplan was sent
-@optparam help  - print out help message and die
-
-=cut
-
-sub testplansend
-{
-        my ($c) = @_;
-        $c->getopt( 'name|n=s@','file|f=s@','quiet|q', 'help|?' );
-
-        if ( $c->options->{help} ) {
-                say STDERR "Usage: $0 testplan-send [ --name=path ]* [ --file=filename ]  [ --quiet ]";
-                say STDERR "";
-                say STDERR "    --name       Path name to request only this task to be reported.";
-                say STDERR "                 Slash(/) or dot(.) are allowed as separators.";
-                say STDERR "                 Can be given multiple times.";
-                say STDERR "                 Can be combined with --file.";
-                say STDERR "    --file       File containing tasknames to be reported, one per line.";
-                say STDERR "                 Slash(/) or dot(.) are allowed as separators.";
-                say STDERR "                 Can be given multiple times.";
-                say STDERR "                 Can be combined with --name.";
-                say STDERR "    --quiet      Stay silent when testplan was sent.";
-                say STDERR "    --help       Print this help message and exit.";
-                exit -1;
-        }
-
-        my @names;
-        if ($c->options->{name}) {
-                push @names, map { tr|.|/|; { path => $_ } } @{$c->options->{name}}; ## no critic
-        }
-        if ($c->options->{file}) {
-                foreach my $file (@{$c->options->{file}}) {
-                        open my $FILE, "<", $file or die "Cannot open $file";
-                        my @tasknames = map { chomp ; $_ } <$FILE>;
-                        close $FILE;
-                        push @names, map { tr|.|/|; { path => $_ } } @tasknames; ## no critic
-                }
-        }
-
-        require Tapper::Testplan::Reporter;
-        my $reporter = Tapper::Testplan::Reporter->new();
-        $reporter->run(@names);
-        return "Sending testplan finished" unless $c->options->{quiet};
-        return;
-}
 
 =head2 testplanlist
 
@@ -119,7 +68,6 @@ sub testplanlist
         }
         my @ids;
         my $filtered;
-        my $instances = model('TestrunDB')->resultset('TestplanInstance');
         my $format    = $c->options->{format};
 
         require Tapper::Model;
@@ -152,13 +100,14 @@ sub testplanlist
                                 push @ids, $instance->id;
                         }
                 }
-                $instances = model('TestrunDB')->resultset('TestplanInstance')->search({id => [ @ids ]});
+                $instances = Tapper::Model::model('TestrunDB')->resultset('TestplanInstance')->search({id => [ @ids ]});
         }
 
         if ($c->options->{quiet}) {
                 return join ("\n",@ids);
         }
 
+        my %inst_data;
         my $instances = Tapper::Model::model('TestrunDB')->resultset('TestplanInstance')->search({id => \@ids});
         while (my $instance = $instances->next) {
                 $inst_data{$instance->id} =
@@ -192,50 +141,6 @@ sub testplanlist
                 }
         }
 
-}
-
-=head2 testplan_tj_send
-
-Send all testplans reports choosen by Taskjuggler.
-
-=cut
-
-sub testplan_tj_send
-{
-        my ($c) = @_;
-        if ( $c->options->{help} ) {
-                say STDERR "Usage: $0 testplan-tj-send";
-                say STDERR "";
-                say STDERR "    --help       Print this help message and exit.";
-                exit -1;
-        }
-
-        require Tapper::Testplan::Reporter;
-        my $reporter = Tapper::Testplan::Reporter->new();
-        $reporter->run;
-        return 0;
-}
-
-
-=head2 testplan_tj_generate
-
-Apply all testplans choosen by Taskjuggler.
-
-=cut
-
-sub testplan_tj_generate
-{
-        my ($c) = @_;
-        if ( $c->options->{help} ) {
-                say STDERR "Usage: $0 testplan-tj-generate";
-                say STDERR "";
-                say STDERR "    --help       Print this help message and exit.";
-                exit -1;
-        }
-        require Tapper::Testplan::Generator;
-        my $generator = Tapper::Testplan::Generator->new();
-        $generator->run;
-        return 0;
 }
 
 =head2 testplannew
