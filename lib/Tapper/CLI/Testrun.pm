@@ -219,6 +219,9 @@ sub ar_get_create_testrun_parameters {
             'verbose|v',
             'some more informational output',
         ],[
+            'dryrun',
+            'default=0; only print the preconditions to stdout and then exit',
+        ],[
             'auto_rerun',
             'default=0; put this testrun into db again when it is chosen by scheduler',
         ],[
@@ -253,14 +256,12 @@ sub create_macro_preconditions {
     my ( $hr_options ) = @_;
 
     my $hr_d = $hr_options->{D}; # options are auto-down-cased
+    my $b_dryrun = $hr_options->{dryrun};
+    my $s_ttapplied = $hr_options->{macroprecond_evaluated};
 
-    require Template;
-    my $or_tt = Template->new();
-    my $s_macro = $hr_options->{macropreconds};
-
-    my $s_ttapplied;
-    if (! $or_tt->process( \$s_macro, $hr_d, \$s_ttapplied ) ) {
-        die 'error: ' . $or_tt->error() . "\n";
+    if ($b_dryrun) {
+        print $s_ttapplied;
+        exit 0;
     }
 
     require Tapper::Cmd::Precondition;
@@ -329,8 +330,13 @@ sub s_create_testrun_parameter_check {
     if ( $hr_options->{macroprecond} ) {
         if ( -e $hr_options->{macroprecond} ) {
 
-            $hr_options->{macropreconds} = File::Slurp::slurp( $hr_options->{macroprecond} );
-            if ( (my $s_required) = $hr_options->{macropreconds} =~/^# (?:tapper[_-])?mandatory[_-]fields:\s*(.+)/m ) {
+            require Tapper::Cmd;
+            my $or_cmd = Tapper::Cmd->new;
+            my $s_mpc_file = $hr_options->{macroprecond};
+            my $hr_d = $hr_options->{D};
+
+            $hr_options->{macroprecond_evaluated} = $or_cmd->apply_macro($s_mpc_file, $hr_d);
+            if ( (my $s_required) = $hr_options->{macroprecond_evaluated} =~/^# (?:tapper[_-])?mandatory[_-]fields:\s*(.+)/m ) {
                 my $re_delim = qr/,+\s*/;
                 foreach my $s_field ( split $re_delim, $s_required ) {
                     $s_field =~ s/\s+//g;
