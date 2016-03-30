@@ -1,6 +1,7 @@
 Revision history for {{$dist->name}}
 
 {{$NEXT}}
+        - more explicit dependencies
 
 5.0.2     2016-03-03
         - let EU:MM decide bin path
