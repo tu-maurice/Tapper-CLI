@@ -1,6 +1,8 @@
 Revision history for {{$dist->name}}
 
 {{$NEXT}}
+
+5.0.5     2017-02-14
         - testplan-pause ... pause testrun by setting state to 'prepared'
         - testplan-continue ... continue a paused testrun by setting state to 'schedule'
 
