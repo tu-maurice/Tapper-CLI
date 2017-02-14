@@ -185,6 +185,29 @@ ok($testrun->id, 'inserted testrun / id');
 my $notify = model('TestrunDB')->resultset('Notification')->first;
 is($notify->filter, "testrun('id') == $testrun_id", 'Notification with filter');
 
+# --------------------------------------------------
+#         Pause/Continue
+# --------------------------------------------------
+
+# validate current state after new
+my $job;
+$job = model('TestrunDB')->resultset('TestrunScheduling')->search({testrun_id => $testrun_id})->first; # refetch
+is($job->status(), 'schedule', 'state after new is schedule');
+
+# pause
+my $paused_testrun_id = `$^X -Ilib bin/tapper testrun-pause --id=$testrun_id`;
+$job = model('TestrunDB')->resultset('TestrunScheduling')->search({testrun_id => $testrun_id})->first; # refetch
+is($job->status, 'prepare', 'state after pause is prepare');
+
+# continue
+my $continued_testrun_id = `$^X -Ilib bin/tapper testrun-continue --id=$testrun_id`;
+$job = model('TestrunDB')->resultset('TestrunScheduling')->search({testrun_id => $testrun_id})->first; # refetch
+is($job->status, 'schedule', 'state after continue is schedule');
+
+# --------------------------------------------------
+#         Cancel
+# --------------------------------------------------
+
 $testrun->testrun_scheduling->status('running');
 $testrun->testrun_scheduling->update;
 

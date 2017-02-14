@@ -883,6 +883,64 @@ sub b_cancel
 }
 
 
+=head2 b_pause
+
+Pause a not-yet-running testrun.
+
+=cut
+
+sub b_pause
+{
+
+        my ($c) = @_;
+        $c->getopt( 'id=i@','help|?', 'verbose|v' );
+        if ( $c->options->{help} or not $c->options->{id}) {
+                say STDERR "Please set at least one testrun id with --id!" unless @{$c->options->{id} || []};
+                say STDERR "$PROGRAM_NAME testrun-pause --id=i@ [--verbose|v] [--help|?]";
+                say STDERR "    --id            Id of the testrun to pause, can be given multiple times";
+                say STDERR "    --help|?        Print this help message and exit";
+                return;
+        }
+
+        require Tapper::Cmd::Testrun;
+        my $cmd = Tapper::Cmd::Testrun->new();
+        foreach my $id (@{$c->options->{id}}) {
+                my $retval = $cmd->pause($id);
+                say $id if $retval;
+        }
+        return;
+}
+
+
+=head2 b_continue
+
+Continue a paused testrun.
+
+=cut
+
+sub b_continue
+{
+
+        my ($c) = @_;
+        $c->getopt( 'id=i@','help|?', 'verbose|v' );
+        if ( $c->options->{help} or not $c->options->{id}) {
+                say STDERR "Please set at least one testrun id with --id!" unless @{$c->options->{id} || []};
+                say STDERR "$PROGRAM_NAME testrun-continue --id=i@ [--verbose|v] [--help|?]";
+                say STDERR "    --id            Id of the testrun to continue, can be given multiple times";
+                say STDERR "    --help|?        Print this help message and exit";
+                return;
+        }
+
+        require Tapper::Cmd::Testrun;
+        my $cmd = Tapper::Cmd::Testrun->new();
+        foreach my $id (@{$c->options->{id}}) {
+                my $retval = $cmd->continue($id);
+                say $id if $retval;
+        }
+        return;
+}
+
+
 =head2 setup
 
 Initialize the testplan functions for tapper CLI
@@ -897,6 +955,8 @@ sub setup {
     $or_apprad->register( 'testrun-update' , \&testrun_update   , 'Update an existing testrun', );
     $or_apprad->register( 'testrun-rerun'  , \&b_rerun          , 'Rerun an existing testrun with the same preconditions', );
     $or_apprad->register( 'testrun-delete' , \&b_delete         , 'Delete a testrun', );
+    $or_apprad->register( 'testrun-pause'  , \&b_pause          , 'Pause a not-yet-running testrun', );
+    $or_apprad->register( 'testrun-continue',\&b_continue       , 'Continue a paused testrun', );
     $or_apprad->register( 'testrun-cancel' , \&b_cancel         , 'Cancel a running testrun', );
     $or_apprad->register( 'testrun-new'    , \&b_create_testrun , 'Create a testrun', );
 
@@ -908,6 +968,8 @@ sub setup {
                 'testrun-update',
                 'testrun-rerun',
                 'testrun-delete',
+                'testrun-pause',
+                'testrun-continue',
                 'testrun-cancel',
         );
     }

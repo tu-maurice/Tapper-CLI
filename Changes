@@ -1,6 +1,8 @@
 Revision history for {{$dist->name}}
 
 {{$NEXT}}
+        - testplan-pause ... pause testrun by setting state to 'prepared'
+        - testplan-continue ... continue a paused testrun by setting state to 'schedule'
 
 5.0.4     2016-03-30
         - testplan-new --dryrun to just print an evaluated macro precondition
