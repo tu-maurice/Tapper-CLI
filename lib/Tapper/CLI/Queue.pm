@@ -36,25 +36,26 @@ print column data for a single queue row to STDOUT
 
 sub b_print_single_queue {
 
-    my ( $or_testrun ) = @_;
+    my ( $or_queue ) = @_;
 
     print  "\n";
-    printf "%22s: %s\n", 'Id'       , $or_testrun->id;
-    printf "%22s: %s\n", 'Name'     , $or_testrun->name;
-    printf "%22s: %s\n", 'Priority' , $or_testrun->priority;
-    printf "%22s: %s\n", 'Active'   , $or_testrun->active;
+    printf "%22s: %s\n", 'Id'       , $or_queue->id;
+    printf "%22s: %s\n", 'Name'     , $or_queue->name;
+    printf "%22s: %s\n", 'Priority' , $or_queue->priority;
+    printf "%22s: %s\n", 'Runcount' , $or_queue->runcount;
+    printf "%22s: %s\n", 'Active'   , $or_queue->active;
 
-    if ( $or_testrun->queuehosts->count ) {
+    if ( $or_queue->queuehosts->count ) {
         printf "%22s: %s\n",
             'Bound hosts',
-            join ', ', map { $_->host->name } $or_testrun->queuehosts->all;
+            join ', ', map { $_->host->name } $or_queue->queuehosts->all;
     }
-    if ( $or_testrun->deniedhosts->count ) {
+    if ( $or_queue->deniedhosts->count ) {
         printf "%22s: %s\n",
             'Denied hosts',
-            join ', ', map { $_->host->name } $or_testrun->deniedhosts->all;
+            join ', ', map { $_->host->name } $or_queue->deniedhosts->all;
     }
-    if ( my @a_testrun_ids = $or_testrun->queued_testruns->get_column('testrun_id')->all ) {
+    if ( my @a_testrun_ids = $or_queue->queued_testruns->get_column('testrun_id')->all ) {
 
         my $i_counter           = 0;
         my $i_max_elements      = 15;
@@ -80,15 +81,15 @@ print column data for queues to STDOUT
 
 sub b_print_queues {
 
-    my ( $or_testruns ) = @_;
+    my ( $or_queues ) = @_;
 
-    if ( $or_testruns->isa('DBIx::Class::ResultSet') ) {
-        for my $or_testrun ( $or_testruns->all ) {
-            b_print_single_queue( $or_testrun );
+    if ( $or_queues->isa('DBIx::Class::ResultSet') ) {
+        for my $or_queue ( $or_queues->all ) {
+            b_print_single_queue( $or_queue );
         }
     }
     else {
-        b_print_single_queue( $or_testruns );
+        b_print_single_queue( $or_queues );
     }
     print "\n";
 
@@ -298,18 +299,18 @@ sub b_list_queues {
         $hr_search_options->{'select'} = ['id','name'];
     }
 
-    my $or_testrun_rs =
+    my $or_queue_rs =
         $or_schema
             ->resultset('Queue')
             ->search( $hr_search, $hr_search_options )
     ;
 
     if ( $hr_options->{verbose} ) {
-        b_print_queues( $or_testrun_rs );
+        b_print_queues( $or_queue_rs );
     }
     else {
         say "id     name";
-        foreach my $or_queue ( $or_testrun_rs->all ) {
+        foreach my $or_queue ( $or_queue_rs->all ) {
             printf "%06d %s\n", $or_queue->id, $or_queue->name;
         }
     }
