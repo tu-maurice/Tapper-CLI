@@ -192,7 +192,16 @@ sub testplannew
         if ($opt->{dryrun}) {
                 return  $cmd->apply_macro($opt->{file}, $opt->{substitutes}, $opt->{include});
         }
-        return $cmd->testplannew($opt);
+
+        my $answer = $cmd->testplannew($opt);
+        # Format:
+        #   TESTPLANID: TESTRUNID TESTRUNID TESTRUNID
+        my $output =
+          $answer->{testplan_id}
+          . ': '
+          . join(' ', @{$answer->{testrun_ids} || []});
+
+        return $output;
 }
 
 
