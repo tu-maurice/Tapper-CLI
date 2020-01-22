@@ -1,6 +1,7 @@
 Revision history for {{$dist->name}}
 
 {{$NEXT}}
+        - testplan-new ... new output format, also printing list of testruns
 
 5.0.5     2017-02-14
         - testplan-pause ... pause testrun by setting state to 'prepared'
