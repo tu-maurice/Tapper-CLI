@@ -123,7 +123,9 @@ sub testplanlist
         my $format    = $c->options->{format};
 
         require Tapper::Model;
-        if (@{$c->options->{testrun} || []}) {
+        if (@{$c->options->{id} || []}) {
+                @ids = @{$c->options->{id}};
+        } elsif (@{$c->options->{testrun} || []}) {
                 my $testruns = Tapper::Model::model('TestrunDB')->resultset('Testrun')->search({id => $c->options->{testrun}});
                 while (my $testrun = $testruns->next) {
                         push @ids, $testrun->testplan_id if $testrun->testplan_id;
