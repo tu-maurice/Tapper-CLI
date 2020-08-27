@@ -618,6 +618,50 @@ sub print_hosts_yaml
         return;
 }
 
+=head2 print_hosts_json
+
+Print information in JSON format.
+
+=cut
+
+sub print_hosts_json
+{
+        my ($hosts) = @_;
+        my @info;
+        while (my $host = $hosts->next ) {
+                my %host_data = (name       => $host->name,
+                                 comment    => $host->comment,
+                                 free       => $host->free,
+                                 active     => $host->active,
+                                 is_deleted => $host->is_deleted,
+                                 host_id    => $host->id,
+                                 );
+                my $job = $host->testrunschedulings->search({status => 'running'}, {rows => 1})->first; # this should always be only one
+                if ($job) {
+                        $host_data{running_testrun} = $job->testrun->id;
+                        $host_data{running_since}   = $job->testrun->starttime_testrun->iso8601;
+                }
+
+                if ($host->queuehosts->count > 0) {
+                        my @queues = map {$_->queue->name} $host->queuehosts->all;
+                        $host_data{queues} = \@queues;
+                }
+
+                my %features;
+                foreach my $feature ($host->features->all) {
+                        $features{$feature->entry} = $feature->value;
+                }
+                $host_data{features} = \%features;
+
+                push @info, \%host_data;
+        }
+
+        require JSON::XS;
+        print JSON::XS->new->utf8->encode(\@info);
+        print "\n";
+        return;
+}
+
 =head2 listhost
 
 List hosts matching given criteria.
@@ -627,9 +671,9 @@ List hosts matching given criteria.
 sub listhost
 {
         my ($c) = @_;
-        $c->getopt( 'free', 'name=s@', 'active', 'queue=s@', 'pool', 'all|a', 'verbose|v+', 'yaml', 'help|?' );
+        $c->getopt( 'free', 'name=s@', 'active', 'queue=s@', 'pool', 'all|a', 'verbose|v+', 'yaml', 'json', 'help|?' );
         if ( $c->options->{help} ) {
-                say STDERR "$0 host-list [ --verbose|v ] [ --free ] | [ --name=s ] [--pool] [ --active ] [ --queue=s@ ] [ --all|a] [ --yaml ]";
+                say STDERR "$0 host-list [ --verbose|v ] [ --free ] | [ --name=s ] [--pool] [ --active ] [ --queue=s@ ] [ --all|a] [ --yaml ] [ --json ]";
                 say STDERR "    --verbose      Increase verbosity level, without show only names, level one shows all but comments, level two shows all including comments";
                 say STDERR "    --free         List only free hosts";
                 say STDERR "    --name         Find host by name, implies verbose";
@@ -639,12 +683,15 @@ sub listhost
                 say STDERR "    --all          List all hosts, even deleted ones";
                 say STDERR "    --help         Print this help message and exit";
                 say STDERR "    --yaml         Print information in YAML format, implies verbose";
+                say STDERR "    --json         Print information in JSON format, implies verbose, yaml takes precedence over json";
                 return;
         }
         my $hosts = select_hosts($c->options);
 
         if ($c->options->{yaml}) {
                 print_hosts_yaml($hosts);
+        } elsif ($c->options->{json}) {
+                print_hosts_json($hosts);
         } elsif ($c->options->{verbose}) {
                 print_hosts_verbose($hosts, $c->options->{verbose});
         } else {
