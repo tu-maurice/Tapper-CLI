@@ -902,7 +902,8 @@ get "update host" parameters
 
 sub ar_get_host_update_parameters {
     return [
-        [ 'id|i=i'              , 'change host with this id; required',                                                     ],
+        [ 'id|i=i'              , 'change host with this id; this or selectbyname is required',                             ],
+        [ 'selectbyname=s'      , 'change host with this name; this or id is required',                                     ],
         [ 'name|n=s'            , 'update name',                                                                            ],
         [ 'comment|c:s'         , 'Set a new comment for the host',                                                         ],
         [ 'addboundqueue=s@'    , 'Bind host to named queue without deleting other bindings (queue has to exists already)', ],
@@ -937,15 +938,23 @@ sub b_host_update {
         return;
     }
 
-    if (! $hr_options->{id} ) {
-        die "error: missing required parameter 'id'\n";
-    }
     if ( defined $hr_options->{active} && !grep { $hr_options->{active} == $_ } 0,1 ) {
         die "error: parameter '$hr_options->{active}' is not valid for 'active'\n";
     }
 
+    my $or_host;
+
     require Tapper::Model;
-    if ( my $or_host = Tapper::Model::model('TestrunDB')->resultset('Host')->find( $hr_options->{id} ) ) {
+    if ( $hr_options->{id} ) {
+        $or_host = Tapper::Model::model('TestrunDB')->resultset('Host')->find( $hr_options->{id} );
+    } elsif ( $hr_options->{selectbyname} ) {
+        # There should be only one host with the name
+        $or_host = Tapper::Model::model('TestrunDB')->resultset('Host')->search({ name => $hr_options->{selectbyname} })->first;
+    } else {
+        die "error: missing required parameter 'id' or 'selectbyname'\n";
+    }
+
+    if ( $or_host ) {
 
         my $b_update = 0;
         if ( defined $hr_options->{active} && $hr_options->{active} != $or_host->active ) {
